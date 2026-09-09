@@ -103,30 +103,38 @@
         <img src="https://img.shields.io/github/license/ryanspice/pocketmic-lan?style=flat-square" alt="License">
       </div>
     </div>
-    <div class="hero-visual" aria-label="One UDP datagram: 24-byte header, 960-byte payload, 16-byte GCM tag">
-      <div class="datagram-card">
-        <p class="card-label">One encrypted packet<span class="card-label-sub">— 1000 bytes · 10 ms of audio · 100× per second</span></p>
-        <div class="datagram-bar">
-          <div class="seg seg-header" title="24-byte protocol header"></div>
-          <div class="seg seg-payload" title="960 bytes of 48 kHz mono PCM16">
-            <svg class="waveform" viewBox="0 0 460 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-              <path d="M0 20 C 14 20, 18 8, 30 12 C 44 17, 48 28, 62 24 C 78 19, 82 6, 96 10 C 112 15, 118 30, 132 26 C 148 21, 152 7, 166 11 C 182 16, 188 29, 202 25 C 218 20, 222 8, 236 12 C 252 17, 258 28, 272 24 C 288 19, 292 6, 306 10 C 322 15, 328 30, 342 26 C 358 21, 362 7, 376 11 C 392 16, 398 29, 412 25 C 428 20, 432 8, 446 12 C 452 13.5, 456 16, 460 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="seg seg-tag" title="16-byte GCM authentication tag"></div>
+    <div class="hero-visual" aria-label="PocketMic Android and Windows app screenshots">
+      <figure class="product-stage">
+        <div class="stage-back" aria-hidden="true"></div>
+        <div class="stage-label">
+          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><rect x="4" y="10" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 15v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
+          Your local connection
         </div>
-        <dl class="datagram-legend">
-          <div><span class="swatch sw-header"></span><dt>Header</dt><dd>24 B</dd></div>
-          <div><span class="swatch sw-payload"></span><dt>Audio</dt><dd>960 B PCM16</dd></div>
-          <div><span class="swatch sw-tag"></span><dt>GCM tag</dt><dd>16 B</dd></div>
-        </dl>
+        <div class="stage-note"><strong>Two apps.<br>One audio path.</strong><br>Phone to Windows.</div>
+        <a class="image-link phone-frame" href="assets/screenshots/android-app.webp" data-image-preview aria-label="Enlarge the Android app screenshot">
+          <img src="assets/screenshots/android-app-720.webp" width="720" height="1608" alt="PocketMic Android app with a masked pairing key, Voice mode, input gain, and Start button" fetchpriority="high" decoding="async">
+        </a>
+        <a class="image-link receiver-frame" href="assets/screenshots/windows-receiver.webp" data-image-preview aria-label="Enlarge the Windows receiver screenshot">
+          <img src="assets/screenshots/windows-receiver.webp" width="844" height="531" alt="PocketMic Windows receiver waiting for a phone, with CABLE Input audio routing" decoding="async">
+        </a>
+        <div class="signal-pill">
+          <div class="wave" aria-hidden="true">
+            <i style="--h:9px"></i><i style="--h:16px"></i><i style="--h:25px"></i><i style="--h:13px"></i><i style="--h:29px"></i>
+            <i style="--h:20px"></i><i style="--h:11px"></i><i style="--h:24px"></i><i style="--h:15px"></i><i style="--h:7px"></i>
+          </div>
+          <span><strong>48 kHz audio</strong>Encrypted over your LAN</span>
+        </div>
+        <figcaption class="stage-caption">Real app captures · illustrative layout, not a live connection</figcaption>
+      </figure>
+      <div class="hero-bottom">
+        <p>Route into the Windows apps<br>you already use, via VB-CABLE.</p>
+        <div class="app-names">
+          <span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M7 6h10c2 0 3 1 3.5 3l1.5 8c.4 2-2 3-3.5 1L16 15H8l-2.5 3C4 20 1.6 19 2 17l1.5-8C4 7 5 6 7 6Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 10v4M4 12h4M16 11h.01M19 13h.01" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Discord</span>
+          <span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 7a7 7 0 0 0 0 10M17 7a7 7 0 0 1 0 10M3 3a13 13 0 0 0 0 18M21 3a13 13 0 0 1 0 18" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>OBS Studio</span>
+          <span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><rect x="2" y="5" width="14" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m16 10 6-4v12l-6-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Teams</span>
+          <span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><rect x="8" y="2" width="8" height="13" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Zoom <small>&amp; other apps</small></span>
+        </div>
       </div>
-      <ul class="key-facts" aria-label="Key technical facts">
-        <li class="kf tile"><span class="kf-num">48 kHz</span><span class="kf-label">mono PCM16</span></li>
-        <li class="kf tile"><span class="kf-num tip" tabindex="0" aria-describedby="tip-pps">10 ms<span class="tip-bubble" id="tip-pps" role="tooltip">100 packets per second</span></span><span class="kf-label">UDP packets</span></li>
-        <li class="kf tile"><span class="kf-num tip" tabindex="0" aria-describedby="tip-cipher">AES-256<span class="tip-bubble" id="tip-cipher" role="tooltip">Key = SHA-256(pairing key)</span></span><span class="kf-label">encrypted</span></li>
-        <li class="kf tile"><span class="kf-num">LAN</span><span class="kf-label">your network</span></li>
-      </ul>
     </div>
   </div>
 </section>
