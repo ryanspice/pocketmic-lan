@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
@@ -92,7 +93,7 @@ fun QrScannerView(
                         .setTargetResolution(Size(1280, 720))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                         .build()
-                    analysis.setAnalyzer(ctx.mainExecutor) { imageProxy: ImageProxy ->
+                    analysis.setAnalyzer(ContextCompat.getMainExecutor(ctx)) { imageProxy: ImageProxy ->
                         val mediaImage = imageProxy.image
                         if (mediaImage != null) {
                             val input = InputImage.fromMediaImage(
@@ -128,7 +129,7 @@ fun QrScannerView(
                     } catch (_: Exception) {
                         // Camera unavailable — the user sees a blank preview.
                     }
-                }, ctx.mainExecutor)
+                }, ContextCompat.getMainExecutor(ctx))
                 previewView
             },
             modifier = Modifier

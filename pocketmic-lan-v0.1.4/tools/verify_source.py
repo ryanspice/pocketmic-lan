@@ -10,7 +10,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = "0.1.2"
+VERSION = "0.1.4"
 GRADLE_VERSION = "8.14.3"
 
 
@@ -99,8 +99,6 @@ def main() -> int:
     wrapper_properties = read("android/gradle/wrapper/gradle-wrapper.properties")
     receiver_project = read("windows-receiver/PocketMicReceiver.csproj")
     tests_project = read("windows-receiver-tests/PocketMicReceiver.Tests.csproj")
-    winui_project = read("windows-receiver-winui/PocketMicReceiver.WinUI.csproj")
-    launcher = read("windows-launcher/Program.cs")
     build_script = read("scripts/build-android.ps1")
     publish_script = read("scripts/publish-windows.ps1")
     firewall_script = read("scripts/allow-firewall.ps1")
@@ -131,7 +129,7 @@ def main() -> int:
     assert f'versionName = "{VERSION}"' in gradle
     assert f"<Version>{VERSION}</Version>" in receiver_project
     assert f"$AppVersion = '{VERSION}'" in build_script
-    assert "versionCode = 3" in gradle
+    assert "versionCode = 4" in gradle
 
     # The wrapper is the build contract: without it the APK depends on whichever Gradle happens
     # to be on PATH, which is how a machine-specific build becomes an unreproducible one.
@@ -301,38 +299,9 @@ def main() -> int:
     assert "SilentTakeover" in receiver
     assert "public bool SilentTakeover { get; set; }" in core_sources["ReceiverSettings.cs"]
 
-    # Release payload shape. Only one front end may carry a private copy of .NET: the WinForms
-    # receiver, which is the fallback and therefore the one that has to run on a machine with
-    # nothing installed. Flipping the WinUI app back to self-contained silently doubles the
-    # download, so the pairing is asserted rather than left to whoever edits the file next.
-    assert "<SelfContained>false</SelfContained>" in winui_project
-    assert "<WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>" in winui_project
+    # The checked-in release script publishes the current WinForms receiver self-contained, so a
+    # release machine does not need a separate .NET runtime installed.
     assert "--self-contained true" in publish_script
-
-    # The notification-area icon is hand-rolled so the WinUI app does not acquire a desktop
-    # framework through System.Drawing.Common, which is what H.NotifyIcon.WinUI reaches the tray
-    # through. Taking the package back would undo that without anything else noticing.
-    tray = read("windows-receiver-winui/TrayIcon.cs")
-    assert 'Include="H.NotifyIcon' not in winui_project
-    assert 'Include="System.Drawing' not in winui_project
-    assert "Shell_NotifyIconW" in tray
-    # An icon that is not re-added when Explorer restarts leaves a running app unreachable.
-    assert '"TaskbarCreated"' in tray
-
-    # Restore and build must stay separate invocations: the WinUI targets arrive through NuGet and
-    # are not imported by a build that restores them in the same MSBuild run, so a clean clone
-    # silently produces a WinForms-only release.
-    assert "/t:Restore `" in publish_script
-    assert "/t:Build `" in publish_script
-    assert "/t:Restore`;Build" not in publish_script
-
-    # Which makes the launcher's runtime check load-bearing: without it the default path starts a
-    # framework-dependent app on a machine that cannot run it.
-    assert "SharedFramework.Satisfies(requirements)" in launcher
-    assert '"includedFrameworks"' in launcher
-    assert 'Path.Combine(root, "shared", requirement.Name)' in launcher
-    assert "version.Major == requirement.Version.Major" in launcher
-    assert "--classic" in launcher
 
     assert "testDebugUnitTest" in build_script
     assert "lintDebug" in build_script
@@ -355,18 +324,13 @@ def main() -> int:
     assert r"..\windows-receiver-core\PocketMicReceiver.Core.csproj" in tests_project
 
     xml_files = list((ROOT / "android/app/src/main").rglob("*.xml"))
-    # The WinUI markup replaces the throwaway winui-probe these checks used to cover. It is the
-    # only part of the product whose UI is declared rather than written, so a truncated or
-    # unbalanced XAML file is a class of breakage nothing else here would catch.
-    xml_files.extend(sorted((ROOT / "windows-receiver-winui").glob("*.xaml")))
+    # Android resources and the Windows manifest are declared rather than written, so a truncated
+    # or unbalanced XML file is a class of breakage nothing else here would catch.
     xml_files.append(require("windows-receiver/app.manifest"))
-    xml_files.append(require("windows-receiver-winui/app.manifest"))
     for project in (
         "windows-receiver/PocketMicReceiver.csproj",
         "windows-receiver-core/PocketMicReceiver.Core.csproj",
         "windows-receiver-tests/PocketMicReceiver.Tests.csproj",
-        "windows-receiver-winui/PocketMicReceiver.WinUI.csproj",
-        "windows-launcher/PocketMic.Launcher.csproj",
     ):
         xml_files.append(require(project))
     assert xml_files, "no XML files found"
@@ -381,9 +345,6 @@ def main() -> int:
         csharp_sources.append((f"Analytics/{source.name}", source.read_text(encoding="utf-8")))
     for source in sorted((ROOT / "windows-receiver-tests").glob("*.cs")):
         csharp_sources.append((source.name, source.read_text(encoding="utf-8")))
-    for source in sorted((ROOT / "windows-receiver-winui").glob("*.cs")):
-        csharp_sources.append((f"WinUI/{source.name}", source.read_text(encoding="utf-8")))
-    csharp_sources.append(("Launcher/Program.cs", launcher))
     for label, source in csharp_sources:
         balanced_csharp(source, label)
 

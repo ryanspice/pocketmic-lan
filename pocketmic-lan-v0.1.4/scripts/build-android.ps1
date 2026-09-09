@@ -20,7 +20,7 @@ $AndroidRoot = Join-Path $Root 'android'
 # versions once the wrapper was added - the classic way a build becomes reproducible for one
 # person and not another.
 $GradleBat = Join-Path $AndroidRoot 'gradlew.bat'
-$AppVersion = '0.1.2'
+$AppVersion = '0.1.4'
 
 function Resolve-AndroidSdk {
     $candidates = @(

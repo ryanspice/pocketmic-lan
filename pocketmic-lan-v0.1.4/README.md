@@ -1,4 +1,4 @@
-# PocketMic LAN v0.1.2
+# PocketMic LAN v0.1.4
 
 PocketMic sends microphone audio from an Android phone to a Windows output destination over the same private LAN, with authenticated encryption on every packet.
 
@@ -6,13 +6,13 @@ The package contains source plus one-command PowerShell builds. It does not pret
 
 ## Project links
 
-- Source: <https://github.com/canopydigital/pocketmic-lan>
-- Releases: <https://github.com/canopydigital/pocketmic-lan/releases>
-- Android APK: <https://github.com/canopydigital/pocketmic-lan/releases/latest/download/PocketMic-v0.1.2-debug.apk>
-- Windows receiver: <https://github.com/canopydigital/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip>
-- Release checksums: <https://github.com/canopydigital/pocketmic-lan/releases/latest/download/SHA256SUMS.txt>
+- Source: <https://github.com/ryanspice/pocketmic-lan>
+- Releases: <https://github.com/ryanspice/pocketmic-lan/releases>
+- Android APK: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.4-debug.apk>
+- Windows receiver: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip>
+- Release checksums: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/SHA256SUMS.txt>
 
-The release URLs become live only after matching assets are published. No release has been published from this working tree yet.
+The release URLs become live after matching assets are published with the v0.1.4 GitHub release.
 
 ## What is included
 
@@ -45,19 +45,19 @@ Set-ExecutionPolicy -Scope Process Bypass
 .\scripts\publish-windows.ps1
 ```
 
-The Android script downloads Gradle 8.13 once and verifies its pinned SHA-256 checksum before use. Its default path runs the JVM unit test, Android lint, and the requested APK build.
+The Android script uses the committed Gradle 8.14.3 wrapper. Its default path runs the JVM unit test, Android lint, and the requested APK build.
 
 Expected outputs:
 
 ```text
-release\PocketMic-v0.1.2-debug.apk
+release\PocketMic-v0.1.4-debug.apk
 release\PocketMicReceiver-win-x64.zip
 ```
 
 Install or update the Android app:
 
 ```powershell
-adb install -r .\release\PocketMic-v0.1.2-debug.apk
+adb install -r .\release\PocketMic-v0.1.4-debug.apk
 ```
 
 ## Faster rebuilds
@@ -83,7 +83,7 @@ Unsigned release build:
 Output:
 
 ```text
-release\PocketMic-v0.1.2-release-unsigned.apk
+release\PocketMic-v0.1.4-release-unsigned.apk
 ```
 
 ## How it works
@@ -130,11 +130,11 @@ python .\tools\verify_receiver_logic.py
 python .\tools\verify_source.py
 ```
 
-See `BUILD_STATUS.md` and `PERFORMANCE_AUDIT.md` for the exact completed and pending verification scope.
+See `PERFORMANCE_AUDIT.md` for the completed and pending verification scope.
 
 ## Marketing screenshot provenance
 
-The website uses real captures from the v0.1.2 artifacts built by the scripts above:
+The website uses committed product captures. Rebuild both artifacts and recapture these states whenever the UI or release version changes:
 
 - `web/assets/screenshots/android-setup.png` — captured from the debug APK on a OnePlus 9 Pro after disabling auto-connect and clearing the address field; Android system chrome was cropped, but the app UI was not altered.
 - `web/assets/screenshots/windows-receiver.png` — captured from the self-contained WinForms receiver while listening on UDP 49500, waiting for a phone, with zero packet/loss counters.
@@ -181,7 +181,7 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 ## Current limits
 
 - Windows receiver only;
-- LAN discovery with manual IPv4 fallback; no QR pairing;
+- LAN discovery with manual IPv4 fallback and QR pairing;
 - PCM uses more bandwidth than Opus;
 - an adjustable jitter prebuffer with simple latency trimming rather than adaptive jitter/clock recovery;
 - no signed Android release, Windows installer, or updater;
@@ -196,9 +196,6 @@ scripts/              PowerShell build and firewall helpers
 tools/                Protocol, sequencing, and source verification
 PERFORMANCE_AUDIT.md  Audit findings and fixes
 PROTOCOL.md            Wire format and encryption
-BUILD_STATUS.md        Verified versus pending work
 CHANGELOG.md           Version history
-.thoughts              Engineering decisions
-UPDATE_EXISTING.md     Overlay instructions for an existing folder
-NEXT_CHAT_HANDOFF.md   Continuation guidance
+web/                    Static landing page and product captures
 ```

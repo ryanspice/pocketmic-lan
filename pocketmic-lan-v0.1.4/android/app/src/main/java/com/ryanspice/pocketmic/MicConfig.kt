@@ -209,7 +209,7 @@ object AppPrefs {
     fun generatePairingKey(): String {
         // 32 symbols with I, O, 0 and 1 removed so a typed or read-aloud key cannot be
         // misread (I/l/1 and O/0 are the classic transcription failures). 12 characters from
-        // this alphabet is ~60 bits of entropy, which the v0.1.2 derivation (single unsalted
+        // this alphabet is ~60 bits of entropy, which the original derivation (single unsalted
         // SHA-256) stretches adequately for a trusted private LAN.
         val alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
         val random = SecureRandom()

@@ -1,10 +1,10 @@
-# PocketMic v0.1.2 performance and reliability audit
+# PocketMic v0.1.4 performance and reliability audit
 
 Date: 2026-08-04
 
 ## Patched findings
 
-| Area | Finding | v0.1.2 action |
+| Area | Finding | Release action |
 |---|---|---|
 | Android crypto | Cipher, header, nonce, ciphertext, and datagram arrays were allocated repeatedly in the 10 ms loop | Reusable stream-scoped encryptor and packet buffer |
 | Android UI | Input level/state was updated too frequently | Meter and packet telemetry reduced to 10 Hz |
