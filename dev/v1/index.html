@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>PocketMic LAN — Your Phone as an Encrypted PC Microphone</title>
+<meta name="description" content="Turn your Android phone into a wireless microphone for your Windows PC. Encrypted, LAN-only, zero cloud. Works with Discord, OBS, Teams, and any app that needs a mic.">
+<link rel="canonical" href="https://canopydigital.ca/sites/pocketmic-lan/">
+<meta name="theme-color" content="#b88a3b" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1d1a16" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PocketMic LAN — Your Phone as an Encrypted PC Microphone">
+<meta property="og:description" content="48 kHz, AES-256-GCM, LAN-only. Works with Discord, OBS, Teams. Zero cloud, zero account.">
+<meta property="og:url" content="https://canopydigital.ca/sites/pocketmic-lan/">
+<meta property="og:image" content="https://canopydigital.ca/sites/pocketmic-lan/og-image.png">
+<meta property="og:site_name" content="PocketMic LAN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PocketMic LAN — Your Phone as an Encrypted PC Microphone">
+<meta name="twitter:description" content="48 kHz, AES-256-GCM, LAN-only. Works with Discord, OBS, Teams. Zero cloud, zero account.">
+<meta name="twitter:image" content="https://canopydigital.ca/sites/pocketmic-lan/og-image.png">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='1.5' y='1.5' width='29' height='29' rx='8' fill='%23b88a3b'/><path d='M16 8.5a4 4 0 0 0-4 4v4.2a4 4 0 0 0 8 0V12.5a4 4 0 0 0-4-4Z' fill='%23fff'/><path d='M10.5 17.4a5.5 5.5 0 0 0 11 0M16 22.6v3.2M12 25.8h8' stroke='%23fff' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>">
+<link rel="stylesheet" href="styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "PocketMic LAN",
+  "operatingSystem": "Android, Windows 11",
+  "applicationCategory": "MultimediaApplication",
+  "description": "Turn your Android phone into an encrypted wireless microphone for your Windows PC. LAN-only, zero cloud.",
+  "url": "https://github.com/ryanspice/pocketmic-lan",
+  "softwareVersion": "0.1.4",
+  "license": "https://opensource.org/licenses/MIT",
+  "author": { "@type": "Person", "name": "Ryan Spice-Finnie" }
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="#hero" aria-label="PocketMic LAN home">
+      <svg class="brand-mark" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M16 8.5a4 4 0 0 0-4 4v4.2a4 4 0 0 0 8 0V12.5a4 4 0 0 0-4-4Z" fill="currentColor"/>
+        <path d="M10.5 17.4a5.5 5.5 0 0 0 11 0M16 22.6v3.2M12 25.8h8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-name">PocketMic <span class="brand-sub">LAN</span></span>
+    </a>
+    <nav class="primary-nav" aria-label="Primary">
+      <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+      <label for="nav-toggle" class="nav-toggle" aria-label="Toggle navigation">
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+      </label>
+      <ul id="nav-list" class="nav-list">
+        <li><a href="#use-cases">Use cases</a></li>
+        <li><a href="#how-it-works">How it works</a></li>
+        <li><a href="#features">Features</a></li>
+        <li><a href="#compare">Compare</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#faq">FAQ</a></li>
+        <li><a href="#download">Download</a></li>
+      </ul>
+    </nav>
+    <span class="badge" aria-hidden="true"><img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&label=v&color=b88a3b" alt="Version" class="badge-img"></span>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- ============================================================ HERO -->
+<section id="hero" class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="eyebrow-rule"></span>Open source · MIT licensed</p>
+      <h1>Your phone is now<br>a <em>wireless microphone</em></h1>
+      <p class="tagline">PocketMic turns any Android phone into an encrypted, high-quality microphone for your Windows PC — over your private LAN, with zero cloud and zero account.</p>
+      <p class="cta-row">
+        <a class="btn btn-primary" href="#download">Download <span class="btn-arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn-ghost" href="#how-it-works">See how it works</a>
+        <a class="btn btn-bmc" href="https://www.buymeacoffee.com/ryanspice" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M3 8h18v2a6 6 0 0 1-6 6h-3a6 6 0 0 1-6-6V8Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 8V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M20 11h1a2 2 0 0 1 0 4h-1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>☕</span>
+        </a>
+      </p>
+      <ul class="trust-row" aria-label="Trust indicators">
+        <li>✓ No account</li>
+        <li>✓ No cloud</li>
+        <li>✓ Open source</li>
+        <li>✓ LAN only</li>
+      </ul>
+      <div class="hero-badges">
+        <img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&label=Latest&color=b88a3b" alt="Latest release">
+        <img src="https://img.shields.io/github/actions/workflow/status/ryanspice/pocketmic-lan/ci.yml?style=flat-square&label=CI" alt="CI status">
+        <img src="https://img.shields.io/github/license/ryanspice/pocketmic-lan?style=flat-square" alt="License">
+        <img src="https://img.shields.io/github/last-commit/ryanspice/pocketmic-lan?style=flat-square" alt="Last commit">
+      </div>
+    </div>
+    <div class="hero-visual" aria-label="One UDP datagram: 24-byte header, 960-byte payload, 16-byte GCM tag">
+      <div class="datagram-card">
+        <p class="card-label">One encrypted packet<span class="card-label-sub">— 1000 bytes · 10 ms of audio · 100× per second</span></p>
+        <div class="datagram-bar">
+          <div class="seg seg-header" title="24-byte protocol header"></div>
+          <div class="seg seg-payload" title="960 bytes of 48 kHz mono PCM16">
+            <svg class="waveform" viewBox="0 0 460 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+              <path d="M0 20 C 14 20, 18 8, 30 12 C 44 17, 48 28, 62 24 C 78 19, 82 6, 96 10 C 112 15, 118 30, 132 26 C 148 21, 152 7, 166 11 C 182 16, 188 29, 202 25 C 218 20, 222 8, 236 12 C 252 17, 258 28, 272 24 C 288 19, 292 6, 306 10 C 322 15, 328 30, 342 26 C 358 21, 362 7, 376 11 C 392 16, 398 29, 412 25 C 428 20, 432 8, 446 12 C 452 13.5, 456 16, 460 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="seg seg-tag" title="16-byte GCM authentication tag"></div>
+        </div>
+        <dl class="datagram-legend">
+          <div><span class="swatch sw-header"></span><dt>Header</dt><dd>24 B</dd></div>
+          <div><span class="swatch sw-payload"></span><dt>Audio</dt><dd>960 B PCM16</dd></div>
+          <div><span class="swatch sw-tag"></span><dt>GCM tag</dt><dd>16 B</dd></div>
+        </dl>
+      </div>
+      <ul class="key-facts" aria-label="Key technical facts">
+        <li class="kf tile"><span class="kf-num">48 kHz</span><span class="kf-label">mono PCM16</span></li>
+        <li class="kf tile"><span class="kf-num tip" tabindex="0" aria-describedby="tip-pps">10 ms<span class="tip-bubble" id="tip-pps" role="tooltip">100 packets per second</span></span><span class="kf-label">UDP packets</span></li>
+        <li class="kf tile"><span class="kf-num tip" tabindex="0" aria-describedby="tip-cipher">AES-256<span class="tip-bubble" id="tip-cipher" role="tooltip">Key = SHA-256(pairing key)</span></span><span class="kf-label">encrypted</span></li>
+        <li class="kf tile"><span class="kf-num">LAN</span><span class="kf-label">your network</span></li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ USE CASES -->
+<section id="use-cases" class="section">
+  <div class="wrap">
+    <p class="sec-eyebrow">Built for</p>
+    <h2>Use your phone mic where it matters</h2>
+    <p class="lede">PocketMic turns a phone you already own into a wireless microphone for any Windows app that needs one.</p>
+    <div class="usecase-grid">
+      <article class="usecase tile">
+        <span class="usecase-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="28" height="28"><path d="M4 4h16v12H4z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M2 4l10 7 10-7" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <h3>Discord &amp; gaming</h3>
+        <p>Route PocketMic through VB-CABLE into Discord, TeamSpeak, or in-game voice chat. Your phone's mic is often better than a headset boom.</p>
+      </article>
+      <article class="usecase tile">
+        <span class="usecase-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="28" height="28"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <h3>Streaming &amp; OBS</h3>
+        <p>Use your phone as a wireless lapel mic for OBS, Streamlabs, or any broadcasting software. Move freely while staying connected.</p>
+      </article>
+      <article class="usecase tile">
+        <span class="usecase-ico" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="28" height="28"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <h3>Meetings &amp; calls</h3>
+        <p>Present from anywhere in the room. PocketMic routes into Teams, Zoom, or Google Meet as a system microphone via VB-CABLE.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<div class="honesty-strip" aria-label="Product principles">
+  <div class="wrap honesty-inner">
+    <span>No account</span><i aria-hidden="true"></i><span>No cloud</span><i aria-hidden="true"></i><span>No telemetry</span><i aria-hidden="true"></i><span>Honest about its limits</span>
+  </div>
+</div>
+
+<!-- ============================================================ HOW IT WORKS -->
+<section id="how-it-works" class="section section-alt">
+  <div class="wrap">
+    <p class="sec-eyebrow">How it works</p>
+    <h2>Three steps to wireless audio</h2>
+    <p class="lede">Both devices stay on your private network. Scan a QR code or type an IP — everything after that is encrypted.</p>
+    <ol class="steps steps-3">
+      <li><span class="step-num" aria-hidden="true">1</span><div class="step-body"><h3>Open the receiver on your PC</h3><p>Run <code>PocketMicReceiver.exe</code>. It shows your IP address and generates a pairing key.</p></div></li>
+      <li><span class="step-num" aria-hidden="true">2</span><div class="step-body"><h3>Scan the QR code with your phone</h3><p>Open PocketMic on Android and scan the QR code. IP, port, and encryption key fill in automatically.</p></div></li>
+      <li><span class="step-num" aria-hidden="true">3</span><div class="step-body"><h3>Tap Start</h3><p>Your phone captures audio at 48&nbsp;kHz, encrypts every 10&nbsp;ms frame with AES-256-GCM, and streams it to your PC over UDP.</p></div></li>
+    </ol>
+    <p class="steps-note">Route into Discord, OBS, or Teams by selecting <code>CABLE Input</code> as the playback output — then pick <code>CABLE Output</code> as the microphone in the target app. <strong>Coming in the next release:</strong> our own virtual audio cable (PM-LAN) replaces the VB-CABLE dependency.</p>
+  </div>
+</section>
+
+<!-- ============================================================ FEATURES -->
+<section id="features" class="section">
+  <div class="wrap">
+    <p class="sec-eyebrow">Features</p>
+    <h2>Everything you need, nothing you don't</h2>
+    <div class="feature-grid">
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="4" y="10" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><h3>AES-256-GCM encryption</h3><p>Every packet authenticated. Key derived from a pairing phrase you choose.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M17 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><h3>QR code pairing</h3><p>Point your phone camera at the PC screen. No IP addresses to type.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3v3M12 18v3M5.6 6.6l2.1 2.1M16.3 15.3l2.1 2.1M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><h3>Capture modes</h3><p>Voice (device-processed), Clean (raw), or Custom (PC-side DSP chain).</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M2 9h4l4-5v16l-4-5H2z" fill="currentColor" opacity=".9"/><path d="M16 8a5 5 0 0 1 0 8M19 5a9.5 9.5 0 0 1 0 14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></span><h3>Selectable output</h3><p>Route to speakers, headphones, VB-CABLE, or VoiceMeeter.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 19a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 9v3l2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><h3>Adjustable gain</h3><p>Input gain from 0.5× to 3× with a live level meter.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span><h3>Resilient streaming</h3><p>Prebuffering, loss concealment, rollover-safe sequencing, and auto-reconnect.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="7" y="2" width="10" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span><h3>Foreground service</h3><p>Stays alive in the background with a notification. Wi-Fi lock keeps packets flowing.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 17 10 11 14 15 20 8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 8h5v5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h3>Session diagnostics</h3><p>Packet counters, jitter stats, Wi-Fi band/RSSI, and exportable session reports.</p></li>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ VOICE MODE -->
+<section id="voice-mode" class="section section-alt">
+  <div class="wrap">
+    <p class="sec-eyebrow">Voice processing</p>
+    <h2>One layer, not three</h2>
+    <p class="lede">PocketMic's Voice mode uses the phone's own voice-communication processing — the vendor-tuned noise suppression, gain control, and echo handling. No stacking.</p>
+    <div class="voice-grid">
+      <div class="voice-card">
+        <h3>Voice mode <span class="voice-badge voice-badge-default">Default</span></h3>
+        <p>Uses <code>VOICE_COMMUNICATION</code> — the Android source that phone vendors tune for calls. Exactly one processing layer: the device's own. No software noise suppression, gain control, or echo cancellation stacked on top. This is what made the old double-DSP path sound hissy and pumped — we removed it.</p>
+        <p class="voice-note">Best for: Discord, Teams, calls, general voice chat</p>
+      </div>
+      <div class="voice-card">
+        <h3>Clean mode</h3>
+        <p>Requests the rawest input the phone offers — <code>UNPROCESSED</code> where supported, falling back to <code>VOICE_RECOGNITION</code> and then <code>MIC</code>. No phone-side processing. What you send is what the mic picks up.</p>
+        <p class="voice-note">Best for: recording, podcasting, when you want full control</p>
+      </div>
+      <div class="voice-card">
+        <h3>Custom mode</h3>
+        <p>Clean capture from the phone, shaped by the receiver's DSP chain on the PC: high-pass filter, noise gate, compressor, presence EQ, and limiter. Sliders on the phone control the PC-side processing live — changes apply instantly while streaming.</p>
+        <p class="voice-note">Best for: streaming, broadcasting, when you want PC-side control</p>
+      </div>
+    </div>
+    <aside class="callout" role="note" style="margin-top:1.5rem">
+      <span class="callout-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 8v5M12 15.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div><strong>Why not add WebRTC APM or RNNoise?</strong>
+      Because the phone's own voice processing is what the vendor tuned for their hardware. Stacking a second noise suppressor on top of <code>VOICE_COMMUNICATION</code> is exactly the double-processing that made early versions sound wrong. We add software DSP only in Custom mode, where the raw source has no vendor processing at all.</div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============================================================ SCREENSHOTS -->
+<section id="screenshots" class="section">
+  <div class="wrap">
+    <p class="sec-eyebrow">Screenshots</p>
+    <h2>Real captures, real hardware</h2>
+    <p class="lede">From the v0.1.4 artifacts on a OnePlus 9 Pro and Windows 11 PC. No mockups.</p>
+    <div class="screenshots-showcase">
+      <div class="screenshot-device">
+        <div class="device-frame device-phone">
+          <div class="device-notch"></div>
+          <img src="assets/screenshots/android-app.png" alt="PocketMic Android app showing connection fields, QR scan button, capture mode selector, and gain slider on a dark theme" loading="lazy">
+        </div>
+        <div class="screenshot-caption">
+          <h3>Android Transmitter</h3>
+          <p>QR pairing, capture modes (Voice / Clean / Custom), adjustable gain, live level meter. Runs as a foreground service with Wi-Fi lock.</p>
+          <span class="screenshot-meta">Kotlin · Jetpack Compose · API 26+</span>
+        </div>
+      </div>
+      <div class="screenshot-device">
+        <div class="device-frame device-desktop">
+          <div class="device-titlebar">
+            <span></span><span></span><span></span>
+            <span class="device-title">PocketMic Receiver</span>
+          </div>
+          <img src="assets/screenshots/windows-receiver.png" alt="PocketMic Windows receiver showing UDP port, pairing key, output device selector, voice processing controls, and packet counters" loading="lazy">
+        </div>
+        <div class="screenshot-caption">
+          <h3>Windows Receiver</h3>
+          <p>Auto-discovers VB-CABLE, one-click default mic switching, voice processing chain, session diagnostics with export.</p>
+          <span class="screenshot-meta">C# · .NET 8 · WinForms · NAudio</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ COMPARISON -->
+<section id="compare" class="section section-alt">
+  <div class="wrap">
+    <p class="sec-eyebrow">Compare</p>
+    <h2>How PocketMic stacks up</h2>
+    <p class="lede">Each approach has tradeoffs. PocketMic's niche is encrypted, phone-as-microphone on a private LAN with no cloud dependency.</p>
+    <div class="compare-table-wrap">
+      <table class="compare-table" aria-label="Feature comparison">
+        <thead>
+          <tr>
+            <th scope="col">Feature</th>
+            <th scope="col">PocketMic LAN</th>
+            <th scope="col">Bluetooth mic</th>
+            <th scope="col">Discord / Krisp</th>
+            <th scope="col">USB mic</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Phone as wireless mic</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
+          <tr><td>Encrypted on the wire</td><td class="yes">AES-256-GCM</td><td class="partial">Depends</td><td class="yes">TLS</td><td class="na">N/A</td></tr>
+          <tr><td>LAN only — no cloud</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td></tr>
+          <tr><td>No account required</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td></tr>
+          <tr><td>Works with any app</td><td class="yes">Via VB-CABLE</td><td class="partial">OS default only</td><td class="no">Discord only</td><td class="yes">Yes</td></tr>
+          <tr><td>Sample rate</td><td>48 kHz</td><td>8–16 kHz</td><td>48 kHz</td><td>48+ kHz</td></tr>
+          <tr><td>Wireless</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="na">N/A</td><td class="no">No</td></tr>
+          <tr><td>Open source</td><td class="yes">MIT</td><td class="na">N/A</td><td class="no">No</td><td class="na">N/A</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ PERFORMANCE -->
+<section id="performance" class="section">
+  <div class="wrap">
+    <p class="sec-eyebrow">Performance</p>
+    <h2>Measured on real hardware</h2>
+    <p class="lede">These numbers come from a OnePlus 9 Pro and Windows 11 PC over 5 GHz Wi-Fi.</p>
+    <dl class="stats">
+      <div class="stat tile"><dt>Prebuffer</dt><dd>100 <span>ms</span></dd><p>Adjustable 40–300 ms on the receiver.</p></div>
+      <div class="stat tile"><dt>High-water</dt><dd>220 <span>ms</span></dd><p>Buffered latency trimmed above this mark.</p></div>
+      <div class="stat tile"><dt>Concealment</dt><dd>200 <span>ms</span></dd><p>Repeated-decay fill for up to 20 lost packets.</p></div>
+      <div class="stat tile"><dt>Bandwidth</dt><dd>768 <span>kbit/s</span></dd><p>48 kHz mono PCM16 — 1000 bytes per datagram.</p></div>
+    </dl>
+    <div class="wire">
+      <h3>Wire format</h3>
+      <ul class="plain">
+        <li>48,000 Hz mono signed PCM16, little-endian</li>
+        <li>480 samples / 960 plaintext bytes per 10 ms packet</li>
+        <li>100 packets per second; exactly 1000 bytes per datagram</li>
+      </ul>
+      <ul class="plain wire-sub">
+        <li>Encryption, header, and packet buffers reused in the hot path</li>
+        <li>Audio source tested by actually starting a recording</li>
+        <li>Wi-Fi lock policy fed by live network (band, RSSI, loss)</li>
+      </ul>
+      <p class="note">These settings are intentionally fixed until real-device measurements justify adaptive tuning.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ SECURITY -->
+<section id="security" class="section section-alt">
+  <div class="wrap">
+    <p class="sec-eyebrow">Security</p>
+    <h2>Encrypted on the wire, scoped to your LAN</h2>
+    <p class="lede">Authenticated encryption on every datagram — and an honest boundary about what that means.</p>
+    <dl class="sec-grid">
+      <div class="sec-item"><dt>Key</dt><dd><code>SHA-256(UTF-8(pairing key))</code></dd></div>
+      <div class="sec-item"><dt>Cipher</dt><dd>AES-256-GCM</dd></div>
+      <div class="sec-item"><dt>Nonce</dt><dd>Random 64-bit session ID + unsigned 32-bit sequence</dd></div>
+      <div class="sec-item"><dt>Authenticated data</dt><dd>Complete 24-byte protocol header</dd></div>
+      <div class="sec-item"><dt>Key at rest</dt><dd>Android Keystore (EncryptedSharedPreferences)</dd></div>
+      <div class="sec-item"><dt>Scope</dt><dd>Trusted private LAN only — do not port-forward</dd></div>
+    </dl>
+    <div class="topology" aria-label="Phone to PC over encrypted LAN">
+      <div class="node"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Android</span></div>
+      <div class="link" aria-hidden="true"><i></i><svg class="lock" viewBox="0 0 24 24" width="18" height="18"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><i></i></div>
+      <div class="node"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Windows PC</span></div>
+    </div>
+    <aside class="callout warn" role="note">
+      <span class="callout-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3 2.5 20h19L12 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div><strong>Not a hardened internet voice service</strong>
+      Do not port-forward the receiver. Encryption protects packet contents and integrity; it does not make this a hardened internet voice service.</div>
+    </aside>
+  </div>
+</section>
+
+<!-- ============================================================ FAQ -->
+<section id="faq" class="section">
+  <div class="wrap">
+    <p class="sec-eyebrow">FAQ</p>
+    <h2>Common questions</h2>
+    <div class="faq-grid">
+      <details class="faq-item">
+        <summary>Does it work with Discord / OBS / Teams?</summary>
+        <p>Yes. Install <a href="https://vb-audio.com/Cable">VB-CABLE</a>, select <code>CABLE Input</code> in PocketMic Receiver, then select <code>CABLE Output</code> as the microphone in your target app. One setup, works everywhere.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Do I need an internet connection?</summary>
+        <p>No. PocketMic works entirely over your local Wi-Fi or Ethernet. Both devices must be on the same private network. No data ever leaves your LAN.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is the audio quality good?</summary>
+        <p>PocketMic streams at 48 kHz mono PCM16 — the same sample rate as professional audio. Your phone's microphone hardware is usually better than a cheap headset boom. Voice mode uses the device's own voice-communication processing.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What about latency?</summary>
+        <p>Measured at 100–250 ms glass-to-speaker on Wi-Fi, depending on your network. Fine for voice chat and streaming. Not suitable for real-time music monitoring. The prebuffer is adjustable (40–300 ms) to trade latency for stability.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is it really encrypted?</summary>
+        <p>Every single packet is encrypted with AES-256-GCM. The key is derived from a pairing phrase via SHA-256. The nonce uses a random session ID plus a per-packet sequence number. The pairing key is stored encrypted at rest on Android via the Keystore.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Why not just use a Bluetooth microphone?</summary>
+        <p>Bluetooth audio is typically 8–16 kHz (phone quality). PocketMic streams at 48 kHz (CD quality). Bluetooth also introduces its own latency and compression artifacts. PocketMic gives you professional audio quality over your existing Wi-Fi.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Does it drain my battery?</summary>
+        <p>PocketMic holds a partial wake lock and a Wi-Fi performance lock while streaming. Expect moderate battery use — similar to a voice call. The app stops all background activity the moment you tap Stop.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I use it on macOS or Linux?</summary>
+        <p>Not yet. The Windows receiver is the only one available. The protocol is documented and simple — a macOS or Linux receiver is possible but hasn't been built.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ BUILD & INSTALL -->
+<section id="build-install" class="section section-alt">
+  <div class="wrap">
+    <p class="sec-eyebrow">Build from source</p>
+    <h2>One-command builds</h2>
+    <p class="lede">The package ships source plus tooling. It does not pretend an APK or EXE was built without the SDKs.</p>
+    <div class="build-grid">
+      <div>
+        <h3>Requirements</h3>
+        <ul class="plain req">
+          <li>Android Studio with Android SDK Platform 36</li>
+          <li>JDK 17+ (Android Studio's bundled JBR works)</li>
+          <li>.NET 8 SDK</li>
+          <li>Python 3 (optional — verification scripts)</li>
+        </ul>
+      </div>
+      <div>
+        <h3>Build commands</h3>
+        <pre class="term" aria-label="Build commands"><span class="term-dots"><i></i><i></i><i></i></span><code><span class="c"># from the package root (PowerShell)</span>
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\build-android.ps1
+.\scripts\publish-windows.ps1</code></pre>
+      </div>
+      <div>
+        <h3>Install</h3>
+        <pre class="term" aria-label="Install command"><span class="term-dots"><i></i><i></i><i></i></span><code>adb install -r .\release\PocketMic-v0.1.4-debug.apk</code></pre>
+      </div>
+      <div>
+        <h3>Firewall</h3>
+        <pre class="term" aria-label="Firewall command"><span class="term-dots"><i></i><i></i><i></i></span><code>.\scripts\allow-firewall.ps1</code></pre>
+        <p class="mini">Allow UDP port 49500 on <strong>Private networks</strong> only.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================================ LIMITS -->
+<section id="limits" class="section">
+  <div class="wrap">
+    <p class="sec-eyebrow">Honest limits</p>
+    <h2>What PocketMic is not</h2>
+    <p class="lede">None of these are hidden before you build.</p>
+    <ul class="limits-grid">
+      <li class="limit">Windows receiver only — no macOS or Linux yet</li>
+      <li class="limit">PCM uses more bandwidth than Opus (~768 kbit/s)</li>
+      <li class="limit">Fixed prebuffer and simple latency trimming, not adaptive jitter</li>
+      <li class="limit">No signed Android release, Windows installer, or auto-updater</li>
+      <li class="limit">No internet relay — both devices must be on the same LAN</li>
+      <li class="limit">Designed for voice, not real-time music monitoring</li>
+    </ul>
+  </div>
+</section>
+
+<!-- ============================================================ DOWNLOAD -->
+<section id="download" class="section section-alt">
+  <div class="wrap">
+    <p class="sec-eyebrow">Get started</p>
+    <h2>Download PocketMic LAN</h2>
+    <p class="lede">Free, open source, MIT licensed. Build from source or download the pre-built receiver.</p>
+    <div class="download-grid">
+      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip">
+        <span class="download-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <span class="download-info">
+          <strong>Windows Receiver</strong>
+          <span>.NET 8 · WinForms · NAudio · Self-contained</span>
+        </span>
+        <span class="download-action">Download .zip <span aria-hidden="true">→</span></span>
+      </a>
+      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.4-debug.apk">
+        <span class="download-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24"><rect x="7" y="2" width="10" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <span class="download-info">
+          <strong>Android APK</strong>
+          <span>Kotlin · Jetpack Compose · API 26+</span>
+        </span>
+        <span class="download-action">Download .apk <span aria-hidden="true">→</span></span>
+      </a>
+      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan">
+        <span class="download-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="download-info">
+          <strong>Source code</strong>
+          <span>MIT License · One-command PowerShell builds</span>
+        </span>
+        <span class="download-action">View on GitHub <span aria-hidden="true">→</span></span>
+      </a>
+    </div>
+    <p class="download-footer-note">Or install via <code>adb install -r PocketMic-v0.1.4-debug.apk</code>. See <a href="https://github.com/ryanspice/pocketmic-lan/releases">all releases</a> for checksums and previous versions.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div>
+      <p class="f-brand">PocketMic <span>LAN</span></p>
+      <p class="f-version">Open source · MIT License</p>
+    </div>
+    <div class="f-links">
+      <a href="https://github.com/ryanspice/pocketmic-lan">GitHub</a>
+      <a href="https://github.com/ryanspice/pocketmic-lan/releases">Releases</a>
+      <a href="https://github.com/ryanspice/pocketmic-lan/blob/master/CHANGELOG.md">Changelog</a>
+      <a href="policy.html">Privacy &amp; Terms</a>
+    </div>
+    <div class="f-support">
+      <script type="text/javascript" src="https://cdnjs.buymeacoffee.com/1.0.0/button.prod.min.js" data-name="bmc-button" data-slug="ryanspice" data-color="#FFDD00" data-emoji="☕" data-font="Cookie" data-text="Buy me a coffee" data-outline-color="#000000" data-font-color="#000000" data-coffee-color="#ffffff"></script>
+    </div>
+    <p class="f-legal">Copyright &copy; <span id="year">2026</span> Ryan Spice-Finnie · <a href="https://github.com/ryanspice/pocketmic-lan/blob/master/LICENSE">MIT License</a></p>
+  </div>
+</footer>
+
+<script src="app.js" defer></script>
+</body>
+</html>

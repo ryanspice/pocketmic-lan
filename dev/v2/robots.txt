@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://canopydigital.ca/sites/pocketmic-lan/sitemap.xml

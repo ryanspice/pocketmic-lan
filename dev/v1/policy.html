@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Privacy & Terms — PocketMic LAN</title>
+<meta name="description" content="PocketMic LAN privacy policy and terms of service. No data collection, no accounts, no cloud.">
+<link rel="canonical" href="https://canopydigital.ca/sites/pocketmic-lan/policy.html">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='1.5' y='1.5' width='29' height='29' rx='8' fill='%23b88a3b'/><path d='M16 8.5a4 4 0 0 0-4 4v4.2a4 4 0 0 0 8 0V12.5a4 4 0 0 0-4-4Z' fill='%23fff'/><path d='M10.5 17.4a5.5 5.5 0 0 0 11 0M16 22.6v3.2M12 25.8h8' stroke='%23fff' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="index.html" aria-label="PocketMic LAN home">
+      <svg class="brand-mark" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="none" stroke="currentColor" stroke-width="2"/>
+        <path d="M16 8.5a4 4 0 0 0-4 4v4.2a4 4 0 0 0 8 0V12.5a4 4 0 0 0-4-4Z" fill="currentColor"/>
+        <path d="M10.5 17.4a5.5 5.5 0 0 0 11 0M16 22.6v3.2M12 25.8h8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+      </svg>
+      <span class="brand-name">PocketMic <span class="brand-sub">LAN</span></span>
+    </a>
+    <nav class="primary-nav" aria-label="Primary">
+      <ul class="nav-list">
+        <li><a href="index.html">← Back to home</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <div class="wrap" style="max-width:48rem; padding-top:4rem; padding-bottom:4rem">
+
+    <h1 style="margin-bottom:0.5rem">Privacy Policy &amp; Terms</h1>
+    <p style="color:var(--muted); margin-bottom:2rem">Last updated: September 9, 2026</p>
+
+    <h2>Privacy</h2>
+
+    <h3>What PocketMic does NOT collect</h3>
+    <ul>
+      <li><strong>No personal data.</strong> PocketMic has no account system, no user registration, and no login.</li>
+      <li><strong>No telemetry.</strong> The app does not phone home, send analytics, or report usage to any server.</li>
+      <li><strong>No cloud.</strong> All audio stays on your private LAN. No audio data is sent to the internet.</li>
+      <li><strong>No tracking.</strong> No cookies, no fingerprinting, no ad identifiers.</li>
+    </ul>
+
+    <h3>What stays on your devices</h3>
+    <ul>
+      <li><strong>Pairing key:</strong> stored encrypted at rest on Android via the system Keystore (EncryptedSharedPreferences). Stored in the receiver's local settings file on Windows.</li>
+      <li><strong>Connection settings:</strong> IP address, port, capture mode, and gain — stored locally on each device.</li>
+      <li><strong>Session diagnostics:</strong> packet counters and jitter stats are stored locally on the Windows receiver and can be exported as a Markdown report. Nothing is transmitted off-device.</li>
+    </ul>
+
+    <h3>Network</h3>
+    <p>PocketMic communicates only over your local network (LAN). The Android app sends UDP packets to the IP address you specify. The Windows receiver listens on the port you configure. No data leaves your private network.</p>
+    <p>The marketing website (canopydigital.ca/sites/pocketmic-lan/) does not use cookies or tracking scripts. It loads one external script (Buy Me a Coffee button) from cdn.buymeacoffee.com.</p>
+
+    <h2>Terms of Service</h2>
+
+    <h3>License</h3>
+    <p>PocketMic LAN is released under the <a href="https://github.com/ryanspice/pocketmic-lan/blob/master/LICENSE">MIT License</a>. You are free to use, modify, and distribute the software.</p>
+
+    <h3>No warranty</h3>
+    <p>The software is provided "as is", without warranty of any kind, express or implied. See the MIT License for full terms.</p>
+
+    <h3>Intended use</h3>
+    <p>PocketMic is designed for use on a trusted private LAN. It is not a hardened internet voice service. Do not port-forward the receiver to the public internet.</p>
+
+    <h3>Security</h3>
+    <p>Audio is encrypted with AES-256-GCM. The pairing key is derived via SHA-256. The control channel uses HMAC-SHA256 with domain separation. These measures protect packet contents and integrity on a trusted LAN; they do not make PocketMic suitable for adversarial network environments.</p>
+
+    <h2>Contact</h2>
+    <p>For questions about this policy, open an issue on <a href="https://github.com/ryanspice/pocketmic-lan">GitHub</a>.</p>
+
+  </div>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div>
+      <p class="f-brand">PocketMic <span>LAN</span></p>
+      <p class="f-version">Open source · MIT License</p>
+    </div>
+    <div class="f-links">
+      <a href="https://github.com/ryanspice/pocketmic-lan">GitHub</a>
+      <a href="index.html">Home</a>
+    </div>
+    <p class="f-legal">Copyright &copy; 2026 Ryan Spice-Finnie</p>
+  </div>
+</footer>
+</body>
+</html>

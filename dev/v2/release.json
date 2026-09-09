@@ -1,0 +1,17 @@
+{
+  "version": "v0.1.4",
+  "checkedOn": "2026-09-09",
+  "releaseUrl": "https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.4",
+  "android": {
+    "url": "https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.4/PocketMic-v0.1.4-debug.apk",
+    "sha256": "8861e315e8a0884cecebb9aecbb9c71b2e63eaba397946e47164c25d786717f4",
+    "bytes": 36423603,
+    "signing": "debug-signed"
+  },
+  "windows": {
+    "url": "https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.4/PocketMicReceiver-win-x64.zip",
+    "sha256": "583b8477682e5dc15915ecb139af105b046f42c85bf4b5716122dca24dacc6ab",
+    "bytes": 68123710,
+    "packaging": "self-contained ZIP"
+  }
+}

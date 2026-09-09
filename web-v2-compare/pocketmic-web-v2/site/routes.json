@@ -1,0 +1,107 @@
+[
+  {
+    "key": "home",
+    "path": "index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/",
+    "title": "Your Android phone. Your next Windows mic.",
+    "noindex": false
+  },
+  {
+    "key": "discord",
+    "path": "use-cases/discord/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/use-cases/discord/",
+    "title": "Use your Android phone as a Discord microphone",
+    "noindex": false
+  },
+  {
+    "key": "obs",
+    "path": "use-cases/obs/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/use-cases/obs/",
+    "title": "Use your Android phone as an OBS microphone",
+    "noindex": false
+  },
+  {
+    "key": "meetings",
+    "path": "use-cases/meetings/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/use-cases/meetings/",
+    "title": "Use your Android phone as a Windows meeting microphone",
+    "noindex": false
+  },
+  {
+    "key": "start",
+    "path": "get-started/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/get-started/",
+    "title": "Get started with PocketMic LAN",
+    "noindex": false
+  },
+  {
+    "key": "downloads",
+    "path": "download/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/download/",
+    "title": "Download PocketMic for Android and Windows",
+    "noindex": false
+  },
+  {
+    "key": "android",
+    "path": "download/android/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/download/android/",
+    "title": "Download PocketMic Android APK",
+    "noindex": false
+  },
+  {
+    "key": "windows",
+    "path": "download/windows/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/download/windows/",
+    "title": "Download PocketMic Windows receiver",
+    "noindex": false
+  },
+  {
+    "key": "setup",
+    "path": "setup/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/setup/",
+    "title": "Set up PocketMic: Android to Windows microphone",
+    "noindex": false
+  },
+  {
+    "key": "ready",
+    "path": "setup/ready/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/setup/ready/",
+    "title": "PocketMic final sound check",
+    "noindex": true
+  },
+  {
+    "key": "help",
+    "path": "troubleshooting/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/troubleshooting/",
+    "title": "PocketMic troubleshooting: pairing, routing, no sound",
+    "noindex": false
+  },
+  {
+    "key": "engineering",
+    "path": "technical/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/technical/",
+    "title": "PocketMic technical details and source",
+    "noindex": false
+  },
+  {
+    "key": "release",
+    "path": "release-notes/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/release-notes/",
+    "title": "PocketMic v0.1.4 release details",
+    "noindex": false
+  },
+  {
+    "key": "privacy",
+    "path": "privacy/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/privacy/",
+    "title": "Privacy and terms \u2014 PocketMic LAN",
+    "noindex": false
+  },
+  {
+    "key": "policy",
+    "path": "policy.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/policy.html",
+    "title": "Privacy and terms \u2014 PocketMic LAN",
+    "noindex": true
+  }
+]

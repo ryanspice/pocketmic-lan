@@ -1,0 +1,512 @@
+{
+  "method": "Chromium page.set_content with the actual generated HTML/CSS/JS and embedded local image bytes",
+  "limitations": [
+    "No hosted browser navigation or HTTP headers tested.",
+    "No native Android/Windows install, driver, audio, or network test performed.",
+    "No full WCAG conformance audit or field performance claim."
+  ],
+  "viewports": [
+    320,
+    390,
+    768,
+    1440
+  ],
+  "renders": [
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/discord/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/discord/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/discord/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/discord/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/obs/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/obs/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/obs/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/obs/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/meetings/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/meetings/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/meetings/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "use-cases/meetings/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "get-started/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "get-started/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "get-started/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "get-started/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/android/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/android/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/android/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/android/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/windows/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/windows/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/windows/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "download/windows/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "setup/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "setup/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "setup/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "setup/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "setup/ready/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "setup/ready/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "setup/ready/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "setup/ready/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "troubleshooting/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "troubleshooting/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "troubleshooting/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "troubleshooting/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "technical/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "technical/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "technical/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "technical/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "release-notes/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "release-notes/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "release-notes/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "release-notes/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "privacy/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "privacy/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "privacy/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "privacy/index.html",
+      "passed": true
+    },
+    {
+      "viewport": 320,
+      "width": 320,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "policy.html",
+      "passed": true
+    },
+    {
+      "viewport": 390,
+      "width": 390,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "policy.html",
+      "passed": true
+    },
+    {
+      "viewport": 768,
+      "width": 768,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "policy.html",
+      "passed": true
+    },
+    {
+      "viewport": 1440,
+      "width": 1440,
+      "h1": 1,
+      "brokenImages": 0,
+      "path": "policy.html",
+      "passed": true
+    }
+  ],
+  "functional": {
+    "mobileNavigation": true,
+    "screenshotDialogOpen": true,
+    "screenshotDialogCloseAndFocus": true,
+    "checklist6of6": true,
+    "localCheckEvents": true,
+    "resetChecklist": true,
+    "destinationGuide": true,
+    "copyHashHasFallback": true,
+    "previewHomeToDownloads": true,
+    "previewRoutePicker": true,
+    "previewBack": true,
+    "noJSNavigationAndContent": true
+  },
+  "pageErrors": [],
+  "passed": true
+}
