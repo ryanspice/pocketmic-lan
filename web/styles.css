@@ -724,6 +724,7 @@ h2{
 .f-links a{ font-size:.88rem; font-weight:600; color:var(--muted); text-decoration:none }
 .f-links a:hover{ color:var(--gold-ink) }
 .f-legal{ margin:0; font-size:.85rem; color:var(--muted); width:100%; text-align:center; padding-top:.8rem; border-top:1px solid var(--line) }
+.f-support{ display:flex; align-items:center }
 
 /* ---------- responsive ---------- */
 @media (max-width:1080px){

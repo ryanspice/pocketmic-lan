@@ -176,3 +176,9 @@ PERFORMANCE_AUDIT.md     Audit findings, fixes, and measured data
 ## License
 
 MIT
+
+## Support
+
+If PocketMic is useful to you, consider buying me a coffee:
+
+[![Buy Me A Coffee](https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png)](https://www.buymeacoffee.com/ryanspice)
