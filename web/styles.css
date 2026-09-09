@@ -257,6 +257,13 @@ h1 em{ font-style:normal; color:var(--gold-ink) }
   font-size:.82rem; font-weight:700; color:var(--teal);
   letter-spacing:.02em;
 }
+.hero-badges{
+  display:flex; flex-wrap:wrap; gap:.5rem;
+  margin-top:.5rem;
+}
+.hero-badges img{
+  height:22px; border-radius:4px;
+}
 
 .cta-row{ display:flex; flex-wrap:wrap; gap:.7rem; margin:0 0 2rem }
 .btn{
@@ -610,6 +617,74 @@ h2{
 .callout strong{ color:var(--gold-ink); display:block; margin-bottom:.15rem }
 .callout div{ color:var(--muted); font-size:.95rem }
 
+/* screenshots */
+.screenshots-showcase{
+  display:grid; grid-template-columns:repeat(2, minmax(0,1fr));
+  gap:2.5rem; align-items:start;
+}
+.screenshot-device{
+  display:flex; flex-direction:column; gap:1.2rem;
+}
+.device-frame{
+  background:var(--paper);
+  border:1px solid var(--line);
+  overflow:hidden;
+  box-shadow:var(--shadow-lg);
+}
+.device-phone{
+  border-radius:24px;
+  padding:12px 8px;
+  max-width:320px;
+  margin:0 auto;
+  position:relative;
+}
+.device-notch{
+  width:80px; height:6px;
+  background:var(--line-strong);
+  border-radius:3px;
+  margin:0 auto 8px;
+}
+.device-phone img{
+  display:block; width:100%; border-radius:12px;
+}
+.device-desktop{
+  border-radius:var(--radius);
+}
+.device-titlebar{
+  display:flex; align-items:center; gap:6px;
+  padding:8px 12px;
+  background:var(--paper-2);
+  border-bottom:1px solid var(--line);
+}
+.device-titlebar span:first-child,
+.device-titlebar span:nth-child(2),
+.device-titlebar span:nth-child(3){
+  width:10px; height:10px; border-radius:50%;
+}
+.device-titlebar span:first-child{ background:#d9695f }
+.device-titlebar span:nth-child(2){ background:#dfa34d }
+.device-titlebar span:nth-child(3){ background:#6fae9d }
+.device-title{
+  font-size:.75rem; font-weight:600; color:var(--muted);
+  margin-left:8px;
+}
+.device-desktop img{
+  display:block; width:100%;
+}
+.screenshot-caption{
+  padding:0 0.5rem;
+}
+.screenshot-caption h3{
+  margin:0 0 .3rem; font-size:1.05rem; letter-spacing:-.01em;
+}
+.screenshot-caption p{
+  margin:0 0 .5rem; color:var(--muted); font-size:.9rem; line-height:1.5;
+}
+.screenshot-meta{
+  font-family:var(--mono); font-size:.75rem; color:var(--faint);
+  letter-spacing:.02em;
+}
+
 /* FAQ */
 .faq-grid{
   display:grid; grid-template-columns:repeat(2, minmax(0,1fr));
@@ -704,7 +779,8 @@ h2{
   box-shadow:var(--shadow-sm);
 }
 .download-card h3{ margin:0 0 .3rem; font-size:1.1rem }
-.download-meta{ font-size:.82rem; color:var(--muted); margin:0 0 1.2rem; font-family:var(--mono) }
+.download-meta{ font-size:.82rem; color:var(--muted); margin:0 0 .8rem; font-family:var(--mono) }
+.download-badge{ height:22px; margin-bottom:1rem; border-radius:4px }
 .download-note{ font-size:.8rem; color:var(--faint); margin:.8rem 0 0 }
 
 /* footer */
@@ -747,6 +823,8 @@ h2{
   .limits-grid{ grid-template-columns:1fr }
   .usecase-grid{ grid-template-columns:1fr }
   .download-cards{ grid-template-columns:1fr }
+  .screenshots-showcase{ grid-template-columns:1fr; gap:2rem }
+  .device-phone{ max-width:280px }
 }
 @media (max-width:560px){
   .feature-grid{ grid-template-columns:1fr }

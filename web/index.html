@@ -89,6 +89,12 @@
         <li>✓ Open source</li>
         <li>✓ LAN only</li>
       </ul>
+      <div class="hero-badges">
+        <img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&label=Latest&color=b88a3b" alt="Latest release">
+        <img src="https://img.shields.io/github/actions/workflow/status/ryanspice/pocketmic-lan/ci.yml?style=flat-square&label=CI" alt="CI status">
+        <img src="https://img.shields.io/github/license/ryanspice/pocketmic-lan?style=flat-square" alt="License">
+        <img src="https://img.shields.io/github/last-commit/ryanspice/pocketmic-lan?style=flat-square" alt="Last commit">
+      </div>
     </div>
     <div class="hero-visual" aria-label="One UDP datagram: 24-byte header, 960-byte payload, 16-byte GCM tag">
       <div class="datagram-card">
@@ -195,15 +201,32 @@
     <p class="sec-eyebrow">Screenshots</p>
     <h2>Real captures, real hardware</h2>
     <p class="lede">From the v0.1.4 artifacts on a OnePlus 9 Pro and Windows 11 PC. No mockups.</p>
-    <div class="screenshots-grid">
-      <figure class="screenshot">
-        <img src="assets/screenshots/android-app.png" alt="PocketMic Android app showing connection fields, QR scan button, capture mode selector, and gain slider on a dark theme" loading="lazy" width="1080" height="2400">
-        <figcaption>Android transmitter — connection, QR pairing, capture modes</figcaption>
-      </figure>
-      <figure class="screenshot">
-        <img src="assets/screenshots/windows-receiver.png" alt="PocketMic Windows receiver showing UDP port, pairing key, output device selector, voice processing controls, and packet counters" loading="lazy" width="1200" height="800">
-        <figcaption>Windows receiver — device selection, voice processing, diagnostics</figcaption>
-      </figure>
+    <div class="screenshots-showcase">
+      <div class="screenshot-device">
+        <div class="device-frame device-phone">
+          <div class="device-notch"></div>
+          <img src="assets/screenshots/android-app.png" alt="PocketMic Android app showing connection fields, QR scan button, capture mode selector, and gain slider on a dark theme" loading="lazy">
+        </div>
+        <div class="screenshot-caption">
+          <h3>Android Transmitter</h3>
+          <p>QR pairing, capture modes (Voice / Clean / Custom), adjustable gain, live level meter. Runs as a foreground service with Wi-Fi lock.</p>
+          <span class="screenshot-meta">Kotlin · Jetpack Compose · API 26+</span>
+        </div>
+      </div>
+      <div class="screenshot-device">
+        <div class="device-frame device-desktop">
+          <div class="device-titlebar">
+            <span></span><span></span><span></span>
+            <span class="device-title">PocketMic Receiver</span>
+          </div>
+          <img src="assets/screenshots/windows-receiver.png" alt="PocketMic Windows receiver showing UDP port, pairing key, output device selector, voice processing controls, and packet counters" loading="lazy">
+        </div>
+        <div class="screenshot-caption">
+          <h3>Windows Receiver</h3>
+          <p>Auto-discovers VB-CABLE, one-click default mic switching, voice processing chain, session diagnostics with export.</p>
+          <span class="screenshot-meta">C# · .NET 8 · WinForms · NAudio</span>
+        </div>
+      </div>
     </div>
   </div>
 </section>
@@ -401,18 +424,21 @@ Set-ExecutionPolicy -Scope Process Bypass
       <div class="download-card">
         <h3>Windows Receiver</h3>
         <p class="download-meta">.NET 8 · WinForms · NAudio</p>
-        <a class="btn btn-primary btn-lg" href="https://github.com/ryanspice/pocketmic-lan/releases">Download <span class="btn-arrow" aria-hidden="true">→</span></a>
+        <img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&label=Version&color=b88a3b" alt="Latest version" class="download-badge">
+        <a class="btn btn-primary btn-lg" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip">Download <span class="btn-arrow" aria-hidden="true">→</span></a>
         <p class="download-note">Requires .NET 8 runtime or use self-contained build</p>
       </div>
       <div class="download-card">
         <h3>Android APK</h3>
         <p class="download-meta">Kotlin · Jetpack Compose · API 26+</p>
-        <a class="btn btn-primary btn-lg" href="https://github.com/ryanspice/pocketmic-lan/releases">Download <span class="btn-arrow" aria-hidden="true">→</span></a>
+        <img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&label=Version&color=b88a3b" alt="Latest version" class="download-badge">
+        <a class="btn btn-primary btn-lg" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.4-debug.apk">Download <span class="btn-arrow" aria-hidden="true">→</span></a>
         <p class="download-note">Install via <code>adb install -r</code></p>
       </div>
       <div class="download-card">
         <h3>Source code</h3>
         <p class="download-meta">MIT License · GitHub</p>
+        <img src="https://img.shields.io/github/last-commit/ryanspice/pocketmic-lan?style=flat-square" alt="Last commit" class="download-badge">
         <a class="btn btn-ghost btn-lg" href="https://github.com/ryanspice/pocketmic-lan">View on GitHub <span class="btn-arrow" aria-hidden="true">→</span></a>
         <p class="download-note">One-command PowerShell builds</p>
       </div>
