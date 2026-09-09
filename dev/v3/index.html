@@ -111,10 +111,10 @@
           Your local connection
         </div>
         <div class="stage-note"><strong>Two apps.<br>One audio path.</strong><br>Phone to Windows.</div>
-        <a class="image-link phone-frame" href="assets/screenshots/android-app.webp" data-image-preview aria-label="Enlarge the Android app screenshot">
+        <a class="image-link phone-frame" href="assets/screenshots/android-app.png" data-image-preview aria-label="Enlarge the Android app screenshot">
           <img src="assets/screenshots/android-app-720.webp" width="720" height="1608" alt="PocketMic Android app with a masked pairing key, Voice mode, input gain, and Start button" fetchpriority="high" decoding="async">
         </a>
-        <a class="image-link receiver-frame" href="assets/screenshots/windows-receiver.webp" data-image-preview aria-label="Enlarge the Windows receiver screenshot">
+        <a class="image-link receiver-frame" href="assets/screenshots/windows-receiver.png" data-image-preview aria-label="Enlarge the Windows receiver screenshot">
           <img src="assets/screenshots/windows-receiver.webp" width="844" height="531" alt="PocketMic Windows receiver waiting for a phone, with CABLE Input audio routing" decoding="async">
         </a>
         <div class="signal-pill">
@@ -236,7 +236,9 @@
       <div class="screenshot-device">
         <div class="device-frame device-phone">
           <div class="device-notch"></div>
-          <img src="assets/screenshots/android-app.png" alt="PocketMic Android app showing connection fields, QR scan button, capture mode selector, and gain slider" loading="lazy">
+          <a href="assets/screenshots/android-app.png" data-image-preview aria-label="Enlarge Android app screenshot" style="display:block">
+            <img src="assets/screenshots/android-app.png" alt="PocketMic Android app showing connection fields, QR scan button, capture mode selector, and gain slider" loading="lazy">
+          </a>
         </div>
         <div class="screenshot-caption">
           <h3>Android Transmitter</h3>
@@ -247,7 +249,9 @@
       <div class="screenshot-device">
         <div class="device-frame device-desktop">
           <div class="device-titlebar"><span></span><span></span><span></span><span class="device-title">PocketMic Receiver</span></div>
-          <img src="assets/screenshots/windows-receiver.png" alt="PocketMic Windows receiver with device selection, voice processing, and packet counters" loading="lazy">
+          <a href="assets/screenshots/windows-receiver.png" data-image-preview aria-label="Enlarge Windows receiver screenshot" style="display:block">
+            <img src="assets/screenshots/windows-receiver.png" alt="PocketMic Windows receiver with device selection, voice processing, and packet counters" loading="lazy">
+          </a>
         </div>
         <div class="screenshot-caption">
           <h3>Windows Receiver</h3>
@@ -367,6 +371,13 @@
   <p><strong>Android + Windows</strong>Free · Open source</p>
   <a href="#download" class="btn btn-primary btn-sm">Get the apps <span class="btn-arrow" aria-hidden="true">→</span></a>
 </div>
+
+<div class="toast" id="status-message" role="status" aria-live="polite"></div>
+
+<dialog class="media-modal" id="screenshot-dialog" aria-label="App screenshot">
+  <button type="button" class="btn btn-sm" data-close-dialog>Close ✕</button>
+  <img alt="">
+</dialog>
 
 </body>
 </html>
