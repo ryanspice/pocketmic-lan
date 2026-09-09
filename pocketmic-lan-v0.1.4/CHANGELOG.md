@@ -2,6 +2,18 @@
 
 ## v0.1.4 — 2026-09-08
 
+### Android
+- **QR code scanning**: CameraX + ML Kit barcode scanning. Scan `pmic://host:port/key` from PC receiver to auto-fill connection fields
+- **Encrypted pairing key**: key stored in Android Keystore-backed EncryptedSharedPreferences. Auto-migrates from plaintext on upgrade
+- **Sequence overflow fix**: overflow check now happens before encrypt, not after (prevents one packet with invalid sequence)
+- Version bump: 0.1.2 → 0.1.4 (versionCode 4)
+- New dependencies: security-crypto, barcode-scanning, camera-camera2/lifecycle/view
+
+### Windows Receiver
+- **Show QR button**: generates `pmic://ip:port/key` QR code via QRCoder for phone scanning
+- Version bumped to 0.1.4
+- Build verified: 0 warnings, 0 errors, 74/74 tests passing
+
 ### Landing page
 - Updated all version strings from v0.1.2 to v0.1.4
 - Corrected performance numbers to measured values: 100 ms prebuffer, 220 ms high-water mark, 200 ms concealment ceiling (was 40/140/100)
