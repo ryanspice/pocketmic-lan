@@ -35,6 +35,15 @@ Additional capabilities:
 - Session diagnostics with exportable Markdown reports
 - Build, firewall, protocol, and source verification tools
 
+## Screenshots
+
+| Android transmitter | Windows receiver |
+|:---:|:---:|
+| ![PocketMic Android app](web/assets/screenshots/android-app.png) | ![PocketMic Windows receiver](web/assets/screenshots/windows-receiver.png) |
+| Connection, QR pairing, capture modes | Device selection, voice processing, diagnostics |
+
+Captured from v0.1.4 artifacts on a OnePlus 9 Pro and Windows 11 PC.
+
 ## Build on Windows 11
 
 Requirements:
