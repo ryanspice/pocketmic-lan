@@ -1,0 +1,33 @@
+# Android
+.gradle/
+**/build/
+local.properties
+*.jks
+*.keystore
+
+# .NET
+**/bin/
+**/obj/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local build bootstrap
+.tools/
+
+# Generated release artifacts
+release/
+
+# Local orchestration and review scratch
+.fugu/
+.hermes/
+
+# Browser captures and local campaign bundles
+screenshots/
+*-integrated.tar.gz

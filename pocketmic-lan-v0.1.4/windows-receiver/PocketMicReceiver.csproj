@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>PocketMicReceiver</AssemblyName>
+    <RootNamespace>PocketMicReceiver</RootNamespace>
+    <Version>0.1.2</Version>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.3.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Engine, protocol, DSP and settings live in Core so the WinUI 3 front end can share them. -->
+    <ProjectReference Include="..\windows-receiver-core\PocketMicReceiver.Core.csproj" />
+  </ItemGroup>
+</Project>
