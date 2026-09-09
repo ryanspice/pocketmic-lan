@@ -1,0 +1,138 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  android:
+    name: Android — build, lint, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
+          restore-keys: gradle-${{ runner.os }}-
+
+      - name: Build debug APK
+        working-directory: android
+        run: ./gradlew assembleDebug
+
+      - name: Run lint
+        working-directory: android
+        run: ./gradlew lintDebug
+
+      - name: Run unit tests
+        working-directory: android
+        run: ./gradlew testDebugUnitTest
+
+      - name: Upload APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketmic-debug-apk
+          path: android/app/build/outputs/apk/debug/*.apk
+          retention-days: 14
+
+  windows:
+    name: Windows — build, test, publish
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        working-directory: windows-receiver
+        run: dotnet restore
+
+      - name: Build
+        working-directory: windows-receiver
+        run: dotnet build --no-restore -c Release
+
+      - name: Run tests
+        working-directory: windows-receiver-tests
+        run: dotnet test --logger "trx;LogFileName=test-results.trx"
+
+      - name: Publish self-contained receiver
+        working-directory: windows-receiver
+        run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ../release
+
+      - name: Upload receiver
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketmic-receiver-win-x64
+          path: release/PocketMicReceiver.exe
+          retention-days: 14
+
+  web:
+    name: Web — validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate JS syntax
+        run: node --check web/app.js
+
+      - name: Check for stale version references
+        run: |
+          if grep -q 'v0\.1\.[0-3][^0-9]' web/index.html; then
+            echo "ERROR: Found stale version references in index.html"
+            grep -n 'v0\.1\.[0-3][^0-9]' web/index.html
+            exit 1
+          fi
+          echo "Version strings clean"
+
+      - name: Check HTML structure
+        run: |
+          # Must have exactly one h1
+          h1_count=$(grep -c '<h1' web/index.html || echo 0)
+          if [ "$h1_count" -ne 1 ]; then
+            echo "ERROR: Expected 1 h1, found $h1_count"
+            exit 1
+          fi
+          echo "h1 count: $h1_count ✓"
+
+          # Must have canonical URL
+          if ! grep -q 'rel="canonical"' web/index.html; then
+            echo "ERROR: Missing canonical URL"
+            exit 1
+          fi
+          echo "canonical ✓"
+
+          # Must have OG tags
+          if ! grep -q 'og:title' web/index.html; then
+            echo "ERROR: Missing OG tags"
+            exit 1
+          fi
+          echo "OG tags ✓"
+
+          # Must have JSON-LD
+          if ! grep -q 'application/ld+json' web/index.html; then
+            echo "ERROR: Missing JSON-LD"
+            exit 1
+          fi
+          echo "JSON-LD ✓"

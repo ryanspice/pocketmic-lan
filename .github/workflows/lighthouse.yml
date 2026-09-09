@@ -1,16 +1,18 @@
-name: Lighthouse CI
+name: Lighthouse
 
 on:
   push:
-    branches: [main]
+    branches: [master]
     paths:
       - 'web/**'
   pull_request:
+    branches: [master]
     paths:
       - 'web/**'
 
 jobs:
   lighthouse:
+    name: Lighthouse audit
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -35,13 +37,3 @@ jobs:
                 }
               }
             }
-
-  validate-html:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Validate HTML
-        uses: cyrilwermusch/html-validate-action@v1
-        with:
-          html_path: ./web/index.html

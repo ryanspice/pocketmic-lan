@@ -1,4 +1,12 @@
-# PocketMic LAN v0.1.4
+# PocketMic LAN
+
+[![CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml)
+[![Lighthouse](https://github.com/ryanspice/pocketmic-lan/actions/workflows/lighthouse.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/lighthouse.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/ryanspice/pocketmic-lan)](https://github.com/ryanspice/pocketmic-lan/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows-blue)]()
+
+**v0.1.4** · Encrypted wireless microphone for your PC
 
 PocketMic turns an Android phone into an encrypted wireless microphone for a Windows PC on the same private LAN. 48 kHz mono PCM16, AES-256-GCM on every packet, zero cloud, zero account.
 
