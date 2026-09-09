@@ -1,0 +1,13 @@
+B:\Dev\android\pocketmic-lan\windows-receiver-core\obj\Debug\net8.0-windows\PocketMicReceiver.Core.csproj.AssemblyReference.cache
+B:\Dev\android\pocketmic-lan\windows-receiver-core\obj\Debug\net8.0-windows\PocketMicReceiver.Core.GeneratedMSBuildEditorConfig.editorconfig
+B:\Dev\android\pocketmic-lan\windows-receiver-core\obj\Debug\net8.0-windows\PocketMicReceiver.Core.AssemblyInfoInputs.cache
+B:\Dev\android\pocketmic-lan\windows-receiver-core\obj\Debug\net8.0-windows\PocketMicReceiver.Core.AssemblyInfo.cs
+B:\Dev\android\pocketmic-lan\windows-receiver-core\obj\Debug\net8.0-windows\PocketMicReceiver.Core.csproj.CoreCompileInputs.cache
+B:\Dev\android\pocketmic-lan\windows-receiver-core\obj\Debug\net8.0-windows\PocketMicReceiver.Core.sourcelink.json
+B:\Dev\android\pocketmic-lan\windows-receiver-core\bin\Debug\net8.0-windows\PocketMicReceiver.Core.deps.json
+B:\Dev\android\pocketmic-lan\windows-receiver-core\bin\Debug\net8.0-windows\PocketMicReceiver.Core.dll
+B:\Dev\android\pocketmic-lan\windows-receiver-core\bin\Debug\net8.0-windows\PocketMicReceiver.Core.pdb
+B:\Dev\android\pocketmic-lan\windows-receiver-core\obj\Debug\net8.0-windows\PocketMicReceiver.Core.dll
+B:\Dev\android\pocketmic-lan\windows-receiver-core\obj\Debug\net8.0-windows\refint\PocketMicReceiver.Core.dll
+B:\Dev\android\pocketmic-lan\windows-receiver-core\obj\Debug\net8.0-windows\PocketMicReceiver.Core.pdb
+B:\Dev\android\pocketmic-lan\windows-receiver-core\obj\Debug\net8.0-windows\ref\PocketMicReceiver.Core.dll
