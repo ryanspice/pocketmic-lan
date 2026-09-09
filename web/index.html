@@ -66,9 +66,6 @@
         <li><a href="#download">Download</a></li>
       </ul>
     </nav>
-    <a class="bmc-icon" href="https://www.buymeacoffee.com/ryanspice" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee" title="Support PocketMic">
-      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M3 8h18v2a6 6 0 0 1-6 6h-3a6 6 0 0 1-6-6V8Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 8V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M20 11h1a2 2 0 0 1 0 4h-1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
-    </a>
     <span class="badge" aria-hidden="true"><img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&label=v&color=b88a3b" alt="Version" class="badge-img"></span>
   </div>
 </header>
@@ -83,8 +80,12 @@
       <h1>Your phone is now<br>a <em>wireless microphone</em></h1>
       <p class="tagline">PocketMic turns any Android phone into an encrypted, high-quality microphone for your Windows PC — over your private LAN, with zero cloud and zero account.</p>
       <p class="cta-row">
-        <a class="btn btn-primary" href="#download">Download <img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&color=fff&labelColor=1a1712" alt="Latest version" class="cta-version"> <span class="btn-arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn-primary" href="#download">Download <span class="btn-arrow" aria-hidden="true">→</span></a>
         <a class="btn btn-ghost" href="#how-it-works">See how it works</a>
+        <a class="btn btn-bmc" href="https://www.buymeacoffee.com/ryanspice" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee">
+          <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M3 8h18v2a6 6 0 0 1-6 6h-3a6 6 0 0 1-6-6V8Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 8V5a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M20 11h1a2 2 0 0 1 0 4h-1" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M5 19h14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+          <span>☕</span>
+        </a>
       </p>
       <ul class="trust-row" aria-label="Trust indicators">
         <li>✓ No account</li>
@@ -450,33 +451,43 @@ Set-ExecutionPolicy -Scope Process Bypass
 
 <!-- ============================================================ DOWNLOAD -->
 <section id="download" class="section section-alt">
-  <div class="wrap" style="text-align:center">
-    <p class="sec-eyebrow" style="justify-content:center">Get started</p>
+  <div class="wrap">
+    <p class="sec-eyebrow">Get started</p>
     <h2>Download PocketMic LAN</h2>
-    <p class="lede" style="margin-inline:auto;max-width:55ch;text-align:center">Free, open source, MIT licensed. Build from source or download the pre-built receiver.</p>
-    <div class="download-cards">
-      <div class="download-card">
-        <h3>Windows Receiver</h3>
-        <p class="download-meta">.NET 8 · WinForms · NAudio</p>
-        <img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&label=Version&color=b88a3b" alt="Latest version" class="download-badge">
-        <a class="btn btn-primary btn-lg" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip">Download <span class="btn-arrow" aria-hidden="true">→</span></a>
-        <p class="download-note">Requires .NET 8 runtime or use self-contained build</p>
-      </div>
-      <div class="download-card">
-        <h3>Android APK</h3>
-        <p class="download-meta">Kotlin · Jetpack Compose · API 26+</p>
-        <img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&label=Version&color=b88a3b" alt="Latest version" class="download-badge">
-        <a class="btn btn-primary btn-lg" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.4-debug.apk">Download <span class="btn-arrow" aria-hidden="true">→</span></a>
-        <p class="download-note">Install via <code>adb install -r</code></p>
-      </div>
-      <div class="download-card">
-        <h3>Source code</h3>
-        <p class="download-meta">MIT License · GitHub</p>
-        <img src="https://img.shields.io/github/last-commit/ryanspice/pocketmic-lan?style=flat-square" alt="Last commit" class="download-badge">
-        <a class="btn btn-ghost btn-lg" href="https://github.com/ryanspice/pocketmic-lan">View on GitHub <span class="btn-arrow" aria-hidden="true">→</span></a>
-        <p class="download-note">One-command PowerShell builds</p>
-      </div>
+    <p class="lede">Free, open source, MIT licensed. Build from source or download the pre-built receiver.</p>
+    <div class="download-grid">
+      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip">
+        <span class="download-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </span>
+        <span class="download-info">
+          <strong>Windows Receiver</strong>
+          <span>.NET 8 · WinForms · NAudio · Self-contained</span>
+        </span>
+        <span class="download-action">Download .zip <span aria-hidden="true">→</span></span>
+      </a>
+      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.4-debug.apk">
+        <span class="download-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24"><rect x="7" y="2" width="10" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+        </span>
+        <span class="download-info">
+          <strong>Android APK</strong>
+          <span>Kotlin · Jetpack Compose · API 26+</span>
+        </span>
+        <span class="download-action">Download .apk <span aria-hidden="true">→</span></span>
+      </a>
+      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan">
+        <span class="download-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="24" height="24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </span>
+        <span class="download-info">
+          <strong>Source code</strong>
+          <span>MIT License · One-command PowerShell builds</span>
+        </span>
+        <span class="download-action">View on GitHub <span aria-hidden="true">→</span></span>
+      </a>
     </div>
+    <p class="download-footer-note">Or install via <code>adb install -r PocketMic-v0.1.4-debug.apk</code>. See <a href="https://github.com/ryanspice/pocketmic-lan/releases">all releases</a> for checksums and previous versions.</p>
   </div>
 </section>
 

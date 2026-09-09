@@ -794,28 +794,52 @@ h2{
 }
 .limit code{ background:var(--gold-soft) }
 
-/* download cards */
-.download-cards{
-  display:grid; grid-template-columns:repeat(3, minmax(0,1fr));
-  gap:1.2rem; margin-top:2rem;
+/* download rows */
+.download-grid{
+  display:flex; flex-direction:column; gap:.75rem;
+  margin-bottom:1.5rem;
 }
-.download-card{
-  background:var(--paper);
-  border:1px solid var(--line);
-  border-radius:var(--radius);
-  padding:2rem 1.5rem;
-  text-align:center;
-  transition:transform .16s ease, border-color .16s ease, box-shadow .16s ease;
+.download-row{
+  display:grid; grid-template-columns:auto 1fr auto; align-items:center;
+  gap:1.2rem; padding:1.1rem 1.4rem;
+  background:var(--paper); border:1px solid var(--line);
+  border-radius:var(--radius); text-decoration:none; color:var(--ink);
+  transition:border-color .15s ease, box-shadow .15s ease, transform .15s ease;
 }
-.download-card:hover{
-  transform:translateY(-3px);
-  border-color:var(--gold-line);
-  box-shadow:var(--shadow-sm);
+.download-row:hover{
+  border-color:var(--gold-line); box-shadow:var(--shadow-sm);
+  transform:translateY(-2px); text-decoration:none;
 }
-.download-card h3{ margin:0 0 .3rem; font-size:1.1rem }
-.download-meta{ font-size:.82rem; color:var(--muted); margin:0 0 .8rem; font-family:var(--mono) }
-.download-badge{ height:22px; margin-bottom:1rem; border-radius:4px }
-.download-note{ font-size:.8rem; color:var(--faint); margin:.8rem 0 0 }
+.download-icon{
+  display:flex; align-items:center; justify-content:center;
+  width:44px; height:44px; border-radius:10px;
+  background:var(--gold-soft); border:1px solid var(--gold-line);
+  color:var(--gold-ink);
+}
+.download-info{ display:flex; flex-direction:column; gap:.15rem }
+.download-info strong{ font-size:1rem; letter-spacing:-.01em }
+.download-info span{ font-size:.82rem; color:var(--muted); font-family:var(--mono) }
+.download-action{
+  font-weight:700; font-size:.92rem; color:var(--gold-ink);
+  white-space:nowrap;
+}
+.download-row:hover .download-action{ color:var(--gold) }
+.download-footer-note{
+  font-size:.88rem; color:var(--muted); margin:0;
+}
+
+/* BMC hero button */
+.btn-bmc{
+  background:transparent; color:var(--gold-ink);
+  border:1px solid var(--gold-line); border-radius:12px;
+  display:inline-flex; align-items:center; gap:.4rem;
+  padding:.78rem 1rem; text-decoration:none; font-weight:700;
+  transition:background .15s ease, border-color .15s ease, transform .15s ease;
+}
+.btn-bmc:hover{
+  background:var(--gold-soft); border-color:var(--gold);
+  transform:translateY(-1px); text-decoration:none;
+}
 
 /* footer */
 .site-footer{
@@ -857,7 +881,9 @@ h2{
   .limits-grid{ grid-template-columns:1fr }
   .usecase-grid{ grid-template-columns:1fr }
   .voice-grid{ grid-template-columns:1fr }
-  .download-cards{ grid-template-columns:1fr }
+  .download-grid{ gap:.5rem }
+  .download-row{ grid-template-columns:auto 1fr; gap:.8rem; padding:1rem }
+  .download-action{ grid-column:1/-1; text-align:right; font-size:.85rem }
   .screenshots-showcase{ grid-template-columns:1fr; gap:2rem }
   .device-phone{ max-width:280px }
 }
