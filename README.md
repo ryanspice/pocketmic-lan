@@ -1,8 +1,8 @@
 # PocketMic LAN v0.1.4
 
-PocketMic sends microphone audio from an Android phone to a Windows output destination over the same private LAN, with authenticated encryption on every packet.
+PocketMic turns an Android phone into an encrypted wireless microphone for a Windows PC on the same private LAN. 48 kHz mono PCM16, AES-256-GCM on every packet, zero cloud, zero account.
 
-The package contains source plus one-command PowerShell builds. It does not pretend that an APK or EXE was built in an environment that lacked the required Android and .NET SDKs.
+**Live site:** [canopydigital.ca/sites/pocketmic-lan/](https://canopydigital.ca/sites/pocketmic-lan/)
 
 ## Project links
 
@@ -11,32 +11,40 @@ The package contains source plus one-command PowerShell builds. It does not pret
 - Android APK: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.4-debug.apk>
 - Windows receiver: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip>
 - Release checksums: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/SHA256SUMS.txt>
-
-The release URLs become live after matching assets are published with the v0.1.4 GitHub release.
+- Marketing site: <https://canopydigital.ca/sites/pocketmic-lan/>
 
 ## What is included
 
-- Android transmitter: Kotlin, Jetpack Compose, foreground microphone service;
-- Windows receiver: C#/.NET 8, WinForms, NAudio 2.3;
-- 48 kHz mono PCM16 in 10 ms UDP packets;
-- AES-256-GCM authenticated encryption;
-- clean and voice-processed capture modes;
-- adjustable input gain and live input level;
-- selectable Windows playback device;
-- LAN receiver discovery with manual address fallback;
-- prebuffering, bounded loss concealment, rollover-safe sequencing, and latency trimming;
-- build, firewall, protocol, and source verification tools.
+| Component | Stack | Description |
+|-----------|-------|-------------|
+| Android transmitter | Kotlin, Jetpack Compose | Foreground microphone service with QR pairing |
+| Windows receiver | C#/.NET 8, WinForms, NAudio 2.3 | Audio playback with voice processing |
+| Wire protocol | UDP, AES-256-GCM | 48 kHz mono PCM16, 10 ms packets, 100 pps |
+| Control channel | HMAC-SHA256 | Discovery, statistics, DSP config on `audioPort + 1` |
+
+Additional capabilities:
+- QR code pairing — scan from phone, zero manual IP entry
+- LAN receiver discovery with manual IPv4 fallback
+- Clean, voice-processed, and custom capture modes
+- Adjustable input gain and live input level meter
+- Selectable Windows playback device (speakers, VB-CABLE, VoiceMeeter)
+- Prebuffering, bounded loss concealment, rollover-safe sequencing
+- Auto-reconnect with discovery resume on link loss
+- Wi-Fi lock policy (LOW_LATENCY / HIGH_PERF) fed by live network state
+- Pairing key encrypted at rest on Android (EncryptedSharedPreferences)
+- Session diagnostics with exportable Markdown reports
+- Build, firewall, protocol, and source verification tools
 
 ## Build on Windows 11
 
 Requirements:
 
-- Android Studio with Android SDK Platform 36;
-- Android Studio's bundled JBR or another JDK 17+;
-- .NET 8 SDK;
-- Python 3 is optional for the standalone verification scripts.
+- Android Studio with Android SDK Platform 36
+- Android Studio's bundled JBR or another JDK 17+
+- .NET 8 SDK
+- Python 3 (optional — verification scripts)
 
-From the extracted package root:
+From the repo root:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
@@ -45,7 +53,7 @@ Set-ExecutionPolicy -Scope Process Bypass
 .\scripts\publish-windows.ps1
 ```
 
-The Android script uses the committed Gradle 8.14.3 wrapper. Its default path runs the JVM unit test, Android lint, and the requested APK build.
+The Android script uses the committed Gradle wrapper. Its default path runs the JVM unit tests, Android lint, and the requested APK build.
 
 Expected outputs:
 
@@ -60,142 +68,111 @@ Install or update the Android app:
 adb install -r .\release\PocketMic-v0.1.4-debug.apk
 ```
 
-## Faster rebuilds
-
-Keep correctness checks but skip a full clean:
+### Faster rebuilds
 
 ```powershell
-.\scripts\build-android.ps1 -SkipClean
-```
-
-Skip tests and lint only while iterating on a known local issue:
-
-```powershell
-.\scripts\build-android.ps1 -SkipClean -SkipChecks
-```
-
-Unsigned release build:
-
-```powershell
-.\scripts\build-android.ps1 -Configuration Release
-```
-
-Output:
-
-```text
-release\PocketMic-v0.1.4-release-unsigned.apk
+.\scripts\build-android.ps1 -SkipClean                    # keep build cache
+.\scripts\build-android.ps1 -SkipClean -SkipChecks        # skip tests/lint
+.\scripts\build-android.ps1 -Configuration Release        # unsigned release APK
 ```
 
 ## How it works
 
-1. **Start the receiver.** Extract `PocketMicReceiver-win-x64.zip`, run `PocketMicReceiver.exe`, and confirm the UDP port and pairing key.
-2. **Pair Android.** PocketMic can discover a compatible receiver on the LAN; manual IPv4 entry remains available as a fallback. Use the same pairing key on both devices.
-3. **Select the destination.** Choose speakers/headphones for a direct test, or `CABLE Input` for virtual-microphone routing, then start the receiver and tap **Start microphone** on the phone.
+1. **Start the receiver.** Run `PocketMicReceiver.exe`. It shows your IP and a pairing key.
+2. **Scan the QR code.** Open PocketMic on Android, tap "Scan QR", and point at the PC screen. IP, port, and key fill in automatically. Manual entry still works as a fallback.
+3. **Select the destination.** Choose speakers for a test, or `CABLE Input` for routing into Discord/Teams/OBS.
+4. **Tap Start.** The phone captures at 48 kHz, encrypts every 10 ms frame with AES-256-GCM, and streams over UDP.
 
-The Android sender now stays alive when it starts before the receiver; the unconnected UDP send path does not treat an unopened PC port as a fatal stream error.
+### Route into Discord, Teams, OBS, or a game
 
-## Route into Discord, Teams, OBS, or a game
-
-PocketMic plays into a Windows output endpoint. To expose that signal as a recording endpoint:
-
-1. Install VB-Audio VB-CABLE.
+1. Install [VB-Audio VB-CABLE](https://vb-audio.com/Cable/).
 2. Select `CABLE Input` in PocketMic Receiver.
 3. Select `CABLE Output` as the microphone in the target application.
 
+The receiver has a "Use PocketMic as Windows microphone" button that repoints the system default recording device.
+
 ## Windows Firewall
 
-Allow the selected UDP port on **Private networks** only. The default is `49500`. Because PocketMic
-uses the next port for its authenticated control channel, the audio port must be between `1` and
-`65534`.
-
-Run an elevated PowerShell when Windows does not prompt automatically:
+Allow the selected UDP port on **Private networks** only. Default: `49500`.
 
 ```powershell
 .\scripts\allow-firewall.ps1
-```
-
-For a custom port:
-
-```powershell
 .\scripts\allow-firewall.ps1 -Port 49501
 ```
 
 ## Verification
 
-The Android build runs its Kotlin/JVM crypto test and lint by default. Standalone checks are also included:
+The Android build runs Kotlin/JVM tests and lint by default. The Windows build runs 74 xUnit tests. Standalone protocol checks:
 
 ```powershell
 python .\tools\verify_protocol.py
 python .\tools\verify_receiver_logic.py
 python .\tools\verify_source.py
+python .\tools\verify_web.py
 ```
 
 See `PERFORMANCE_AUDIT.md` for the completed and pending verification scope.
 
-## Marketing screenshot provenance
-
-The website uses committed product captures. Rebuild both artifacts and recapture these states whenever the UI or release version changes:
-
-- `web/assets/screenshots/android-setup.png` — captured from the debug APK on a OnePlus 9 Pro after disabling auto-connect and clearing the address field; Android system chrome was cropped, but the app UI was not altered.
-- `web/assets/screenshots/windows-receiver.png` — captured from the self-contained WinForms receiver while listening on UDP 49500, waiting for a phone, with zero packet/loss counters.
-
-Lossy mockups are not substituted for product screenshots. Rebuild both artifacts and recapture these states whenever the UI or release version changes.
-
 ## Performance profile
 
-- Android encryption/header/packet buffers are reused in the 100-packet-per-second hot path.
-- Capture and send run on separate coroutines: the capture loop never blocks on the network,
-  and a bounded send queue (8 packets) drops the oldest instead of ever stalling the mic.
-- Audio-source fallback now tests actual recording startup before committing to a device source.
-- The default Voice mode applies exactly one processing layer — the device's own
-  voice-communication source — instead of stacking software noise suppression, gain control,
-  and echo cancellation on top of it.
-- The input meter updates at 10 Hz rather than forcing Compose state work for every packet.
-- The recorder uses Android's reported minimum or a four-packet floor instead of an
-  unconditional 80 ms floor.
-- Windows starts playback after a 100 ms prebuffer.
-- Small gaps receive up to 200 ms of concealment: the last good frame repeated at a decaying
-  level, rather than hard digital silence.
-- Buffered latency is trimmed above the high-water mark (220 ms at the default prebuffer)
-  instead of drifting toward the 300 ms safety ceiling.
-- A removed or failed Windows output device now causes a controlled receiver shutdown instead of a false "Receiving audio" state.
-- Stale faults or queued status updates from a previous receiver run cannot affect a newly started run, and UI strings are only allocated on throttled updates.
-- The Wi-Fi lock mode is a policy choice fed by the live network (band, RSSI, and receiver
-  loss), re-evaluated while streaming, rather than a constant selected at startup.
+These numbers come from real-device testing on a OnePlus 9 Pro and Windows 11 PC over 5 GHz Wi-Fi:
 
-These settings prioritize reliable conversational latency. The prebuffer is adjustable on the
-receiver; the remaining policies stay conservative until real-device measurements justify
-adaptive tuning.
+| Metric | Value | Notes |
+|--------|-------|-------|
+| Prebuffer | 100 ms | Adjustable 40–300 ms on receiver |
+| High-water mark | 220 ms | Buffered latency trimmed above this |
+| Concealment | 200 ms | Max 20 packets of decayed-repeat fill |
+| Raw bandwidth | 768 kbit/s | 48 kHz mono PCM16 |
+| Packet rate | 100/s | 10 ms per packet |
+
+Additional performance characteristics:
+- Android encryption/header/packet buffers reused in the hot path
+- Capture and send decoupled: bounded 8-packet drop-oldest queue
+- Input meter at 10 Hz, not per packet
+- Wi-Fi lock policy re-evaluated every 10 s against live network
+
+See `PERFORMANCE_AUDIT.md` for measured jitter, loss, and the Wi-Fi lock A/B results.
 
 ## Security and network boundary
 
-- Key: `SHA-256(UTF-8(pairing key))`;
-- cipher: AES-256-GCM;
-- nonce: random 64-bit stream session plus unsigned 32-bit sequence;
-- authenticated data: complete 24-byte protocol header;
-- Android backup: disabled;
-- intended scope: trusted private LAN only.
+| Property | Value |
+|----------|-------|
+| Key | `SHA-256(UTF-8(pairing key))` |
+| Cipher | AES-256-GCM |
+| Nonce | Random 64-bit session ID + unsigned 32-bit sequence |
+| AAD | Complete 24-byte protocol header |
+| Key at rest | Android Keystore (EncryptedSharedPreferences) |
+| Control channel | HMAC-SHA256, domain-separated key |
+| Scope | Trusted private LAN only |
 
 Do not port-forward the receiver. Encryption protects packet contents and integrity; it does not make this a hardened internet voice service.
 
 ## Current limits
 
-- Windows receiver only;
-- LAN discovery with manual IPv4 fallback and QR pairing;
-- PCM uses more bandwidth than Opus;
-- an adjustable jitter prebuffer with simple latency trimming rather than adaptive jitter/clock recovery;
-- no signed Android release, Windows installer, or updater;
-- end-to-end behaviour still needs physical Android/Windows/Wi-Fi/VB-CABLE testing.
+- Windows receiver only — no macOS or Linux yet
+- LAN discovery with manual IPv4 fallback and QR pairing
+- PCM uses more bandwidth than Opus (~768 kbit/s)
+- Fixed prebuffer with simple latency trimming, not adaptive jitter/clock recovery
+- No signed Android release, Windows installer, or auto-updater
+- No internet relay — both devices must be on the same LAN
+- Designed for voice, not real-time music monitoring
 
-## Layout
+## Project layout
 
 ```text
-android/              Android transmitter
-windows-receiver/     Windows receiver
-scripts/              PowerShell build and firewall helpers
-tools/                Protocol, sequencing, and source verification
-PERFORMANCE_AUDIT.md  Audit findings and fixes
-PROTOCOL.md            Wire format and encryption
-CHANGELOG.md           Version history
-web/                    Static landing page and product captures
+android/                 Kotlin Android transmitter
+windows-receiver/        C# WinForms receiver UI
+windows-receiver-core/   C# shared engine, audio pipeline, protocol
+windows-receiver-tests/  C# xUnit tests (74 tests)
+scripts/                 PowerShell build, publish, and firewall helpers
+tools/                   Python protocol, logic, source, and web verification
+web/                     Static marketing site (HTML/CSS/JS, zero deps)
+docs/                    Project documentation
+CHANGELOG.md             Version history
+PROTOCOL.md              Wire format and encryption spec
+PERFORMANCE_AUDIT.md     Audit findings, fixes, and measured data
 ```
+
+## License
+
+MIT
