@@ -1,0 +1,19 @@
+=== W4B worker-nv-flash START 01:03:14 ===
+Lane 'worker-nv-flash' remains active after 60.6s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 121.1s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 181.6s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' reached its soft 240s checkpoint and is still running without a visible console.
+Lane 'worker-nv-flash' remains active after 300.5s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 361s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 421.5s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 482s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 542.6s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 603.1s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 663.6s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 724.1s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 784.7s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 845.3s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 905.8s; continuing to watch the no-window child process.
+Lane 'worker-nv-flash' remains active after 966.4s; continuing to watch the no-window child process.
+lane=worker-nv-flash profile=code-deepseek-nvidia model=deepseek-ai/deepseek-v4-flash-0731 workspace_mode=explicit-workspace workspace=B:\Dev\android\pocketmic-lan\pocketmic-lan-v0.1.3 ignore_rules=True max_turns=8 soft_checkpoint_s=240 max_runtime_s=0 -> .fugu/20260902-webpage/results/w4b.out.md
+=== W4B DONE rc=0 01:19:33 ===

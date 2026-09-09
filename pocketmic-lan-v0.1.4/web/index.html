@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>PocketMic LAN — Encrypted Phone Mic for Windows PC | LAN Only</title>
+<meta name="description" content="Turn an Android phone into an encrypted 48 kHz microphone for a Windows PC on the same LAN. AES-256-GCM, zero cloud, zero account.">
+<link rel="canonical" href="https://canopydigital.github.io/pocketmic-lan/">
+<meta name="theme-color" content="#b88a3b" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1d1a16" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="PocketMic LAN — Encrypted Phone Microphone for Windows PC">
+<meta property="og:description" content="48 kHz mono PCM16, AES-256-GCM, LAN-only. Your Android phone as a secure PC microphone — zero cloud, zero account.">
+<meta property="og:url" content="https://canopydigital.github.io/pocketmic-lan/">
+<meta property="og:image" content="https://canopydigital.github.io/pocketmic-lan/og-image.png">
+<meta property="og:site_name" content="PocketMic LAN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="PocketMic LAN — Encrypted Phone Microphone">
+<meta name="twitter:description" content="48 kHz mono PCM16, AES-256-GCM, LAN-only. Your phone as a secure PC microphone.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect x='1.5' y='1.5' width='29' height='29' rx='8' fill='%23b88a3b'/><path d='M16 8.5a4 4 0 0 0-4 4v4.2a4 4 0 0 0 8 0V12.5a4 4 0 0 0-4-4Z' fill='%23fff'/><path d='M10.5 17.4a5.5 5.5 0 0 0 11 0M16 22.6v3.2M12 25.8h8' stroke='%23fff' stroke-width='1.8' fill='none' stroke-linecap='round'/></svg>">
+<link rel="stylesheet" href="styles.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "PocketMic LAN",
+  "operatingSystem": "Android, Windows 11",
+  "applicationCategory": "MultimediaApplication",
+  "description": "Encrypted phone-to-PC microphone over LAN. 48 kHz mono PCM16, AES-256-GCM, zero cloud.",
+  "url": "https://github.com/canopydigital/pocketmic-lan",
+  "softwareVersion": "0.1.4",
+  "license": "https://opensource.org/licenses/MIT",
+  "author": {
+    "@type": "Person",
+    "name": "Ryan Spice-Finnie"
+  }
+}
+</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-inner">
+    <a class="brand" href="#hero" aria-label="PocketMic LAN home">
+      <svg class="brand-mark" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="none" stroke="currentColor" stroke-width="2"></rect>
+        <path d="M16 8.5a4 4 0 0 0-4 4v4.2a4 4 0 0 0 8 0V12.5a4 4 0 0 0-4-4Z" fill="currentColor"></path>
+        <path d="M10.5 17.4a5.5 5.5 0 0 0 11 0M16 22.6v3.2M12 25.8h8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"></path>
+      </svg>
+      <span class="brand-name">PocketMic <span class="brand-sub">LAN</span></span>
+    </a>
+    <nav class="primary-nav" aria-label="Primary">
+      <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
+      <label for="nav-toggle" class="nav-toggle" aria-label="Toggle navigation">
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+        <span class="nav-toggle-bar" aria-hidden="true"></span>
+      </label>
+      <ul id="nav-list" class="nav-list">
+        <li><a href="#how-it-works">How it works</a></li>
+        <li><a href="#features">What is included</a></li>
+        <li><a href="#performance">Performance</a></li>
+        <li><a href="#security">Security</a></li>
+        <li><a href="#build-install">Build &amp; install</a></li>
+        <li><a href="#limits">Current limits</a></li>
+        <li><a href="#compare">Compare</a></li>
+        <li><a href="#download">Download</a></li>
+      </ul>
+    </nav>
+    <span class="badge" aria-hidden="true">v0.1.4</span>
+  </div>
+</header>
+
+<main id="main">
+
+<section id="hero" class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="eyebrow-rule"></span>PocketMic LAN — v0.1.4</p>
+      <h1>Your phone, <em>securely,</em><br>as your PC microphone</h1>
+      <p class="tagline">PocketMic turns an Android phone into an encrypted microphone for a Windows PC on the same LAN — 48&nbsp;kHz mono PCM16 in 10&nbsp;ms UDP packets.</p>
+      <p class="cta-row">
+        <a class="btn btn-primary" href="#how-it-works">See how it works <span class="btn-arrow" aria-hidden="true">→</span></a>
+        <a class="btn btn-ghost" href="#build-install">Build &amp; install</a>
+      </p>
+      <ul class="key-facts" aria-label="Key technical facts">
+        <li class="kf tile"><span class="kf-num">48 kHz</span><span class="kf-label">mono PCM16</span></li>
+        <li class="kf tile"><span class="kf-num tip" tabindex="0" aria-describedby="tip-pps">10 ms<span class="tip-bubble" id="tip-pps" role="tooltip">100 packets per second</span></span><span class="kf-label">UDP packets</span></li>
+        <li class="kf tile"><span class="kf-num tip" tabindex="0" aria-describedby="tip-cipher">AES-256-GCM<span class="tip-bubble" id="tip-cipher" role="tooltip">Key = SHA-256(pairing key)</span></span><span class="kf-label">authenticated</span></li>
+        <li class="kf tile"><span class="kf-num">LAN only</span><span class="kf-label">private network</span></li>
+      </ul>
+    </div>
+
+    <div class="hero-visual" aria-label="One UDP datagram: 24-byte header, 960-byte payload, 16-byte GCM tag">
+      <div class="datagram-card">
+        <p class="card-label">One UDP datagram<span class="card-label-sub">— 1000 bytes · 10 ms of audio</span></p>
+        <div class="datagram-bar">
+          <div class="seg seg-header" title="24-byte protocol header"></div>
+          <div class="seg seg-payload" title="960 bytes of 48 kHz mono PCM16">
+            <svg class="waveform" viewBox="0 0 460 40" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+              <path d="M0 20 C 14 20, 18 8, 30 12 C 44 17, 48 28, 62 24 C 78 19, 82 6, 96 10 C 112 15, 118 30, 132 26 C 148 21, 152 7, 166 11 C 182 16, 188 29, 202 25 C 218 20, 222 8, 236 12 C 252 17, 258 28, 272 24 C 288 19, 292 6, 306 10 C 322 15, 328 30, 342 26 C 358 21, 362 7, 376 11 C 392 16, 398 29, 412 25 C 428 20, 432 8, 446 12 C 452 13.5, 456 16, 460 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"></path>
+            </svg>
+          </div>
+          <div class="seg seg-tag" title="16-byte GCM authentication tag"></div>
+        </div>
+        <dl class="datagram-legend">
+          <div><span class="swatch sw-header"></span><dt>Header</dt><dd>24 B</dd></div>
+          <div><span class="swatch sw-payload"></span><dt>Payload</dt><dd>960 B — 48 kHz mono PCM16</dd></div>
+          <div><span class="swatch sw-tag"></span><dt>GCM tag</dt><dd>16 B</dd></div>
+        </dl>
+      </div>
+      <p class="hero-footnote">AES-256-GCM on every packet · 100 packets/second · your private LAN only</p>
+    </div>
+  </div>
+</section>
+
+<div class="honesty-strip" aria-label="Product principles">
+  <div class="wrap honesty-inner">
+    <span>No account</span><i aria-hidden="true"></i><span>No cloud</span><i aria-hidden="true"></i><span>No discovery service</span><i aria-hidden="true"></i><span>Honest about its limits</span>
+  </div>
+</div>
+
+<section id="how-it-works" class="section">
+  <div class="wrap">
+    <p class="sec-eyebrow">01 — How it works</p>
+    <h2>Seven steps, one LAN</h2>
+    <p class="lede">Both devices stay on your private network. You type an IP and a pairing key; everything after that is encrypted.</p>
+    <ol class="steps">
+      <li><span class="step-num" aria-hidden="true">1</span><div class="step-body"><h3>Start the receiver</h3><p>Extract <code>PocketMicReceiver-win-x64.zip</code> and run <code>PocketMicReceiver.exe</code>.</p></div></li>
+      <li><span class="step-num" aria-hidden="true">2</span><div class="step-body"><h3>Copy the receiver's IP</h3><p>Note the preferred IPv4 address the receiver shows.</p></div></li>
+      <li><span class="step-num" aria-hidden="true">3</span><div class="step-body"><h3>Enter the IP on the phone</h3><p>Type the same IPv4 address into PocketMic on Android.</p></div></li>
+      <li><span class="step-num" aria-hidden="true">4</span><div class="step-body"><h3>Enter the pairing key</h3><p>Type the same pairing key on both devices — it derives the AES-256-GCM key.</p></div></li>
+      <li><span class="step-num" aria-hidden="true">5</span><div class="step-body"><h3>Pick a Windows playback device</h3><p>Choose speakers or headphones for a local test, or <code>CABLE Input</code> for virtual-microphone routing into Discord, Teams, OBS, or games.</p></div></li>
+      <li><span class="step-num" aria-hidden="true">6</span><div class="step-body"><h3>Start the Windows receiver</h3><p>Press Start in the receiver — it waits for a short prebuffer before playback.</p></div></li>
+      <li><span class="step-num" aria-hidden="true">7</span><div class="step-body"><h3>Tap Start microphone on the phone</h3><p>PocketMic sends encrypted 10&nbsp;ms UDP frames to your PC. End-to-end behaviour on physical devices is still pending validation — see Current limits.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section id="features" class="section section-alt">
+  <div class="wrap">
+    <p class="sec-eyebrow">02 — What is included</p>
+    <h2>Two halves, one wire</h2>
+    <p class="lede">A Kotlin transmitter on Android, a C# receiver on Windows, and a tightly-specified wire between them.</p>
+    <ul class="feature-grid">
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M17 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><h3>Android transmitter</h3><p>Kotlin with Jetpack Compose and a foreground microphone service.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><h3>Windows receiver</h3><p>C# on .NET 8 with WinForms and NAudio 2.3.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M3 12h18M3 12l4-4M3 12l4 4M21 12l-4-4M21 12l-4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg></span><h3>PCM16 over UDP</h3><p>48 kHz mono PCM16 in 10 ms UDP packets, 100 packets per second.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="4" y="10" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><h3>AES-256-GCM encryption</h3><p>Authenticated encryption on every datagram.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 3v3M12 18v3M5.6 6.6l2.1 2.1M16.3 15.3l2.1 2.1M3 12h3M18 12h3" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" fill="none"/><circle cx="12" cy="12" r="4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><h3>Two capture modes</h3><p>Clean and voice-processed microphone capture.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 19a7 7 0 1 0 0-14 7 7 0 0 0 0 14Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 9v3l2 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><h3>Adjustable gain</h3><p>Input gain and a live input level meter.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M2 9h4l4-5v16l-4-5H2z" fill="currentColor" opacity=".9"/><path d="M16 8a5 5 0 0 1 0 8M19 5a9.5 9.5 0 0 1 0 14" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></span><h3>Selectable output</h3><p>Pick the Windows playback device, or route into <code>CABLE Input</code>.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span><h3>Resilient streaming</h3><p>Prebuffering, bounded loss concealment, rollover-safe sequencing, and latency trimming.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 12a8 8 0 0 1 14-5.7M20 12a8 8 0 0 1-14 5.7" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M18 2v4.3h-4.3M6 22v-4.3h4.3" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h3>Source fallback</h3><p>Audio source fallback tests actual recording startup before committing to a device source.</p></li>
+      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 17 10 11 14 15 20 8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 8h5v5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h3>Build &amp; verify tools</h3><p>PowerShell build, firewall, protocol, and source verification helpers.</p></li>
+    </ul>
+  </div>
+</section>
+
+<section id="performance" class="section">
+  <div class="wrap">
+    <p class="sec-eyebrow">03 — Performance profile</p>
+    <h2>Measured and bounded — on real hardware</h2>
+    <p class="lede">These numbers come from real-device testing on the owner's OnePlus 9 Pro and Windows 11 PC over 5 GHz Wi-Fi.</p>
+    <dl class="stats">
+      <div class="stat tile"><dt>Prebuffer</dt><dd>100 <span>ms</span></dd><p>Windows waits before starting playback (adjustable 40–300 ms).</p></div>
+      <div class="stat tile"><dt>Latency trim</dt><dd>220 <span>ms</span></dd><p>Buffered latency trimmed above this high-water mark.</p></div>
+      <div class="stat tile"><dt>Concealment</dt><dd>200 <span>ms</span></dd><p>Maximum silence frames for short gaps (20 packets).</p></div>
+      <div class="stat tile"><dt>Raw bandwidth</dt><dd>768 <span>kbit/s</span></dd><p>48 kHz mono PCM16 — PCM costs more than Opus.</p></div>
+    </dl>
+
+    <div class="wire">
+      <h3>Wire format</h3>
+      <ul class="plain">
+        <li>48,000 Hz mono signed PCM16, little-endian</li>
+        <li>480 samples / 960 plaintext bytes per 10 ms packet, 100 packets per second</li>
+        <li>768 kbit/s raw audio bandwidth; exactly 1000 bytes per datagram</li>
+      </ul>
+      <ul class="plain wire-sub">
+        <li>Input meter updates at 10 Hz, not per packet</li>
+        <li>Android encryption, header, and packet buffers reused in the 100-packet-per-second hot path</li>
+        <li>Audio source is tested by actually starting a recording, with a fallback on failure</li>
+      </ul>
+      <p class="note">These settings are intentionally fixed until real-device measurements justify adaptive tuning.</p>
+    </div>
+  </div>
+</section>
+
+<section id="security" class="section section-alt">
+  <div class="wrap">
+    <p class="sec-eyebrow">04 — Security &amp; network boundary</p>
+    <h2>Encrypted on the wire, scoped to your LAN</h2>
+    <p class="lede">Authenticated encryption on every datagram — and an honest boundary about what that does and does not mean.</p>
+    <dl class="sec-grid">
+      <div class="sec-item"><dt>Key</dt><dd><code>SHA-256(UTF-8(pairing key))</code></dd></div>
+      <div class="sec-item"><dt>Cipher</dt><dd>AES-256-GCM</dd></div>
+      <div class="sec-item"><dt>Nonce</dt><dd>Random 64-bit stream session ID plus an unsigned 32-bit sequence</dd></div>
+      <div class="sec-item"><dt>Authenticated data</dt><dd>The complete 24-byte protocol header</dd></div>
+      <div class="sec-item"><dt>Android backup</dt><dd>Disabled</dd></div>
+      <div class="sec-item"><dt>Intended scope</dt><dd>Trusted private LAN only</dd></div>
+    </dl>
+
+    <div class="topology" aria-label="Phone to PC over encrypted LAN">
+      <div class="node"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="7" y="2" width="10" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Android</span></div>
+      <div class="link" aria-hidden="true"><i></i><svg class="lock" viewBox="0 0 24 24" width="18" height="18"><rect x="5" y="10" width="14" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg><i></i></div>
+      <div class="node"><svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span>Windows PC</span></div>
+    </div>
+
+    <aside class="callout warn" role="note">
+      <span class="callout-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="20" height="20"><path d="M12 3 2.5 20h19L12 3z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M12 10v4.5M12 17.5h.01" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
+      <div><strong>Encryption is not a hardened internet voice service</strong>
+      Do not port-forward the receiver. Encryption protects packet contents and integrity; it does not make this a hardened internet voice service.</div>
+    </aside>
+  </div>
+</section>
+
+<section id="build-install" class="section">
+  <div class="wrap">
+    <p class="sec-eyebrow">05 — Build &amp; install on Windows 11</p>
+    <h2>From source to speaking</h2>
+    <p class="lede">One-command PowerShell builds. The package ships source plus tooling — it does not pretend an APK or EXE was built in an environment without the SDKs.</p>
+
+    <div class="build-grid">
+      <div>
+        <h3>Requirements</h3>
+        <ul class="plain req">
+          <li>Android Studio with Android SDK Platform 36</li>
+          <li>Android Studio's bundled JBR, or another JDK 17+</li>
+          <li>.NET 8 SDK</li>
+          <li>Python 3 (optional — verification scripts)</li>
+        </ul>
+      </div>
+      <div>
+        <h3>One-command builds</h3>
+        <pre class="term" aria-label="Build commands"><span class="term-dots"><i></i><i></i><i></i></span><code><span class="c"># from the package root (PowerShell)</span>
+Set-ExecutionPolicy -Scope Process Bypass
+.\scripts\build-android.ps1
+.\scripts\publish-windows.ps1</code></pre>
+      </div>
+      <div>
+        <h3>Expected outputs</h3>
+        <pre class="term" aria-label="Expected build outputs"><span class="term-dots"><i></i><i></i><i></i></span><code>release\PocketMic-v0.1.4-debug.apk
+release\PocketMicReceiver-win-x64.zip</code></pre>
+      </div>
+      <div>
+        <h3>Install the Android app</h3>
+        <pre class="term" aria-label="Install command"><span class="term-dots"><i></i><i></i><i></i></span><code>adb install -r .\release\PocketMic-v0.1.4-debug.apk</code></pre>
+      </div>
+      <div>
+        <h3>Firewall — private networks only</h3>
+        <p class="mini">Allow the selected UDP port on <strong>Private networks</strong> only. Default port: <code>49500</code>.</p>
+        <pre class="term" aria-label="Firewall command"><span class="term-dots"><i></i><i></i><i></i></span><code>.\scripts\allow-firewall.ps1
+.\scripts\allow-firewall.ps1 -Port 49501</code></pre>
+      </div>
+      <div>
+        <h3>Route into Discord, Teams, OBS, or a game</h3>
+        <ol class="plain numbered">
+          <li>Install VB-Audio VB-CABLE</li>
+          <li>Select <code>CABLE Input</code> in the PocketMic Receiver</li>
+          <li>Select <code>CABLE Output</code> as the microphone in the target application</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="limits" class="section section-alt">
+  <div class="wrap">
+    <p class="sec-eyebrow">06 — Current limits</p>
+    <h2>Honest, on purpose</h2>
+    <p class="lede">None of these are hidden before you build.</p>
+    <ul class="limits-grid">
+      <li class="limit">Windows receiver only</li>
+      <li class="limit">LAN discovery with manual IPv4 fallback; no QR pairing</li>
+      <li class="limit">PCM uses more bandwidth than Opus</li>
+      <li class="limit">Fixed prebuffer and simple latency trimming, not adaptive jitter or clock recovery</li>
+      <li class="limit">No signed Android release, no Windows installer, no updater</li>
+      <li class="limit">End-to-end behaviour still needs physical Android, Windows, Wi-Fi, and VB-CABLE testing</li>
+    </ul>
+  </div>
+</section>
+
+<section id="compare" class="section">
+  <div class="wrap">
+    <p class="sec-eyebrow">07 — How it compares</p>
+    <h2>PocketMic vs. the alternatives</h2>
+    <p class="lede">Each approach has tradeoffs. PocketMic's niche is encrypted, phone-as-microphone on a private LAN with no cloud dependency.</p>
+    <div class="compare-table-wrap">
+      <table class="compare-table" aria-label="Feature comparison">
+        <thead>
+          <tr>
+            <th scope="col">Feature</th>
+            <th scope="col">PocketMic LAN</th>
+            <th scope="col">VB-CABLE alone</th>
+            <th scope="col">Bluetooth mic</th>
+            <th scope="col">Discord / Krisp</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Phone as wireless mic</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td></tr>
+          <tr><td>Encrypted on the wire</td><td class="yes">AES-256-GCM</td><td class="na">N/A</td><td class="partial">Depends</td><td class="yes">TLS</td></tr>
+          <tr><td>LAN only — no cloud</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td></tr>
+          <tr><td>No account required</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td></tr>
+          <tr><td>Virtual mic for apps</td><td class="yes">Via VB-CABLE</td><td class="yes">Yes</td><td class="partial">OS only</td><td class="yes">Built-in</td></tr>
+          <tr><td>Sample rate</td><td>48 kHz</td><td>48 kHz</td><td>8–16 kHz typical</td><td>48 kHz</td></tr>
+          <tr><td>Latency</td><td>~100–250 ms</td><td>~10 ms</td><td>~30–100 ms</td><td>~50–150 ms</td></tr>
+          <tr><td>Open source</td><td class="yes">MIT</td><td class="no">No</td><td class="na">N/A</td><td class="no">No</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<section id="whats-new" class="section section-alt">
+  <div class="wrap">
+    <p class="sec-eyebrow">08 — What's new in v0.1.4</p>
+    <h2>Measurable, honest, discoverable</h2>
+    <ul class="changelog-list">
+      <li><strong>Measured performance numbers</strong> — prebuffer, latency trim, and concealment now reflect real-device testing, not design intent</li>
+      <li><strong>Full SEO suite</strong> — Open Graph, Twitter Cards, JSON-LD, canonical URL, robots.txt, sitemap.xml</li>
+      <li><strong>Lighthouse CI</strong> — automated performance, accessibility, and SEO assertions on every push</li>
+      <li><strong>Accessibility improvements</strong> — aria-expanded on mobile nav, simplified keyboard handlers</li>
+      <li><strong>Comparison table</strong> — honest feature comparison with VB-CABLE, Bluetooth, and cloud alternatives</li>
+      <li><strong>Fixed steps timeline</strong> — connecting line now covers both columns on desktop</li>
+      <li><strong>Cross-browser polish</strong> — color-mix() fallback for older browsers, dark mode header fix</li>
+    </ul>
+    <p class="lede" style="margin-top:1.5rem">See <code>CHANGELOG.md</code> for the full list.</p>
+  </div>
+</section>
+
+<section id="download" class="section">
+  <div class="wrap" style="text-align:center">
+    <p class="sec-eyebrow" style="justify-content:center">09 — Get started</p>
+    <h2>Download PocketMic LAN</h2>
+    <p class="lede" style="margin-inline:auto;max-width:50ch;text-align:center">Source release — build with one command, or read the source first. MIT licensed.</p>
+    <p class="cta-row" style="justify-content:center;margin-top:1.5rem">
+      <a class="btn btn-primary" href="https://github.com/canopydigital/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip">Download Windows receiver <span class="btn-arrow" aria-hidden="true">→</span></a>
+      <a class="btn btn-ghost" href="https://github.com/canopydigital/pocketmic-lan">View on GitHub</a>
+    </p>
+    <p style="font-size:.85rem;color:var(--muted);margin-top:.5rem">Android APK available from the <a href="https://github.com/canopydigital/pocketmic-lan/releases">releases page</a>.</p>
+  </div>
+</section>
+
+</main>
+
+<footer class="site-footer">
+  <div class="wrap footer-inner">
+    <div>
+      <p class="f-brand">PocketMic <span>LAN</span></p>
+      <p class="f-version">v0.1.4 · source release</p>
+    </div>
+    <p class="f-legal">Released under the MIT License · Copyright &copy; <span id="year">2026</span> Ryan Spice-Finnie</p>
+  </div>
+</footer>
+
+<script src="app.js" defer></script>
+</body>
+</html>
