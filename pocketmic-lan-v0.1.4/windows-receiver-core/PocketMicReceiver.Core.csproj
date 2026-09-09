@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <!--
+      UI-agnostic engine shared by the WinForms and WinUI 3 front ends. It must never reference
+      a UI framework: both hosts marshal engine events to their own dispatcher, so anything that
+      touches Control.Invoke or DispatcherQueue belongs in the host, not here.
+    -->
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>PocketMicReceiver</RootNamespace>
+    <AssemblyName>PocketMicReceiver.Core</AssemblyName>
+    <Version>0.1.4</Version>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.3.0" />
+  </ItemGroup>
+</Project>

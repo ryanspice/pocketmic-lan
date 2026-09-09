@@ -81,14 +81,14 @@ class MainActivity : ComponentActivity() {
 
 // Warm paper + gold, matching the web design system (web/styles.css): dark slate-grey becomes
 // a warm near-black, and the accent is the same gold rgba(184,138,59) the web surface uses.
-private val Background = Color(0xFF171411)
-private val Surface = Color(0xFF1F1B16)
-private val SurfaceRaised = Color(0xFF27211C)
-private val Accent = Color(0xFFD4A95C)
-private val Danger = Color(0xFFFF756B)
-private val Caution = Color(0xFFFFC46B)
-private val TextPrimary = Color(0xFFE9E1D4)
-private val TextMuted = Color(0xFFA79E8D)
+internal val Background = Color(0xFF171411)
+internal val Surface = Color(0xFF1F1B16)
+internal val SurfaceRaised = Color(0xFF27211C)
+internal val Accent = Color(0xFFD4A95C)
+internal val Danger = Color(0xFFFF756B)
+internal val Caution = Color(0xFFFFC46B)
+internal val TextPrimary = Color(0xFFE9E1D4)
+internal val TextMuted = Color(0xFFA79E8D)
 
 /** Debounce for pushing DSP slider changes to the receiver, so dragging does not flood UDP. */
 private const val DSP_PUSH_DEBOUNCE_MS = 120L

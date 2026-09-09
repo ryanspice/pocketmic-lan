@@ -1,4 +1,5 @@
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -6,6 +7,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using NAudio;
 using NAudio.Wave;
+using QRCoder;
 
 namespace PocketMicReceiver;
 
@@ -191,6 +193,7 @@ internal sealed class MainForm : Form
     private readonly ReceiverSettings _settings = ReceiverSettings.Load();
     private readonly Button _startButton = new() { Text = "Start receiver", AutoSize = true };
     private readonly Button _copyIpButton = new() { Text = "Copy first IP", AutoSize = true };
+    private readonly Button _showQrButton = new() { Text = "Show QR for phone", AutoSize = true };
     private readonly Label _statusLabel = new() { Text = "Stopped", AutoSize = true };
     private readonly Label _sourceLabel = new() { Text = "Phone: —", AutoSize = true };
     private readonly Label _statsLabel = new()
@@ -257,8 +260,10 @@ internal sealed class MainForm : Form
         RefreshLocalAddresses();
         root.Controls.Add(_addressesText);
         root.Controls.Add(_copyIpButton);
-        _advancedControls.AddRange(new Control[] { addressSection, _addressesText, _copyIpButton });
-        _copyIpButton.Margin = new Padding(0, 6, 0, 18);
+        root.Controls.Add(_showQrButton);
+        _advancedControls.AddRange(new Control[] { addressSection, _addressesText, _copyIpButton, _showQrButton });
+        _copyIpButton.Margin = new Padding(0, 6, 6, 18);
+        _showQrButton.Margin = new Padding(0, 6, 0, 18);
         _copyIpButton.Click += (_, _) =>
         {
             var first = GetLocalIpv4Addresses().FirstOrDefault();
@@ -268,6 +273,7 @@ internal sealed class MainForm : Form
                 catch (ExternalException) { }
             }
         };
+        _showQrButton.Click += (_, _) => ShowQrCode();
 
         var connectionGrid = new TableLayoutPanel
         {
@@ -1092,6 +1098,74 @@ internal sealed class MainForm : Form
                 MessageBoxButtons.OK,
                 MessageBoxIcon.Warning);
         }
+    }
+
+    /// <summary>
+    /// Generates a QR code encoding the receiver's IP, port, and pairing key in the format
+    /// pmic://&lt;ip&gt;:&lt;port&gt;/&lt;key&gt; and shows it in a modal dialog. The PocketMic
+    /// Android app scans this to fill all connection fields automatically.
+    /// </summary>
+    private void ShowQrCode()
+    {
+        var first = GetLocalIpv4Addresses().FirstOrDefault();
+        if (first is null)
+        {
+            MessageBox.Show(this, "No active IPv4 address was found.", "PocketMic",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        if (!int.TryParse(_portText.Text, out var port) || port is < 1 or > 65534)
+        {
+            MessageBox.Show(this, "Enter a valid UDP port first.", "PocketMic",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var key = _keyText.Text;
+        if (key.Length < 8)
+        {
+            MessageBox.Show(this, "Enter a pairing key (at least 8 characters) first.", "PocketMic",
+                MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var uri = $"pmic://{first}:{port}/{key}";
+
+        using var qrGen = new QRCodeGenerator();
+        var qrData = qrGen.CreateQrCode(uri, QRCodeGenerator.ECCLevel.M);
+        using var qrCode = new QRCode(qrData);
+        using var bitmap = qrCode.GetGraphic(20);
+
+        var form = new Form
+        {
+            Text = "PocketMic — Scan with phone",
+            StartPosition = FormStartPosition.CenterParent,
+            FormBorderStyle = FormBorderStyle.FixedDialog,
+            MaximizeBox = false,
+            MinimizeBox = false,
+            ClientSize = new Size(bitmap.Width + 40, bitmap.Height + 80),
+        };
+
+        var pictureBox = new PictureBox
+        {
+            Image = bitmap,
+            SizeMode = PictureBoxSizeMode.CenterImage,
+            Dock = DockStyle.Fill,
+        };
+        form.Controls.Add(pictureBox);
+
+        var label = new Label
+        {
+            Text = $"Scan this QR code with PocketMic on your phone\n{uri}",
+            Dock = DockStyle.Bottom,
+            Height = 50,
+            TextAlign = ContentAlignment.MiddleCenter,
+            Font = new Font("Segoe UI", 9F),
+        };
+        form.Controls.Add(label);
+
+        form.ShowDialog(this);
     }
 
     private static string FormatStats(EngineStats stats) =>

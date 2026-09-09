@@ -7,12 +7,13 @@
     <Nullable>enable</Nullable>
     <AssemblyName>PocketMicReceiver</AssemblyName>
     <RootNamespace>PocketMicReceiver</RootNamespace>
-    <Version>0.1.2</Version>
+    <Version>0.1.4</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="NAudio" Version="2.3.0" />
+    <PackageReference Include="QRCoder" Version="1.6.0" />
   </ItemGroup>
 
   <ItemGroup>
