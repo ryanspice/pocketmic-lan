@@ -9,3 +9,24 @@
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{transition:none!important;animation:none!important}.btn:hover,.card.link-card:hover{transform:none}}
 @media(forced-colors:active){.btn,.card,.paper,.phone-frame,.receiver-frame{border:1px solid CanvasText}.brand-mark,.chip{border:1px solid CanvasText}.wave i{background:CanvasText}}
 @media print{.site-header,.footer,.mobile-cta,.toast,.btn-row,.nav-toggle{display:none!important}body{background:#fff;color:#111;padding:0}p,.muted,.lede,.source-note,.footnote{color:#333!important}.wrap{width:100%}.section,.page-section{padding:25px 0}.body-grid{display:block}.body-grid aside{position:static}.card,.side-card,.check-item{background:#fff;border-color:#999;break-inside:avoid}.faq details>div{display:block}.product-stage{display:none}.hero-grid,.page-hero-grid{display:block}a{text-decoration:underline}h1{font-size:36pt}h2{font-size:24pt}}
+
+/* roadmap */
+.stats-grid{ display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:1rem; margin-top:2rem }
+.stat-card{ background:#fff; border:1px solid rgba(19,42,39,.12); border-radius:12px; padding:1.3rem 1.4rem }
+.stat-card strong{ font-size:clamp(1.8rem,2vw,2.4rem); color:var(--accent,#88efbe); display:block; line-height:1; letter-spacing:-.04em }
+.stat-card>span{ font-size:.78rem; color:var(--muted,#6d6659); text-transform:uppercase; letter-spacing:.08em; font-weight:600 }
+.stat-card p{ margin:.5rem 0 0; font-size:.85rem; color:var(--muted,#6d6659); line-height:1.5 }
+.roadmap-timeline{ display:flex; flex-direction:column; gap:2rem; margin-top:2rem }
+.roadmap-phase{ background:#fff; border:1px solid rgba(19,42,39,.12); border-radius:12px; padding:1.5rem 2rem; position:relative }
+.roadmap-badge{ display:inline-block; font-family:ui-monospace,monospace; font-size:.75rem; font-weight:700; background:rgba(136,239,190,.12); color:var(--accent,#88efbe); border:1px solid rgba(136,239,190,.3); padding:.2rem .6rem; border-radius:999px; margin-bottom:.8rem }
+.roadmap-phase h3{ margin:0 0 .5rem; font-size:1.3rem }
+.roadmap-status{ font-size:.82rem; color:var(--muted,#6d6659); font-weight:600; margin:0 0 .8rem }
+.roadmap-phase ul{ margin:0; padding-left:1.2rem }
+.roadmap-phase li{ margin:.4rem 0; font-size:.92rem; line-height:1.5 }
+.roadmap-phase li strong{ color:var(--ink,#1a1712) }
+.proof-grid{ display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:1.2rem; margin-top:2rem }
+.proof-card{ background:#fff; border:1px solid rgba(19,42,39,.12); border-radius:12px; padding:1.4rem }
+.proof-card h3{ margin:0 0 .8rem; font-size:1.1rem }
+.proof-card ul{ margin:0; padding-left:1.2rem }
+.proof-card li{ margin:.3rem 0; font-size:.88rem; line-height:1.5 }
+@media(max-width:900px){ .stats-grid,.proof-grid{ grid-template-columns:1fr } .roadmap-phase{ padding:1.2rem } }
