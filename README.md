@@ -6,7 +6,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows-blue)]()
 
-**v0.1.4** · Encrypted wireless microphone for your PC
+**v0.1.5** · Encrypted wireless microphone for your PC
 
 PocketMic turns an Android phone into an encrypted wireless microphone for a Windows PC on the same private LAN. 48 kHz mono PCM16, AES-256-GCM on every packet, zero cloud, zero account.
 
@@ -16,7 +16,7 @@ PocketMic turns an Android phone into an encrypted wireless microphone for a Win
 
 - Source: <https://github.com/ryanspice/pocketmic-lan>
 - Releases: <https://github.com/ryanspice/pocketmic-lan/releases>
-- Android APK: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.4-debug.apk>
+- Android APK: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.5-debug.apk>
 - Windows receiver: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip>
 - Release checksums: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/SHA256SUMS.txt>
 - Marketing site: <https://canopydigital.ca/sites/pocketmic-lan/>
@@ -33,6 +33,8 @@ PocketMic turns an Android phone into an encrypted wireless microphone for a Win
 Additional capabilities:
 - QR code pairing — scan from phone, zero manual IP entry
 - LAN receiver discovery with manual IPv4 fallback
+- PM-LAN virtual audio cable — built-in app routing, no VB-CABLE needed
+- Adaptive quality — auto-tunes bit rate and packets based on connection quality (RSSI, loss, jitter)
 - Clean, voice-processed, and custom capture modes
 - Adjustable input gain and live input level meter
 - Selectable Windows playback device (speakers, VB-CABLE, VoiceMeeter)
@@ -50,7 +52,7 @@ Additional capabilities:
 | ![PocketMic Android app](web/assets/screenshots/android-app.png) | ![PocketMic Windows receiver](web/assets/screenshots/windows-receiver.png) |
 | Connection, QR pairing, capture modes | Device selection, voice processing, diagnostics |
 
-Captured from v0.1.4 artifacts on a OnePlus 9 Pro and Windows 11 PC.
+Captured from v0.1.5 artifacts on a OnePlus 9 Pro and Windows 11 PC.
 
 ## Build on Windows 11
 
@@ -75,14 +77,14 @@ The Android script uses the committed Gradle wrapper. Its default path runs the 
 Expected outputs:
 
 ```text
-release\PocketMic-v0.1.4-debug.apk
+release\\PocketMic-v0.1.5-debug.apk
 release\PocketMicReceiver-win-x64.zip
 ```
 
 Install or update the Android app:
 
 ```powershell
-adb install -r .\release\PocketMic-v0.1.4-debug.apk
+adb install -r .\release\PocketMic-v0.1.5-debug.apk
 ```
 
 ### Faster rebuilds
@@ -102,9 +104,9 @@ adb install -r .\release\PocketMic-v0.1.4-debug.apk
 
 ### Route into Discord, Teams, OBS, or a game
 
-1. Install [VB-Audio VB-CABLE](https://vb-audio.com/Cable/).
-2. Select `CABLE Input` in PocketMic Receiver.
-3. Select `CABLE Output` as the microphone in the target application.
+1. Install [PM-LAN](https://github.com/ryanspice/pocketmic-lan/releases/latest) (preferred) or [VB-Audio VB-CABLE](https://vb-audio.com/Cable/).
+2. Select `PM-LAN Input` (or `CABLE Input`) in PocketMic Receiver.
+3. Select `PM-LAN Output` (or `CABLE Output`) as the microphone in the target application.
 
 The receiver has a "Use PocketMic as Windows microphone" button that repoints the system default recording device.
 
