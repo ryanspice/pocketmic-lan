@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en" prefix="og: https://ogp.me/ns#">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Roadmap — PocketMic LAN</title>
+<meta name="description" content="PocketMic LAN roadmap: competitive analysis, current capabilities, and planned features for future releases.">
+<link rel="canonical" href="https://canopydigital.ca/sites/pocketmic-lan/roadmap/">
+<meta name="theme-color" content="#b88a3b" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1d1a16" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Roadmap — PocketMic LAN">
+<meta property="og:description" content="Where PocketMic stands, what's next, and how we compare to alternatives.">
+<meta property="og:url" content="https://canopydigital.ca/sites/pocketmic-lan/roadmap/">
+<meta property="og:image" content="https://canopydigital.ca/sites/pocketmic-lan/og-image.png">
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../assets/subsite.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebPage",
+  "name": "PocketMic LAN Roadmap",
+  "description": "Competitive analysis, current capabilities, and planned features for PocketMic LAN.",
+  "url": "https://canopydigital.ca/sites/pocketmic-lan/roadmap/"
+}
+</script>
+<script src="../assets/subsite.js" defer></script>
+</head>
+<body data-root="../" data-page="roadmap">
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site-header">
+  <div class="wrap header-row">
+    <a class="brand" href="../index.html" aria-label="PocketMic LAN home">
+      <span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg></span>
+      <span>PocketMic<span class="brand-sub">LAN</span></span>
+    </a>
+    <nav class="main-nav" id="primary-nav" aria-label="Primary navigation">
+      <a href="../index.html#use-cases">Use cases</a>
+      <a href="../setup/index.html">Setup guide</a>
+      <a href="../download/index.html">Downloads</a>
+      <a href="../technical/index.html">Technical</a>
+    </nav>
+    <div class="header-cta">
+      <a href="../download/index.html" class="btn primary small">Get the apps <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+    </div>
+    <button type="button" class="nav-toggle" aria-controls="primary-nav" aria-expanded="false" aria-label="Open navigation">
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </button>
+  </div>
+</header>
+
+<main id="main">
+
+<!-- HERO -->
+<section class="page-hero">
+  <div class="wrap">
+    <nav class="breadcrumbs" aria-label="Breadcrumb">
+      <a href="../index.html">PocketMic</a>
+      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="m9 5 7 7-7 7"/></svg>
+      <span aria-current="page">Roadmap</span>
+    </nav>
+    <h1>Where we are.<br><span class="accent">Where we're going.</span></h1>
+    <p class="lede">PocketMic is early software with a clear direction. Here's the competitive landscape, what works today, and what's planned next.</p>
+  </div>
+</section>
+
+<!-- COMPETITIVE LANDSCAPE -->
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Competitive landscape</p>
+    <h2>How phone-as-mic solutions compare</h2>
+    <p class="lede">There are several ways to use your phone as a microphone for your PC. Each has tradeoffs.</p>
+
+    <div class="compare-table-wrap">
+      <table class="compare-table" aria-label="Competitive comparison">
+        <thead>
+          <tr>
+            <th scope="col">Feature</th>
+            <th scope="col">PocketMic LAN</th>
+            <th scope="col">WO Mic</th>
+            <th scope="col">AndroidMic</th>
+            <th scope="col">AudioRelay</th>
+            <th scope="col">QuicMic</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>Platform</td><td>Android → Windows</td><td>Android/iOS → Win/Mac/Linux</td><td>Android → Win/Mac/Linux</td><td>Android → Win/Mac/Linux</td><td>Any browser → Win/Mac/Linux</td></tr>
+          <tr><td>Transport</td><td>UDP (LAN)</td><td>Wi-Fi/USB/BT</td><td>Wi-Fi/USB</td><td>Wi-Fi/USB</td><td>WebTransport/QUIC (LAN)</td></tr>
+          <tr><td>Encryption</td><td class="yes">AES-256-GCM per packet</td><td class="no">None</td><td class="no">None</td><td class="no">None</td><td class="partial">TLS (browser)</td></tr>
+          <tr><td>Sample rate</td><td>48 kHz PCM16</td><td>Up to 48 kHz</td><td>Configurable</td><td>Device-dependent</td><td>Browser-dependent</td></tr>
+          <tr><td>App install required</td><td>Both devices</td><td>Both devices</td><td>Both devices</td><td>Both devices</td><td class="yes">PC only (browser on phone)</td></tr>
+          <tr><td>Virtual mic driver</td><td>VB-CABLE / PM-LAN (planned)</td><td>Built-in driver</td><td>VB-CABLE / VAC</td><td>Built-in driver</td><td>VB-CABLE / VAC</td></tr>
+          <tr><td>Open source</td><td class="yes">MIT</td><td class="no">Proprietary</td><td class="yes">MIT</td><td class="no">Freemium</td><td class="yes">MIT</td></tr>
+          <tr><td>Google Play rating</td><td>N/A (APK)</td><td>3.3 ★ (17K reviews)</td><td>F-Droid / GitHub</td><td>4.2 ★</td><td>N/A (browser)</td></tr>
+          <tr><td>QR pairing</td><td class="yes">Yes</td><td class="no">Manual IP</td><td class="no">Manual IP</td><td class="no">Manual IP</td><td class="yes">URL-based</td></tr>
+          <tr><td>Auto-reconnect</td><td class="yes">Yes</td><td class="partial">Manual restart</td><td class="partial">Manual restart</td><td class="partial">Manual restart</td><td class="na">N/A</td></tr>
+          <tr><td>Adaptive quality</td><td class="yes">LinkQualityPolicy</td><td class="no">Fixed</td><td class="no">Fixed</td><td class="no">Fixed</td><td class="no">Fixed</td></tr>
+          <tr><td>Session diagnostics</td><td class="yes">Exportable reports</td><td class="no">Basic counter</td><td class="no">None</td><td class="no">Basic</td><td class="no">None</td></tr>
+          <tr><td>Key at rest</td><td class="yes">Android Keystore</td><td class="na">No key</td><td class="na">No key</td><td class="na">No key</td><td class="na">N/A</td></tr>
+          <tr><td>USB transport</td><td class="partial">Planned (adb reverse)</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="na">N/A</td></tr>
+          <tr><td>iOS support</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="yes">Any browser</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="source-note">Ratings and features checked September 2026. PocketMic's "planned" items are documented in this roadmap. Competitor data from Google Play, GitHub, and product websites.</p>
+  </div>
+</section>
+
+<!-- WHERE WE ARE -->
+<section class="section section-alt">
+  <div class="wrap">
+    <p class="eyebrow">Current state</p>
+    <h2>What works today</h2>
+    <p class="lede">PocketMic v0.1.4 is an early release with real-device validation and honest documentation.</p>
+
+    <div class="proof-grid">
+      <div class="proof-card">
+        <h3>✅ Working</h3>
+        <ul>
+          <li>48 kHz mono PCM16 over encrypted UDP</li>
+          <li>AES-256-GCM on every packet</li>
+          <li>QR code pairing (CameraX + ML Kit)</li>
+          <li>LAN receiver discovery</li>
+          <li>Auto-reconnect with discovery resume</li>
+          <li>Voice/Clean/Custom capture modes</li>
+          <li>Wi-Fi lock policy (LOW_LATENCY / HIGH_PERF)</li>
+          <li>EncryptedSharedPreferences for key at rest</li>
+          <li>Session diagnostics with exportable reports</li>
+          <li>Adaptive quality (LinkQualityPolicy — wired in)</li>
+          <li>Windows receiver with voice processing chain</li>
+          <li>One-click default microphone switching</li>
+        </ul>
+      </div>
+      <div class="proof-card">
+        <h3>⚠️ Partially working</h3>
+        <ul>
+          <li>Reconnect state machine — code complete, needs physical testing</li>
+          <li>Version negotiation — UI complete, needs cross-version testing</li>
+          <li>Adaptive quality — wired in, needs real-device validation</li>
+          <li>Android unit tests — pass locally, crash on CI (PATH issue)</li>
+        </ul>
+      </div>
+      <div class="proof-card">
+        <h3>❌ Not yet working</h3>
+        <ul>
+          <li>USB transport (adb reverse) — designed, not implemented</li>
+          <li>PM-LAN virtual audio cable — designed, not built</li>
+          <li>macOS/Linux receiver</li>
+          <li>iOS app</li>
+          <li>Google Play / production-signed APK</li>
+          <li>Opus codec</li>
+          <li>Adaptive jitter buffer with clock-drift resampler</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- MEASURED PERFORMANCE -->
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Measured data</p>
+    <h2>Real numbers from real hardware</h2>
+    <p class="lede">OnePlus 9 Pro → Windows 11 PC, 5 GHz Wi-Fi. Not design intent — measured.</p>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <strong>100 ms</strong>
+        <span>Default prebuffer</span>
+        <p>Adjustable 40–300 ms. Policy auto-tunes based on link quality.</p>
+      </div>
+      <div class="stat-card">
+        <strong>220 ms</strong>
+        <span>High-water mark</span>
+        <p>Buffered latency trimmed above this. Derived from prebuffer.</p>
+      </div>
+      <div class="stat-card">
+        <strong>200 ms</strong>
+        <span>Concealment ceiling</span>
+        <p>Decayed-repeat fill for up to 20 lost packets.</p>
+      </div>
+      <div class="stat-card">
+        <strong>768 kbit/s</strong>
+        <span>Raw bandwidth</span>
+        <p>48 kHz mono PCM16. Will drop to ~64 kbit/s with Opus.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section class="section section-alt">
+  <div class="wrap">
+    <p class="eyebrow">Roadmap</p>
+    <h2>What's planned</h2>
+    <p class="lede">Organized by priority. Items move up when measured data justifies them.</p>
+
+    <div class="roadmap-timeline">
+
+      <!-- v0.1.5 -->
+      <div class="roadmap-phase">
+        <div class="roadmap-badge">v0.1.5</div>
+        <h3>Near-term improvements</h3>
+        <p class="roadmap-status">In progress</p>
+        <ul>
+          <li><strong>LinkQualityPolicy integration</strong> — adaptive prebuffer and concealment based on measured link quality ✅ wired in</li>
+          <li><strong>Version mismatch UI</strong> — clear message when phone and receiver versions don't match ✅ done</li>
+          <li><strong>Reconnect tracking</strong> — elapsed time display during reconnecting ✅ done</li>
+          <li><strong>Test coverage</strong> — 100/100 Windows tests, 22 new quick-win tests ✅ done</li>
+          <li><strong>Marketing site v3</strong> — merged design, multi-page architecture, social kit ✅ done</li>
+        </ul>
+      </div>
+
+      <!-- v0.2 -->
+      <div class="roadmap-phase">
+        <div class="roadmap-badge">v0.2</div>
+        <h3>Make it a real-time system</h3>
+        <p class="roadmap-status">Planned</p>
+        <ul>
+          <li><strong>PM-LAN virtual audio cable</strong> — replaces VB-CABLE dependency. Kernel-mode driver with render→capture loopback. Biggest UX win.</li>
+          <li><strong>Opus codec</strong> — 48–64 kbit/s VBR, drops bandwidth from 768 to ~64 kbit/s. Needs libopus NDK (Android) and Concentus or libopus P/Invoke (Windows).</li>
+          <li><strong>USB transport</strong> — TCP over adb reverse, auto-established. Phone tries localhost first, falls back to Wi-Fi silently.</li>
+          <li><strong>Adaptive jitter buffer</strong> — reorder window 3–6 packets, depth 15–200ms, driven by measured jitter.</li>
+          <li><strong>Clock-drift resampler</strong> — continuously adjusted resampling ratio. Highest-difficulty item.</li>
+          <li><strong>Capture profiles</strong> — implement the Voice/Clean/Custom distinction with proper source detection.</li>
+          <li><strong>Lifecycle state machine</strong> — Idle / Armed / Streaming. No mic or socket in standby.</li>
+        </ul>
+      </div>
+
+      <!-- v0.3 -->
+      <div class="roadmap-phase">
+        <div class="roadmap-badge">v0.3</div>
+        <h3>Resilience and quality</h3>
+        <p class="roadmap-status">Planned</p>
+        <ul>
+          <li><strong>Dual-path redundancy</strong> — first-arrival over USB + Wi-Fi simultaneously. Requires reorder window from v0.2.</li>
+          <li><strong>Adaptive FEC and bitrate</strong> — driven by v0.2 telemetry. Never pin FEC at maximum.</li>
+          <li><strong>Oboe/AAudio</strong> — move capture to MMAP exclusive. Device supports 2ms burst but current path doesn't use it.</li>
+          <li><strong>Quick Settings tile</strong> — one-tap mic toggle from Android notification shade.</li>
+          <li><strong>Companion Device Manager</strong> — BLE association for automatic pairing.</li>
+          <li><strong>WebRTC APM / RNNoise</strong> — only if measured data shows the light DSP chain is insufficient.</li>
+        </ul>
+      </div>
+
+      <!-- v1.0 -->
+      <div class="roadmap-phase">
+        <div class="roadmap-badge">v1.0</div>
+        <h3>Product</h3>
+        <p class="roadmap-status">Future</p>
+        <ul>
+          <li><strong>Production-signed Android APK</strong> — Google Play or signed release</li>
+          <li><strong>Windows installer</strong> — MSI/INF package with auto-updater</li>
+          <li><strong>iOS app</strong> — if there's demand</li>
+          <li><strong>macOS/Linux receiver</strong> — protocol is documented, implementation is possible</li>
+          <li><strong>Device matrix testing</strong> — Pixel + Samsung + Motorola × Android 12–17</li>
+          <li><strong>Per-device calibration</strong> — built-in latency test and diagnostics</li>
+          <li><strong>EV code signing</strong> — for public driver distribution (~$290–500/yr)</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- COMMUNITY REQUESTS -->
+<section class="section">
+  <div class="wrap">
+    <p class="eyebrow">Community</p>
+    <h2>What people ask for</h2>
+    <p class="lede">Based on competitor reviews, Reddit threads, and user feedback.</p>
+
+    <div class="faq-grid">
+      <details class="faq-item">
+        <summary>iOS support</summary>
+        <p>The protocol is platform-agnostic. An iOS app is possible but requires Swift/SwiftUI development and App Store distribution. QuicMic's browser-based approach shows it's possible without a native app — PocketMic could add a WebTransport fallback.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Lower latency</summary>
+        <p>Current latency is 100–250 ms. The bottleneck is Wi-Fi jitter, not the app. USB transport (v0.2) would bring this to ~10–20 ms. Oboe/AAudio (v0.3) would reduce capture latency from 4ms to 2ms. Real-time instrument monitoring needs &lt;10 ms — that requires USB.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Opus codec for lower bandwidth</summary>
+        <p>Planned for v0.2. Would drop bandwidth from 768 kbit/s to ~64 kbit/s. The tradeoff: Opus adds encoding latency (~5ms) and complexity (native dependency on Android). PCM stays as a lossless USB-only mode.</p>
+      </details>
+      <details class="faq-item">
+        <summary>No-install browser mode</summary>
+        <p>QuicMic proves the concept: a WebTransport server on the PC + browser on the phone. PocketMic could add this as a lightweight fallback — no app install, just scan a QR code that opens a browser page. Lower quality than the native app, but zero friction.</p>
+      </details>
+      <details class="faq-item">
+        <summary>macOS and Linux support</summary>
+        <p>The protocol is documented and simple. A Python or Rust receiver is feasible. The main gap is the virtual audio cable — macOS needs a CoreAudio driver, Linux needs PulseAudio/PipeWire integration. VB-CABLE-style solutions exist for both.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Multiple phones at once</summary>
+        <p>The protocol supports multiple sessions (each phone gets a unique session ID). The receiver would need UI for selecting which session to play. Not complex, but not a priority until single-phone use is rock-solid.</p>
+      </details>
+      <details class="faq-item">
+        <summary>PC audio to phone (reverse direction)</summary>
+        <p>AudioRelay does this. PocketMic is strictly phone→PC. Reverse direction would need a separate capture path on the PC and a playback path on the phone. Not planned — it's a different product.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Better noise cancellation</summary>
+        <p>Voice mode uses the phone's vendor-tuned processing. Custom mode lets the PC-side DSP do the work. WebRTC APM or RNNoise could be added if the existing chain is insufficient — but stacking DSP on top of vendor processing was the exact problem that made early versions sound wrong.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- CONTRIBUTE -->
+<section class="section section-alt">
+  <div class="wrap" style="text-align:center">
+    <h2>Help shape the roadmap</h2>
+    <p class="lede" style="margin-inline:auto;max-width:55ch;text-align:center">PocketMic is open source. Feature requests, bug reports, and pull requests are welcome.</p>
+    <div class="btn-row" style="justify-content:center;margin-top:1.5rem">
+      <a class="btn primary" href="https://github.com/ryanspice/pocketmic-lan/issues">Open an issue <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+      <a class="btn" href="https://github.com/ryanspice/pocketmic-lan">View source <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M7 17 17 7M7 7h10v10"/></svg></a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a class="brand" href="../index.html" aria-label="PocketMic LAN home">
+          <span class="brand-mark"><svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="8" y="2" width="8" height="13" rx="4"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></svg></span>
+          <span>PocketMic<span class="brand-sub">LAN</span></span>
+        </a>
+        <p>An Android microphone.<br>A Windows receiver.<br>Your own local connection.</p>
+      </div>
+      <div>
+        <h3>Get started</h3>
+        <div class="footer-links">
+          <a href="../download/index.html">Download both apps</a>
+          <a href="../setup/index.html">Setup guide</a>
+          <a href="../troubleshooting/index.html">Troubleshooting</a>
+        </div>
+      </div>
+      <div>
+        <h3>Learn more</h3>
+        <div class="footer-links">
+          <a href="../technical/index.html">Technical details</a>
+          <a href="../release-notes/index.html">Release notes</a>
+          <a href="index.html">Roadmap</a>
+        </div>
+      </div>
+      <div>
+        <h3>Connect</h3>
+        <div class="footer-links">
+          <a href="https://github.com/ryanspice/pocketmic-lan">GitHub</a>
+          <a href="https://www.buymeacoffee.com/ryanspice">Support the project</a>
+          <a href="../privacy/index.html">Privacy & terms</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Ryan Spice-Finnie · PocketMic software: MIT licensed</p>
+      <p>No third-party tracking scripts in this site build.</p>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
