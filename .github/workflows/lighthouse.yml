@@ -17,30 +17,13 @@ jobs:
         with:
           node-version: 20
 
-      - name: Start static server
-        run: |
-          npx serve web -l 4173 &
-          sleep 3
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli
 
       - name: Run Lighthouse
-        uses: treosh/lighthouse-ci-action@v12
-        with:
-          uploadArtifacts: true
-          urls: |
-            http://localhost:4173/
-          configPath: |
-            {
-              "ci": {
-                "assert": {
-                  "assertions": {
-                    "categories:performance": ["warn", {"minScore": 0.9}],
-                    "categories:accessibility": ["warn", {"minScore": 0.9}],
-                    "categories:seo": ["warn", {"minScore": 0.9}],
-                    "categories:best-practices": ["warn", {"minScore": 0.9}]
-                  }
-                },
-                "upload": {
-                  "target": "temporary-public-storage"
-                }
-              }
-            }
+        run: |
+          lhci collect --staticDistDir=./web --numberOfRuns=1
+          lhci assert --assertions.categories:performance='["warn",{"minScore":0.9}]' --assertions.categories:accessibility='["warn",{"minScore":0.9}]' --assertions.categories:seo='["warn",{"minScore":0.9}]' --assertions.categories:best-practices='["warn",{"minScore":0.9}]'
+        env:
+          LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
+          LHCI_BUILD_CONTEXT__COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
