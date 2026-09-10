@@ -3,12 +3,8 @@ name: Lighthouse
 on:
   push:
     branches: [master]
-    paths:
-      - 'web/**'
   pull_request:
     branches: [master]
-    paths:
-      - 'web/**'
 
 jobs:
   lighthouse:
