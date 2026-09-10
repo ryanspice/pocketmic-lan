@@ -17,7 +17,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Lighthouse CI
+      - name: Run Lighthouse on static site
         uses: treosh/lighthouse-ci-action@v12
         with:
           uploadArtifacts: true
@@ -25,7 +25,8 @@ jobs:
             {
               "ci": {
                 "collect": {
-                  "staticDistDir": "./web"
+                  "staticDistDir": "./web",
+                  "numberOfRuns": 1
                 },
                 "assert": {
                   "assertions": {
@@ -34,6 +35,9 @@ jobs:
                     "categories:seo": ["warn", {"minScore": 0.9}],
                     "categories:best-practices": ["warn", {"minScore": 0.9}]
                   }
+                },
+                "upload": {
+                  "target": "temporary-public-storage"
                 }
               }
             }
