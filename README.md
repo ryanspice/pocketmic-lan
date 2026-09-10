@@ -1,8 +1,8 @@
 # PocketMic LAN
 
+[![Version](https://img.shields.io/badge/version-v0.1.5-b88a3b)](https://github.com/ryanspice/pocketmic-lan/releases)
 [![CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml)
 [![Lighthouse](https://github.com/ryanspice/pocketmic-lan/actions/workflows/lighthouse.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/lighthouse.yml)
-[![GitHub Release](https://img.shields.io/github/v/release/ryanspice/pocketmic-lan)](https://github.com/ryanspice/pocketmic-lan/releases)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows-blue)]()
 
