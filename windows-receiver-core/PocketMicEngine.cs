@@ -132,6 +132,26 @@ public sealed class PocketMicEngine
     private int _prebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
     private int _highWaterMilliseconds = AudioPipeline.DefaultHighWaterMilliseconds;
 
+    private readonly LinkQualityPolicy _linkPolicy = new();
+    private LinkAssessment? _lastAssessment;
+    private int _bufferSliderMin = 40;
+    private int _bufferSliderMax = 300;
+
+    /// <summary>
+    /// The link quality policy's current assessment. Null until the first 10-second
+    /// window closes. Updated by the analytics window callback, not the receive loop.
+    /// </summary>
+    public LinkAssessment? CurrentLinkAssessment => _lastAssessment;
+
+    private int _concealmentPackets = AudioPipeline.MaxConcealedGapPackets;
+
+    /// <summary>Set the policy bounds from the UI slider.</summary>
+    public void SetBufferBounds(int min, int max)
+    {
+        _bufferSliderMin = min;
+        _bufferSliderMax = max;
+    }
+
     // Last values published, so a status or address that has not actually changed is not
     // re-broadcast on every update tick.
     private EngineStatus _lastStatus = EngineStatus.Stopped;
@@ -181,6 +201,12 @@ public sealed class PocketMicEngine
     /// everything raised before it noticed.
     /// </summary>
     public event EventHandler<WindowStats>? AnalyticsWindowClosed;
+
+    /// <summary>
+    /// Raised after the link quality policy evaluates a new 10-second window.
+    /// Contains the tier, recommended prebuffer, concealment, action, and reason.
+    /// </summary>
+    public event EventHandler<LinkAssessment>? LinkQualityChanged;
 
     public bool IsRunning => _cts is not null;
 
@@ -316,6 +342,9 @@ public sealed class PocketMicEngine
         _playbackStarted = false;
         _lastStatus = EngineStatus.Stopped;
         _lastStatusMessage = string.Empty;
+        _linkPolicy.Reset();
+        _lastAssessment = null;
+        _concealmentPackets = AudioPipeline.MaxConcealedGapPackets;
         _lastReportedEndpoint = null;
 
         StartAnalytics(options);
@@ -450,6 +479,33 @@ public sealed class PocketMicEngine
         collector.WindowClosed += window =>
         {
             recorder?.AppendWindow(window);
+
+            // Evaluate link quality on every 10-second window.
+            if (window.WindowKind == "10s")
+            {
+                var assessment = _linkPolicy.Evaluate(
+                    window,
+                    _bufferSliderMin,
+                    _bufferSliderMax);
+
+                _lastAssessment = assessment;
+
+                if (assessment.Prebuffer != _prebufferMilliseconds)
+                {
+                    _prebufferMilliseconds = assessment.Prebuffer;
+                    _highWaterMilliseconds = AudioPipeline.HighWaterFor(assessment.Prebuffer);
+                }
+                _concealmentPackets = assessment.ConcealmentPackets;
+
+                LinkQualityChanged?.Invoke(this, assessment);
+
+                _analytics?.RecordDiscoveryEvent(
+                    "link-quality",
+                    $"tier={assessment.Tier} action={assessment.Action} " +
+                    $"prebuffer={assessment.Prebuffer}ms concealment={assessment.ConcealmentPackets}pkts " +
+                    $"reason={assessment.Reason}");
+            }
+
             AnalyticsWindowClosed?.Invoke(this, window);
         };
         collector.EventLogged += evt => recorder?.AppendEvent(evt);
@@ -999,7 +1055,7 @@ public sealed class PocketMicEngine
                 {
                     _lostPackets += delta;
                     analytics?.RecordLost(delta);
-                    if (delta <= AudioPipeline.MaxConcealedGapPackets)
+                    if (delta <= _concealmentPackets)
                     {
                         for (var index = 0; index < delta; index++)
                         {

@@ -201,6 +201,11 @@ internal sealed class MainForm : Form
         Text = "Packets: 0   Lost: 0   Late: 0   Rejected: 0   Trimmed: 0   Buffer: 0 ms",
         AutoSize = true,
     };
+    private readonly Label _linkQualityLabel = new()
+    {
+        Text = "Link: —",
+        AutoSize = true,
+    };
     private readonly TextBox _addressesText = new() { Multiline = true, ReadOnly = true, Height = 78, Dock = DockStyle.Fill };
 
     private readonly AnalyticsPanel _analyticsPanel = new()
@@ -342,6 +347,7 @@ internal sealed class MainForm : Form
         statusPanel.Controls.Add(_statusLabel);
         statusPanel.Controls.Add(_sourceLabel);
         statusPanel.Controls.Add(_statsLabel);
+        statusPanel.Controls.Add(_linkQualityLabel);
         root.Controls.Add(statusPanel);
 
         var diagnosticsSection = SectionLabel("Diagnostics");
@@ -654,6 +660,25 @@ internal sealed class MainForm : Form
             {
                 if (runId != _runId) return;
                 _analyticsPanel.PushWindow(window);
+            });
+        };
+
+        _engine.LinkQualityChanged += (_, assessment) =>
+        {
+            var runId = _runId;
+            var text = $"Link: {assessment.Tier} — {assessment.Action} — {assessment.Prebuffer}ms buffer, {assessment.ConcealmentPackets} pkt concealment";
+            PostUi(() =>
+            {
+                if (runId != _runId) return;
+                _linkQualityLabel.Text = text;
+                _linkQualityLabel.ForeColor = assessment.Tier switch
+                {
+                    LinkQualityPolicy.LinkTier.Excellent => System.Drawing.Color.DarkGreen,
+                    LinkQualityPolicy.LinkTier.Good => Gold,
+                    LinkQualityPolicy.LinkTier.Degraded => System.Drawing.Color.DarkOrange,
+                    LinkQualityPolicy.LinkTier.Poor => System.Drawing.Color.Firebrick,
+                    _ => SystemColors.ControlText,
+                };
             });
         };
 
