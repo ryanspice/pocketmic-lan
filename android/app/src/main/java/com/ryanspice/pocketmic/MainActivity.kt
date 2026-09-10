@@ -52,6 +52,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -185,11 +186,13 @@ private fun PocketMicScreen() {
     }
 
     var linkAlive by remember { mutableStateOf(false) }
+    var nowMillis by remember { mutableLongStateOf(SystemClock.elapsedRealtime()) }
     LaunchedEffect(isActive) {
         while (isActive) {
+            nowMillis = SystemClock.elapsedRealtime()
             // Monotonic clock: liveness must not be fooled by a wall-clock jump backwards.
             linkAlive = lastStatsAt > 0 &&
-                SystemClock.elapsedRealtime() - lastStatsAt < ControlChannel.STATS_TIMEOUT_MS
+                nowMillis - lastStatsAt < ControlChannel.STATS_TIMEOUT_MS
             delay(LINK_ALIVE_POLL_MS)
         }
         linkAlive = false
@@ -304,7 +307,7 @@ private fun PocketMicScreen() {
                     }
                 }
 
-                StatusCard(snapshot, stats, linkAlive)
+                StatusCard(snapshot, stats, linkAlive, peer, nowMillis)
 
                 ConnectionCard(
                     autoConnect = autoConnect,
@@ -465,12 +468,17 @@ private fun StatusCard(
     snapshot: StreamingSnapshot,
     stats: ReceiverStats?,
     linkAlive: Boolean,
+    peer: PeerState,
+    nowMillis: Long,
 ) {
     val label = when (snapshot.status) {
         StreamStatus.IDLE -> "Ready"
         StreamStatus.CONNECTING -> "Connecting"
         StreamStatus.STREAMING -> if (linkAlive) "Live — PC confirmed" else "Sending — no reply from PC"
-        StreamStatus.RECONNECTING -> "Reconnecting — still recording"
+        StreamStatus.RECONNECTING -> {
+            val seconds = ((nowMillis - snapshot.reconnectingSinceMillis) / 1000).toInt()
+            if (seconds > 0) "Reconnecting — still recording (${seconds}s)" else "Reconnecting — still recording"
+        }
         StreamStatus.ERROR -> "Stopped with error"
     }
     val statusColor = when {
@@ -531,6 +539,31 @@ private fun StatusCard(
                 if (it.rejected > 0) {
                     Text(
                         "PC rejected ${it.rejected} packets — pairing key mismatch.",
+                        color = Danger,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+            }
+
+            // Surface version mismatches discovered during reconnecting: the user needs to
+            // know WHY reconnect is not resolving, not just that it hasn't yet.
+            if (snapshot.status == StreamStatus.RECONNECTING) {
+                val found = peer as? PeerState.Found
+                if (found != null && !found.audioProtocolMatches) {
+                    Text(
+                        "Found ${found.hostName.ifBlank { "receiver" }} at ${found.address} but " +
+                            "audio protocol v${found.audioProtocolVersion} ≠ v${PacketCrypto.VERSION}. " +
+                            "Update both sides to the same release.",
+                        color = Danger,
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                val mismatch = peer as? PeerState.VersionMismatch
+                if (mismatch != null) {
+                    Text(
+                        "Found receiver at ${mismatch.address} but control protocol " +
+                            "v${mismatch.receiverControlVersion} ≠ v${ControlProtocol.VERSION}. " +
+                            "Update both sides to the same release.",
                         color = Danger,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -602,6 +635,39 @@ private fun ConnectionCard(
                     else -> "Sending to ${snapshot.destination}, waiting for the first reply." to Caution
                 }
                 Text(message, color = colour, style = MaterialTheme.typography.bodyMedium)
+
+                // During reconnecting, discovery may find a receiver that cannot be used.
+                // Surface that so the user knows why reconnect is not resolving.
+                if (snapshot.status == StreamStatus.RECONNECTING) {
+                    val found = peer as? PeerState.Found
+                    if (found != null && !found.keyMatches) {
+                        Text(
+                            "Found ${found.hostName.ifBlank { "receiver" }} at ${found.address} " +
+                                "but the pairing key does not match.",
+                            color = Danger,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    } else if (found != null && !found.audioProtocolMatches) {
+                        Text(
+                            "Found ${found.hostName.ifBlank { "receiver" }} at ${found.address} " +
+                                "but audio protocol v${found.audioProtocolVersion} ≠ " +
+                                "v${PacketCrypto.VERSION}. Update both to the same release.",
+                            color = Danger,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                    val mismatch = peer as? PeerState.VersionMismatch
+                    if (mismatch != null) {
+                        Text(
+                            "Found receiver at ${mismatch.address} but control protocol " +
+                                "v${mismatch.receiverControlVersion} ≠ v${ControlProtocol.VERSION}. " +
+                                "Update both to the same release.",
+                            color = Danger,
+                            style = MaterialTheme.typography.bodySmall,
+                        )
+                    }
+                }
+
                 if (snapshot.reconnects > 0) {
                     Text(
                         "Recovered from ${snapshot.reconnects} dropout" +
