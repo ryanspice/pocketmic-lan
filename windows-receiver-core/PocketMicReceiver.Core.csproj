@@ -10,7 +10,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>PocketMicReceiver</RootNamespace>
     <AssemblyName>PocketMicReceiver.Core</AssemblyName>
-    <Version>0.1.4</Version>
+    <Version>0.1.5</Version>
   </PropertyGroup>
 
   <ItemGroup>

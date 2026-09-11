@@ -121,7 +121,7 @@ Allow the selected UDP port on **Private networks** only. Default: `49500`.
 
 ## Verification
 
-The Android build runs Kotlin/JVM tests and lint by default. The Windows build runs 74 xUnit tests. Standalone protocol checks:
+The Android build runs Kotlin/JVM tests and lint by default. The Windows build runs 100 xUnit tests. Standalone protocol checks:
 
 ```powershell
 python .\tools\verify_protocol.py
@@ -182,7 +182,7 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 android/                 Kotlin Android transmitter
 windows-receiver/        C# WinForms receiver UI
 windows-receiver-core/   C# shared engine, audio pipeline, protocol
-windows-receiver-tests/  C# xUnit tests (74 tests)
+windows-receiver-tests/  C# xUnit tests (100 tests)
 scripts/                 PowerShell build, publish, and firewall helpers
 tools/                   Python protocol, logic, source, and web verification
 web/                     Static marketing site (HTML/CSS/JS, zero deps)
