@@ -1,0 +1,10 @@
+^B:\DEV\ANDROID\POCKETMIC-LAN\BUILD-OPUS\CMAKEFILES\70FE2CCF6BE35246A4FEA97A07248971\GENERATE.STAMP.RULE
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SB:/Dev/android/pocketmic-lan/android/app/src/main/cpp/opus -BB:/Dev/android/pocketmic-lan/build-opus --check-stamp-list CMakeFiles/generate.stamp.list --vs-solution-file B:/Dev/android/pocketmic-lan/build-opus/Opus.sln
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd

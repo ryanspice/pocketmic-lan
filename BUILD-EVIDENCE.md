@@ -66,11 +66,11 @@ Builds libopus from source as a shared library, then links `pocketmic_jni` (opus
 
 | Check | Result | Evidence |
 |-------|--------|----------|
-| Build (dotnet build) | ✅ PASS | 0 warnings, 0 errors |
+| Build (dotnet build) | ✅ PASS | 0 warnings, 0 errors, 4.5s |
 | Tests (100 xUnit) | ✅ PASS | 100/100, 182ms |
 | Publish (self-contained ZIP) | ⬜ TODO | |
-| Decoder smoke test | ⬜ TODO | |
-| `opus.dll` in package | ⬜ TODO | |
+| Decoder smoke test | ⬜ BLOCKED | Need opus.dll built from pinned 1.5.2 source |
+| `opus.dll` in package | ⬜ BLOCKED | Depends on above |
 
 ### Android APK
 

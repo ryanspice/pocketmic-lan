@@ -26,33 +26,32 @@ public sealed class OpusDecoder : IOpusDecoder
 
     // -- Native declarations -----------------------------------------------
 
-    [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl)]
-    private static extern int opus_decoder_create(
-        int sampleRate, int channels, out IntPtr decoder);
+    // Single P/Invoke declaration — the native function is:
+    //   int opus_decode(OpusDecoder *st, const unsigned char *data, opus_int32 len,
+    //                   opus_int16 *pcm, int frame_size, int decode_fec);
+    // data can be NULL for PLC; pcm must not be NULL.
 
-    [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl)]
-    private static extern int opus_decode(
+    [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "opus_decoder_create")]
+    private static extern IntPtr NativeDecoderCreate(
+        int sampleRate, int channels, out int error);
+
+    [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "opus_decode")]
+    private static extern int NativeDecode(
         IntPtr decoder,
-        byte[] data, int dataLen,
+        byte[]? data, int dataLen,
         short[] pcm, int frameSize,
         int decodeFec);
 
-    [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl)]
-    private static extern int opus_decode(
-        IntPtr decoder,
-        byte[]? data, int dataLen,
-        byte[] pcm, int frameSize,
-        int decodeFec);
-
-    [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl)]
-    private static extern void opus_decoder_destroy(IntPtr decoder);
-
-    [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl)]
-    private static extern int opus_decoder_ctl(IntPtr decoder, int request, int value);
+    [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "opus_decoder_destroy")]
+    private static extern void NativeDecoderDestroy(IntPtr decoder);
 
     // -- Managed wrapper ---------------------------------------------------
 
     private IntPtr _handle;
+    private readonly short[] _decodeBuffer = new short[MaxFrameSize];
 
     /// <summary>
     /// Creates an Opus decoder targeting 48 kHz mono VOIP.
@@ -62,51 +61,15 @@ public sealed class OpusDecoder : IOpusDecoder
     /// </exception>
     public OpusDecoder()
     {
-        var err = opus_decoder_create(SampleRate, Channels, out var handle);
-        if (err != 0 || handle == IntPtr.Zero)
+        var handle = NativeDecoderCreate(SampleRate, Channels, out var error);
+        if (error != 0 || handle == IntPtr.Zero)
         {
             throw new InvalidOperationException(
-                $"opus_decoder_create failed with error code {err}. " +
+                $"opus_decoder_create failed with error code {error}. " +
                 "Ensure opus.dll is in the application directory.");
         }
 
         _handle = handle;
-    }
-
-    /// <summary>
-    /// Decodes one Opus frame to PCM16 mono samples.
-    /// </summary>
-    public int Decode(ReadOnlySpan<byte> opusData, short[] pcmBuffer)
-    {
-        if (_handle == IntPtr.Zero) return 0;
-
-        byte[] data = opusData.Length > 0
-            ? opusData.ToArray()
-            : Array.Empty<byte>();
-
-        int samples = opus_decode(
-            _handle,
-            data,
-            data.Length,
-            pcmBuffer,
-            MaxFrameSize,
-            0);
-
-        return samples > 0 ? samples : 0;
-    }
-
-    /// <summary>
-    /// Decodes one Opus frame and returns the PCM16 bytes (little-endian, mono).
-    /// </summary>
-    public byte[] DecodeToBytes(ReadOnlySpan<byte> opusData)
-    {
-        var pcm = new short[MaxFrameSize];
-        int samples = Decode(opusData, pcm);
-        if (samples <= 0) return Array.Empty<byte>();
-
-        var bytes = new byte[samples * 2];
-        Buffer.BlockCopy(pcm, 0, bytes, 0, samples * 2);
-        return bytes;
     }
 
     /// <summary>
@@ -116,47 +79,55 @@ public sealed class OpusDecoder : IOpusDecoder
     {
         if (_handle == IntPtr.Zero || length <= 0) return false;
 
-        int samples = opus_decode(
+        int samples = NativeDecode(
             _handle,
             opusData, length,
-            pcmOutput, MaxFrameSize,
+            _decodeBuffer, MaxFrameSize,
             0);
 
-        return samples > 0;
+        if (samples <= 0) return false;
+
+        // Convert short[] to byte[] (little-endian PCM16)
+        int byteCount = samples * 2;
+        Buffer.BlockCopy(_decodeBuffer, 0, pcmOutput, 0, byteCount);
+        return true;
     }
 
     /// <summary>
     /// IOpusDecoder: generates a concealment frame using Opus PLC.
-    /// Opus internally models the vocal tract and produces a smoother
-    /// continuation than simple waveform repetition.
+    /// Passes null data to opus_decode to trigger PLC mode.
     /// </summary>
     public bool TryGeneratePlc(byte[] pcmOutput)
     {
         if (_handle == IntPtr.Zero) return false;
 
-        // Pass null data to opus_decode to trigger PLC mode.
-        int samples = opus_decode(
+        int samples = NativeDecode(
             _handle,
             null, 0,
-            pcmOutput, MaxFrameSize,
+            _decodeBuffer, MaxFrameSize,
             0);
 
-        return samples > 0;
+        if (samples <= 0) return false;
+
+        int byteCount = samples * 2;
+        Buffer.BlockCopy(_decodeBuffer, 0, pcmOutput, 0, byteCount);
+        return true;
     }
 
     /// <summary>
     /// IOpusDecoder: resets the decoder's internal state.
+    /// Destroys and recreates the native decoder.
     /// </summary>
     public void Reset()
     {
         if (_handle != IntPtr.Zero)
         {
-            opus_decoder_destroy(_handle);
+            NativeDecoderDestroy(_handle);
             _handle = IntPtr.Zero;
         }
 
-        var err = opus_decoder_create(SampleRate, Channels, out var handle);
-        if (err == 0 && handle != IntPtr.Zero)
+        var handle = NativeDecoderCreate(SampleRate, Channels, out var error);
+        if (error == 0 && handle != IntPtr.Zero)
         {
             _handle = handle;
         }
@@ -164,12 +135,13 @@ public sealed class OpusDecoder : IOpusDecoder
 
     /// <summary>
     /// Releases the native decoder. Must be called when the stream stops.
+    /// Safe to call multiple times.
     /// </summary>
     public void Dispose()
     {
         if (_handle != IntPtr.Zero)
         {
-            opus_decoder_destroy(_handle);
+            NativeDecoderDestroy(_handle);
             _handle = IntPtr.Zero;
         }
     }

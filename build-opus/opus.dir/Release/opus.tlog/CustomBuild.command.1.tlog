@@ -1,0 +1,10 @@
+^B:\DEV\ANDROID\POCKETMIC-LAN\ANDROID\APP\SRC\MAIN\CPP\OPUS\CMAKELISTS.TXT
+setlocal
+"C:\Program Files\CMake\bin\cmake.exe" -SB:/Dev/android/pocketmic-lan/android/app/src/main/cpp/opus -BB:/Dev/android/pocketmic-lan/build-opus --check-stamp-file B:/Dev/android/pocketmic-lan/build-opus/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal & call :cmErrorLevel %errorlevel% & goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd
