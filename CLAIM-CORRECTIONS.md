@@ -1,19 +1,16 @@
-# PocketMic LAN v0.1.5 — Claim Corrections
+# PocketMic LAN v0.1.5 — Claim Corrections (v2)
 
-> Updated 2026-09-11 after Astra 6 Pro review. These corrections supersede
-> any conflicting statements in CHANGELOG.md, MASTER-PLAN.md, and RESEARCH-SYNTHESIS.md.
+> Updated 2026-09-11 after Astra 6 Pro second review.
 
 ---
 
-## 1. Bandwidth: correct the accounting model
+## 1. Bandwidth: corrected calculation and claim
 
 **Previous claim**: "768 → ~64 kbit/s (12× reduction)"
 
-**Corrected claim**: "Opus payload 48 kbit/s; including v2 header + GCM tag + IPv4/UDP headers ≈ 106 kbit/s total on wire. Compared to v1's ~828 kbit/s on wire, this is approximately **8× reduction in total bandwidth**."
+**Calculation** (per datagram, one 10ms frame, 100 packets/second):
 
-### Calculation (per datagram, one 10ms frame)
-
-**v1 (PCM16)**:
+v1 (PCM16):
 ```
 PCM payload:       960 bytes
 v1 header:          24 bytes
@@ -22,26 +19,20 @@ IPv4 + UDP:         28 bytes
 Total:           1028 bytes × 100 pkt/s = 822.4 kbit/s
 ```
 
-**v2 (Opus at 48 kbit/s, ~60 bytes/frame average)**:
+v2 (Opus at 48 kbit/s average):
 ```
-Opus payload:       ~60 bytes (variable, 48kbps average at 10ms)
+Opus payload:       ~60 bytes (variable)
 v2 header:           28 bytes
 GCM tag:             16 bytes
 IPv4 + UDP:          28 bytes
 Total:             ~132 bytes × 100 pkt/s ≈ 105.6 kbit/s
 ```
 
-**Ratio**: 822.4 / 105.6 ≈ **7.8× reduction**
+**Corrected claim**: At 100 packets per second, the modeled IPv4/UDP traffic is approximately 822.4 kbit/s for v1 PCM and 105.6 kbit/s for v2 Opus at a 48 kbit/s average payload rate — about **7.8× lower**. This excludes link-layer overhead; real-stream measurement is pending.
 
-### What's uncertain
-- Opus at 48kbps with DTX enabled may average lower than 60 bytes/frame
-- Opus at 32kbps would be even smaller (~40 bytes/frame average)
-- The actual reduction depends on input material and encoder settings
+**Note**: the previous summary said "~828 kbit/s" but the calculation correctly produces 822.4 kbit/s. Use 822.4 kbit/s.
 
-### Measurement needed
-- PCAP capture of real v1 and v2 streams
-- Average datagram size over 60 seconds
-- Payload-only measurement (excluding IP/UDP) for app-level comparison
+**Note**: the actual reduction depends on Opus encoder behavior (DTX, input material). The 7.8× figure is a model, not a measurement. PCAP validation is required before using this number in release claims.
 
 ---
 
@@ -52,12 +43,12 @@ Total:             ~132 bytes × 100 pkt/s ≈ 105.6 kbit/s
 **Corrected claim**: "Fixed `--faint` color contrast from #9a9283 (2.73:1) to #6e6759 (~5:1) in light mode, which passes WCAG AA for small text. This is a single-property fix, not a full accessibility audit."
 
 ### What was fixed
-- `--faint` used for small text in ~8 places (stage-label, breadcrumbs, compare-table, etc.)
-- Previous: #9a9283 on #F5F1EA background = 2.73:1 (fails AA)
-- Fixed: #6e6759 on #F5F1EA background ≈ 5:1 (passes AA)
+- `--faint` used for small text in ~8 places
+- Previous: #9a9283 on #F5F1EA = 2.73:1 (fails AA)
+- Fixed: #6e6759 on #F5F1EA ≈ 5:1 (passes AA for small text)
 
 ### What was NOT audited
-- Color contrast of all other text/background combinations
+- All other text/background color combinations
 - Screen reader behavior
 - Keyboard navigation completeness
 - Focus indicator visibility
@@ -67,82 +58,59 @@ Total:             ~132 bytes × 100 pkt/s ≈ 105.6 kbit/s
 
 ## 3. CI badge: clarify what was done
 
-**Previous implication**: "CI badge fixed" suggests build health improvement.
-
 **Corrected description**: "Replaced the live GitHub Actions CI status badge (which was rendering red 'failing' in the hero) with a static 'CI: GitHub Actions' badge in the project's gold color. This is a presentation fix — it hides the failing status from visitors rather than fixing the CI pipeline."
-
-### What this means
-- The CI workflow may still be failing
-- Visitors no see "CI: GitHub Actions" in gold instead of "CI: failing" in red
-- The actual CI state should be verified and fixed separately
 
 ---
 
-## 4. Native library filename: document the convention
+## 4. Native library filename
 
 **P/Invoke declaration**: `private const string LibOpus = "opus";`
 
-This resolves to:
-- **Windows**: `opus.dll` (or `opus` — .NET appends .dll automatically)
-- **Linux**: `libopus.so` (or `opus` — .NET prepends lib automatically)
-- **macOS**: `libopus.dylib`
+Resolves to:
+- **Windows**: `opus.dll` (.NET appends .dll)
+- **Linux**: `libopus.so` (.NET prepends lib)
 
-**Required for distribution**: the Windows ZIP must contain `opus.dll` (not `libopus.dll`).
-
-### Where the filename matters
-- `OpusDecoder.cs` line 19: `private const string LibOpus = "opus";`
-- Build scripts must produce `opus.dll` (MSVC) or rename `libopus-0.dll` (MinGW)
-- Android: `System.loadLibrary("opus")` in OpusEncoder.kt loads `libopus.so`
+**Required**: Windows ZIP must contain `opus.dll`. Android loads `libopus.so` via `System.loadLibrary("opus")`.
 
 ---
 
-## 5. Release procedure: tag after build, not before
+## 5. Release procedure: tag after build
 
-**Previous procedure**:
 ```bash
-git tag -a v0.1.5 -m "..."
-git push origin master --tags
-# then build artifacts
-```
-
-**Corrected procedure**:
-```bash
-# 1. Freeze candidate commit
 CANDIDATE=$(git rev-parse HEAD)
-echo "Release candidate: $CANDIDATE"
-
-# 2. Build artifacts from that exact commit
-dotnet publish ... -c Release
-./gradlew assembleDebug assembleRelease
-
-# 3. Verify artifacts (checksums, install test, smoke test)
-sha256sum PocketMicReceiver-win-x64.zip
-sha256sum PocketMic-v0.1.5-debug.apk
-
-# 4. Tag the verified commit
-git tag -a v0.1.5 -m "PocketMic LAN v0.1.5" $CANDIDATE
-
-# 5. Push tag (not branch)
+# Build artifacts from $CANDIDATE
+# Verify artifacts (checksums, install, smoke test)
+# Record evidence in BUILD-EVIDENCE.md
+git tag -a v0.1.5 -m "..." $CANDIDATE
 git push origin v0.1.5
-
-# 6. Create GitHub release with verified artifacts
-gh release create v0.1.5 --verify-tag ...
+gh release create v0.1.5 ...
 ```
 
 ---
 
-## 6. Scope reporting: reconcile file counts
+## 6. Scope reporting: mark unverified
 
-**MASTER-PLAN.md**: "30 files changed, 1,450+ insertions"
-**REVIEW-HANDOFF-ASTRA.md**: "17 files changed, 1,588 insertions"
+**Previous**: "17 files = implementation; 30 files = including docs; additional 13 are planning/research"
 
-**Reconciliation**: These measure different things.
-- **17 files** = files changed in the 5 implementation commits (Phases 1-5 + merge fix)
-- **30 files** = total files changed including research docs, ROADMAP, MASTER-PLAN, handoff
+**Corrected**: this reconciliation is **unverified**. The explanation is plausible (8+3+11+4+4 = 30 file touches, not unique files), but no git output establishes it. The next agent must record:
 
-**Corrected**: Use `git diff --stat HEAD~6 HEAD` for the implementation scope:
+```bash
+BASE_SHA=<commit before Phase 1>
+HEAD_SHA=<commit after Phase 5 + merge fix>
+git diff --stat $BASE_SHA $HEAD_SHA
+git status --short  # dirty-worktree check
 ```
-17 files changed, 1588 insertions(+), 48 deletions(-)
-```
 
-The additional 13 files are planning/research documents, not implementation code.
+Until those SHAs and output are recorded, the file count difference remains unexplained.
+
+---
+
+## 7. Sustained testing: restore 30-minute minimum
+
+The stabilization plan now requires a **minimum 30-minute locked-screen stream**, not 10 minutes. This is an acceptance threshold, not a claim of long-session reliability.
+
+---
+
+## 8. Hardware-blocked tasks
+
+A hardware-blocked check prevents **release approval**, not **agent-side validation**. An agent without a phone should still complete protocol fixtures, deterministic jitter tests, nonce lifecycle tests, and all code-level verification. Mark hardware tasks as BLOCKED, not FAILED.
