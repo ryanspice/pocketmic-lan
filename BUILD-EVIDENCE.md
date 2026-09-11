@@ -70,19 +70,38 @@ Builds libopus from source as a shared library, then links `pocketmic_jni` (opus
 | Tests (100 xUnit) | ✅ PASS | 100/100, 182ms |
 | opus.dll built from source | ✅ PASS | libopus 1.5.2, SHA-256: `08ee50be...`, 456704 bytes |
 | Opus smoke tests (6) | ✅ PASS | 6/6: create, PLC, decode, reset, double-dispose |
-| All tests (106 xUnit) | ✅ PASS | 106/106, 30ms |
+| Protocol fixture tests (21) | ✅ PASS | v1/v2 decrypt, tamper, replay, nonce, header parsing |
+| All tests (127 xUnit) | ✅ PASS | 127/127, 33ms |
 | P/Invoke fix | ✅ PASS | opus_decoder_create returns IntPtr, takes out int |
 
-### Android APK
+### Stage 6B — Protocol & Codec Correctness
 
 | Check | Result | Evidence |
 |-------|--------|----------|
-| Build (gradlew assembleDebug) | ⬜ TODO | |
-| APK contains libopus.so (arm64-v8a) | ⬜ TODO | |
-| APK contains libopus.so (armeabi-v7a) | ⬜ TODO | |
-| APK contains libopus.so (x86_64) | ⬜ TODO | |
-| Encoder smoke test (device/emulator) | ⬜ BLOCKED | Needs Android device or emulator |
-| Install + start + connect | ⬜ BLOCKED | Needs Android device + Windows receiver |
+| Cross-language vectors | ✅ PASS | tests/fixtures/vectors.json (Python-generated, C#-verified) |
+| v1 decrypt matches expected PCM | ✅ PASS | 960-byte alternating payload |
+| v2 without decoder returns false | ✅ PASS | Expected: no decoder → reject |
+| Tampered header rejected | ✅ PASS | Bit flip in session ID → AAD mismatch |
+| Tampered ciphertext rejected | ✅ PASS | Bit flip at offset 30 → GCM failure |
+| Tampered tag rejected | ✅ PASS | Bit flip in tag → GCM failure |
+| Wrong key rejected | ✅ PASS | Different key → GCM failure |
+| Truncated payload rejected | ✅ PASS | 500-byte packet → length check |
+| Wrong version rejected | ✅ PASS | Version 3 → unsupported |
+| v2 tampered payload length rejected | ✅ PASS | Bit flip at offset 24 |
+| No encryption flag rejected | ✅ PASS | Flags=0 → rejected |
+| Appended bytes rejected | ✅ PASS | 1010-byte packet → length check |
+| Nonce includes session ID | ✅ PASS | Different session → different nonce |
+| Nonce includes sequence | ✅ PASS | Different seq → different nonce |
+| HeaderInfo v1/v2/invalid | ✅ PASS | Correct size and codec detection |
+| Decrypt is deterministic | ✅ PASS | Same input → same output |
+
+### BLOCKED (needs hardware)
+
+| Check | Status | Blocker |
+|-------|--------|---------|
+| Android build (NDK) | ⬜ BLOCKED | Needs Android SDK + NDK |
+| Android encoder smoke test | ⬜ BLOCKED | Needs device/emulator |
+| v2 with Opus decoder round-trip | ⬜ BLOCKED | Needs Opus-encoded test vector |
 
 ---
 
