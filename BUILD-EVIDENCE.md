@@ -95,6 +95,30 @@ Builds libopus from source as a shared library, then links `pocketmic_jni` (opus
 | HeaderInfo v1/v2/invalid | ✅ PASS | Correct size and codec detection |
 | Decrypt is deterministic | ✅ PASS | Same input → same output |
 
+### Stage 6C — Runtime Behavior
+
+| Check | Result | Evidence |
+|-------|--------|----------|
+| P95 steady state (10ms) | ✅ PASS | RawP95Ms ≈ 10ms after 250 packets |
+| P95 moderate jitter (10/15ms) | ✅ PASS | RawP95Ms ≈ 15ms |
+| P95 single outage (510ms gap) | ✅ PASS | Gap rejected (>500ms), P95 unchanged |
+| P95 short gap (200ms) | ✅ PASS | One gap doesn't raise 95th percentile |
+| Rate limiter caps growth | ✅ PASS | Target stays in [30, 120] with sudden jitter |
+| Target clamped to min floor | ✅ PASS | Low jitter → target converges to 30ms |
+| Target clamped to max ceiling | ✅ PASS | High jitter → target reaches 120ms |
+| Tier bounds: Excellent [40,60] | ✅ PASS | |
+| Tier bounds: Good [60,120] | ✅ PASS | |
+| Tier bounds: Degraded [120,200] | ✅ PASS | |
+| Tier bounds: Poor [200,300] | ✅ PASS | |
+| Tier boundaries non-overlapping | ✅ PASS | Excellent.Max == Good.Min, etc. |
+| Effective prebuffer clamped to tier | ✅ PASS | Target 30ms → clamped to 60ms in Good tier |
+| Effective prebuffer follows target | ✅ PASS | Within tier range |
+| Reset clears all state | ✅ PASS | RawP95=0, drift=0, target=default |
+| Drift rate zero before warmup | ✅ PASS | <20 packets → drift=0 |
+| Drift rate zero before 2s | ✅ PASS | <2s wall-clock → drift=0 |
+| Drift warmup packets skipped | ✅ PASS | <20 packets → drift=0 |
+| Default prebuffer positive | ✅ PASS | |
+
 ### BLOCKED (needs hardware)
 
 | Check | Status | Blocker |
@@ -102,6 +126,9 @@ Builds libopus from source as a shared library, then links `pocketmic_jni` (opus
 | Android build (NDK) | ⬜ BLOCKED | Needs Android SDK + NDK |
 | Android encoder smoke test | ⬜ BLOCKED | Needs device/emulator |
 | v2 with Opus decoder round-trip | ⬜ BLOCKED | Needs Opus-encoded test vector |
+| 30-min locked-screen soak | ⬜ BLOCKED | Needs Android device |
+| Packet pacing PCAP trace | ⬜ BLOCKED | Needs real network |
+| Drift convergence (real clock) | ⬜ BLOCKED | Needs 2+ seconds real-time test |
 
 ---
 
