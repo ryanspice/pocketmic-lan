@@ -126,6 +126,7 @@ class MicStreamingService : Service() {
             pairingKey = intent.getStringExtra(EXTRA_KEY).orEmpty(),
             captureMode = CaptureMode.fromWireValue(intent.getStringExtra(EXTRA_MODE)),
             gain = intent.getFloatExtra(EXTRA_GAIN, 1.0f).coerceIn(0.5f, 3.0f),
+            codec = AudioCodec.fromWireValue(intent.getStringExtra(EXTRA_CODEC)),
         )
 
         val configError = validate(config)
@@ -225,11 +226,26 @@ class MicStreamingService : Service() {
             activeAudioRecord = recorder
 
             val streamSessionId = secureRandom.nextLong()
+
+            // When Opus is selected, create the encoder. If the native library fails
+            // to load, fall back to PCM silently rather than crashing the stream.
+            val opusEncoder: OpusEncoder? = if (config.codec == AudioCodec.OPUS) {
+                OpusEncoder.create(
+                    sampleRate = SAMPLE_RATE,
+                    channels = 1,
+                    bitrate = OPUS_BITRATE,
+                )
+            } else {
+                null
+            }
+            val activeCodec = if (opusEncoder != null) AudioCodec.OPUS else AudioCodec.PCM
+
             val encryptor = PacketCrypto.Encryptor(
                 key = PacketCrypto.deriveKey(config.pairingKey),
                 sessionId = streamSessionId,
                 sampleRate = SAMPLE_RATE,
                 pcmBytes = pcmBytes.size,
+                codec = activeCodec,
             )
             var sequence = 0
             var uiTick = 0
@@ -361,7 +377,16 @@ class MicStreamingService : Service() {
                 if (sequence == -1) {
                     error("Packet sequence exhausted; restart the stream to create a new encryption session.")
                 }
-                val packetBytes = encryptor.encrypt(sequence, pcmBytes)
+
+                // Encode with Opus if the encoder is active; otherwise send raw PCM.
+                val payloadBytes: ByteArray = if (activeCodec == AudioCodec.OPUS && opusEncoder != null) {
+                    opusEncoder.encode(samples, samplesRead)
+                        ?: error("Opus encoding failed; encoder may have been destroyed.")
+                } else {
+                    pcmBytes
+                }
+
+                val packetBytes = encryptor.encrypt(sequence, payloadBytes)
                 // The encryptor reuses its internal packet buffer on the next call, so the
                 // queued copy is what makes an asynchronous send safe. One kilobyte per packet
                 // is nothing against the queue's 100-packet-per-second throughput.
@@ -495,6 +520,7 @@ class MicStreamingService : Service() {
         } catch (error: Exception) {
             terminalError = error.message ?: error.javaClass.simpleName
         } finally {
+            opusEncoder?.release()
             if (activeAudioRecord === audioRecord) activeAudioRecord = null
             senderJob?.cancel()
             sendQueue?.close()
@@ -871,6 +897,7 @@ class MicStreamingService : Service() {
         const val EXTRA_MODE = "mode"
         const val EXTRA_GAIN = "gain"
         const val EXTRA_PEER_NAME = "peer_name"
+        const val EXTRA_CODEC = "codec"
 
         private const val SAMPLE_RATE = 48_000
         private const val PACKETS_PER_SECOND = 100
@@ -901,6 +928,10 @@ class MicStreamingService : Service() {
 
         /** A read-loop iteration slower than this counts as a read stall, for diagnostics. */
         private const val READ_STALL_THRESHOLD_MS = 30L
+
+        /** Target Opus bitrate in bits per second. 48 kbit/s is the sweet spot for
+         *  48 kHz mono VOIP: transparent quality with Opus, well under 150 bytes per frame. */
+        private const val OPUS_BITRATE = 48_000
 
         /** How often the Wi-Fi lock policy is re-evaluated against the live network. */
         private const val WIFI_POLICY_RECHECK_MS = 10_000L
