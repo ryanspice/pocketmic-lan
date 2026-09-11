@@ -90,7 +90,7 @@ public sealed record EngineOptions(
 public sealed class PocketMicEngine
 {
     private VoiceProcessor _voice = new();
-    private OpusDecoder? _opusDecoder;
+
 
     private CancellationTokenSource? _cts;
     private UdpClient? _udp;

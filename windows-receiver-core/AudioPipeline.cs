@@ -91,7 +91,7 @@ public static class AudioPipeline
         out ulong sessionId,
         out uint sequence,
         out int sampleRate,
-        OpusDecoder? opusDecoder = null)
+        IOpusDecoder? opusDecoder = null)
     {
         sessionId = 0;
         sequence = 0;
@@ -147,7 +147,7 @@ public static class AudioPipeline
         byte[] data,
         byte[] nonce,
         byte[] pcm,
-        OpusDecoder? opusDecoder,
+        IOpusDecoder? opusDecoder,
         out ulong sessionId,
         out uint sequence,
         out int sampleRate)
@@ -189,14 +189,10 @@ public static class AudioPipeline
             // rejected — the caller must supply one for v2 streams.
             if (opusDecoder is null) return false;
 
-            var opusBytes = opusPayload.AsSpan(0, payloadLength);
-            var pcmSamples = new short[PacketPcmBytes / 2]; // 480 samples
-            int decoded = opusDecoder.Decode(opusBytes, pcmSamples);
+            var opusBytes = opusPayload.AsSpan(0, payloadLength).ToArray();
+            if (!opusDecoder.TryDecode(opusBytes, opusBytes.Length, pcm))
+                return false;
 
-            if (decoded <= 0) return false;
-
-            // Write decoded PCM16 little-endian into the output buffer.
-            Buffer.BlockCopy(pcmSamples, 0, pcm, 0, decoded * 2);
             return true;
         }
         catch (CryptographicException)

@@ -15,7 +15,7 @@ namespace PocketMicReceiver;
 /// or a managed binding).  The decoder must be configured for 48 kHz mono with
 /// 20 ms frames (480 samples / 960 bytes of PCM16 output).
 /// </summary>
-public interface IOpusDecoder
+public interface IOpusDecoder : IDisposable
 {
     /// <summary>
     /// Decodes one Opus frame into 480 interleaved mono PCM16 samples (960 bytes).

@@ -14,7 +14,7 @@ namespace PocketMicReceiver;
 /// the system PATH. It can be built from the Opus source with the MSVC or MinGW
 /// toolchain, or downloaded as a prebuilt from the xiph.org releases.
 /// </summary>
-public static class OpusDecoder
+public sealed class OpusDecoder : IOpusDecoder
 {
     private const string LibOpus = "opus";
 
@@ -38,14 +38,21 @@ public static class OpusDecoder
         int decodeFec);
 
     [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl)]
+    private static extern int opus_decode(
+        IntPtr decoder,
+        byte[]? data, int dataLen,
+        byte[] pcm, int frameSize,
+        int decodeFec);
+
+    [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl)]
     private static extern void opus_decoder_destroy(IntPtr decoder);
 
     [DllImport(LibOpus, CallingConvention = CallingConvention.Cdecl)]
-    private static extern int opus_decoder_ctl(IntPtr decoder, int request);
+    private static extern int opus_decoder_ctl(IntPtr decoder, int request, int value);
 
     // -- Managed wrapper ---------------------------------------------------
 
-    private readonly IntPtr _handle;
+    private IntPtr _handle;
 
     /// <summary>
     /// Creates an Opus decoder targeting 48 kHz mono VOIP.
@@ -69,19 +76,10 @@ public static class OpusDecoder
     /// <summary>
     /// Decodes one Opus frame to PCM16 mono samples.
     /// </summary>
-    /// <param name="opusData">The encrypted payload bytes (after GCM decryption).</param>
-    /// <param name="pcmBuffer">
-    /// Pre-allocated buffer for the decoded PCM16 output.
-    /// Must be at least <see cref="MaxFrameSize"/> samples (960 bytes for mono 16-bit).
-    /// </param>
-    /// <returns>
-    /// The number of samples written to <paramref name="pcmBuffer"/>, or 0 on error.
-    /// </returns>
     public int Decode(ReadOnlySpan<byte> opusData, short[] pcmBuffer)
     {
         if (_handle == IntPtr.Zero) return 0;
 
-        // opus_decode expects a mutable byte array, so copy from the span.
         byte[] data = opusData.Length > 0
             ? opusData.ToArray()
             : Array.Empty<byte>();
@@ -92,7 +90,7 @@ public static class OpusDecoder
             data.Length,
             pcmBuffer,
             MaxFrameSize,
-            0); // 0 = no FEC recovery
+            0);
 
         return samples > 0 ? samples : 0;
     }
@@ -112,6 +110,59 @@ public static class OpusDecoder
     }
 
     /// <summary>
+    /// IOpusDecoder: decodes one Opus frame into PCM16 output bytes.
+    /// </summary>
+    public bool TryDecode(byte[] opusData, int length, byte[] pcmOutput)
+    {
+        if (_handle == IntPtr.Zero || length <= 0) return false;
+
+        int samples = opus_decode(
+            _handle,
+            opusData, length,
+            pcmOutput, MaxFrameSize,
+            0);
+
+        return samples > 0;
+    }
+
+    /// <summary>
+    /// IOpusDecoder: generates a concealment frame using Opus PLC.
+    /// Opus internally models the vocal tract and produces a smoother
+    /// continuation than simple waveform repetition.
+    /// </summary>
+    public bool TryGeneratePlc(byte[] pcmOutput)
+    {
+        if (_handle == IntPtr.Zero) return false;
+
+        // Pass null data to opus_decode to trigger PLC mode.
+        int samples = opus_decode(
+            _handle,
+            null, 0,
+            pcmOutput, MaxFrameSize,
+            0);
+
+        return samples > 0;
+    }
+
+    /// <summary>
+    /// IOpusDecoder: resets the decoder's internal state.
+    /// </summary>
+    public void Reset()
+    {
+        if (_handle != IntPtr.Zero)
+        {
+            opus_decoder_destroy(_handle);
+            _handle = IntPtr.Zero;
+        }
+
+        var err = opus_decoder_create(SampleRate, Channels, out var handle);
+        if (err == 0 && handle != IntPtr.Zero)
+        {
+            _handle = handle;
+        }
+    }
+
+    /// <summary>
     /// Releases the native decoder. Must be called when the stream stops.
     /// </summary>
     public void Dispose()
@@ -119,6 +170,7 @@ public static class OpusDecoder
         if (_handle != IntPtr.Zero)
         {
             opus_decoder_destroy(_handle);
+            _handle = IntPtr.Zero;
         }
     }
 }
