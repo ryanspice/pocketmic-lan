@@ -1,5 +1,0 @@
-B:/Dev/android/pocketmic-lan/build-opus/CMakeFiles/opus.dir
-B:/Dev/android/pocketmic-lan/build-opus/CMakeFiles/PACKAGE.dir
-B:/Dev/android/pocketmic-lan/build-opus/CMakeFiles/INSTALL.dir
-B:/Dev/android/pocketmic-lan/build-opus/CMakeFiles/ALL_BUILD.dir
-B:/Dev/android/pocketmic-lan/build-opus/CMakeFiles/ZERO_CHECK.dir

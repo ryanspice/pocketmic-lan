@@ -19,3 +19,4 @@ Thumbs.db
 # libopus source (download via scripts/setup-libopus.ps1)
 android/app/src/main/cpp/opus/
 opus-*.tar.gz
+build-opus/

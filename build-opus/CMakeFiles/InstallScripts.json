@@ -1,7 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"B:/Dev/android/pocketmic-lan/build-opus/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
