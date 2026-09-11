@@ -20,3 +20,5 @@ Thumbs.db
 android/app/src/main/cpp/opus/
 opus-*.tar.gz
 build-opus/
+android/app/.cxx/
+android/app/build/
