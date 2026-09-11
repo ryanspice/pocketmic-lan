@@ -123,10 +123,15 @@ Builds libopus from source as a shared library, then links `pocketmic_jni` (opus
 
 | Check | Status | Blocker |
 |-------|--------|---------|
-| Android build (NDK) | ⬜ BLOCKED | Needs Android SDK + NDK |
-| Android encoder smoke test | ⬜ BLOCKED | Needs device/emulator |
-| v2 with Opus decoder round-trip | ⬜ BLOCKED | Needs Opus-encoded test vector |
-| 30-min locked-screen soak | ⬜ BLOCKED | Needs Android device |
+| Android build (NDK) | ✅ PASS | assembleDebug SUCCESS, 30s |
+| APK: libopus.so (arm64-v8a) | ✅ PASS | apkanalyzer confirms |
+| APK: libopus.so (armeabi-v7a) | ✅ PASS | apkanalyzer confirms |
+| APK: libopus.so (x86_64) | ✅ PASS | apkanalyzer confirms |
+| APK: libpocketmic_jni.so (all ABIs) | ✅ PASS | apkanalyzer confirms |
+| Install on OnePlus 9 Pro (Android 14) | ✅ PASS | adb install Success |
+| Android encoder smoke test | ⬜ BLOCKED | Needs app launch + logcat |
+| v2 with Opus decoder round-trip | ⬜ BLOCKED | Needs end-to-end test |
+| 30-min locked-screen soak | ⬜ BLOCKED | Needs real-time test |
 | Packet pacing PCAP trace | ⬜ BLOCKED | Needs real network |
 | Drift convergence (real clock) | ⬜ BLOCKED | Needs 2+ seconds real-time test |
 
