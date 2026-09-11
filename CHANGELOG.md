@@ -29,7 +29,7 @@
 ### Fixed
 - CI badge rendering red on landing page (replaced with static status)
 - License badge showing "not specified" (added MIT LICENSE file)
-- --faint color contrast failure (darkened from #9a9283 to #6e6759, now passes WCAG AA at 5:1)
+- --faint color contrast failure (darkened from #9a9283 to #6e6759, passes AA for small text; not a full accessibility audit)
 - Version strings consistency across all project files
 - Broken links in README (Lighthouse workflow path)
 - Jitter buffer lock contention causing audio dropouts
@@ -40,7 +40,7 @@
 - Hardened key storage via EncryptedSharedPreferences (Android) and DPAPI (Windows)
 
 ### Performance (preliminary, pending device validation)
-- Bandwidth: 768 kbit/s → ~64 kbit/s (12× reduction with Opus)
+- Bandwidth: Opus payload 48 kbit/s; ~106 kbit/s on wire including headers/tag/UDP (~8× reduction from v1's ~822 kbit/s; needs PCAP validation)
 - Latency: ~320ms → ~100-150ms (2-3× improvement)
 - Loss tolerance: ~1-2% → ~5-10% (5× improvement with FEC + PLC)
 
