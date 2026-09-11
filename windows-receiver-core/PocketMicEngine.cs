@@ -88,7 +88,8 @@ public sealed record EngineOptions(
 /// </summary>
 public sealed class PocketMicEngine
 {
-    private readonly VoiceProcessor _voice = new();
+    private VoiceProcessor _voice = new();
+    private OpusDecoder? _opusDecoder;
 
     private CancellationTokenSource? _cts;
     private UdpClient? _udp;
@@ -304,6 +305,18 @@ public sealed class PocketMicEngine
         _monitorEnabled = options.MonitorEnabled;
         StartMonitorOutput(options);
 
+        // Lazily created: the decoder is cheap but we want it ready before the
+        // receive loop starts so the first v2 packet does not block.
+        try
+        {
+            _opusDecoder = new OpusDecoder();
+        }
+        catch (InvalidOperationException)
+        {
+            // opus.dll not found — v2 packets will be rejected at the TryDecrypt
+            // level, but v1 PCM packets still work. The receiver degrades gracefully.
+        }
+
         var pairingBytes = Encoding.UTF8.GetBytes(options.PairingKey);
         byte[] keyBytes;
         try
@@ -407,6 +420,9 @@ public sealed class PocketMicEngine
         udp?.Close();
         control?.Close();
         StopMonitorOutput();
+
+        _opusDecoder?.Dispose();
+        _opusDecoder = null;
 
         foreach (var task in new[] { controlReceive, controlStats })
         {
@@ -1000,15 +1016,16 @@ public sealed class PocketMicEngine
                 if (ShouldRaiseUpdate() && IsCurrentRun(runId))
                 {
                     if (AudioPipeline.TryPeekProtocolVersion(data, out var senderVersion) &&
-                        senderVersion != AudioPipeline.ProtocolVersion)
+                        senderVersion != AudioPipeline.ProtocolVersion &&
+                        senderVersion != AudioPipeline.ProtocolVersionV2)
                     {
                         analytics?.Connection.MarkVersionMismatch();
                         analytics?.RecordDiscoveryEvent(
                             "version-mismatch",
-                            $"{result.RemoteEndPoint} sends audio protocol v{senderVersion}, this receiver speaks v{AudioPipeline.ProtocolVersion}");
+                            $"{result.RemoteEndPoint} sends audio protocol v{senderVersion}, this receiver speaks v{AudioPipeline.ProtocolVersion} and v{AudioPipeline.ProtocolVersionV2}");
                         RaiseStatus(
                             EngineStatus.DatagramRejected,
-                            $"Datagram rejected — the sender uses audio protocol v{senderVersion} and this receiver speaks v{AudioPipeline.ProtocolVersion}");
+                            $"Datagram rejected — the sender uses audio protocol v{senderVersion} and this receiver speaks v{AudioPipeline.ProtocolVersion} and v{AudioPipeline.ProtocolVersionV2}");
                     }
                     else
                     {
@@ -1158,7 +1175,7 @@ public sealed class PocketMicEngine
         sampleRate = 0;
         if (_aes is null) return false;
 
-        return AudioPipeline.TryDecrypt(_aes, data, nonce, pcm, out sessionId, out sequence, out sampleRate);
+        return AudioPipeline.TryDecrypt(_aes, data, nonce, pcm, out sessionId, out sequence, out sampleRate, _opusDecoder);
     }
 
     /// <summary>

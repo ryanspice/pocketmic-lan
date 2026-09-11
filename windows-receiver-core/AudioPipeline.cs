@@ -43,13 +43,45 @@ public static class AudioPipeline
     public const float TrimSilenceRms = 0.005f;
 
     public const byte ProtocolVersion = 1;
+    public const byte ProtocolVersionV2 = 2;
     public const byte FlagEncrypted = 1;
+    public const byte FlagOpus = 2;
+
+    /// <summary>Protocol v2 header is 4 bytes larger (adds payload length at offset 24).</summary>
+    public const int HeaderSizeV2 = 28;
 
     private static ReadOnlySpan<byte> Magic => "PMIC"u8;
 
     /// <summary>
+    /// The codec carried in a packet.
+    /// </summary>
+    public enum Codec { Pcm, Opus }
+
+    /// <summary>
+    /// Determines the header size and codec from the version byte in a datagram.
+    /// </summary>
+    public static (int HeaderSize, Codec Codec) HeaderInfo(byte[] data)
+    {
+        if (data.Length < 5 || !data.AsSpan()[..4].SequenceEqual(Magic))
+            return (0, Codec.Pcm);
+
+        var version = data[4];
+        return version switch
+        {
+            ProtocolVersionV2 when data.Length >= HeaderSizeV2 &&
+                (data[5] & FlagOpus) != 0 => (HeaderSizeV2, Codec.Opus),
+            ProtocolVersion => (HeaderSize, Codec.Pcm),
+            _ => (0, Codec.Pcm),
+        };
+    }
+
+    /// <summary>
     /// Validates and decrypts one datagram. Length is checked before anything else so malformed
     /// or unrelated traffic never reaches header parsing or the AEAD.
+    ///
+    /// Supports both protocol v1 (PCM, fixed 1000-byte datagram) and protocol v2
+    /// (Opus, variable-length datagram). When the packet is v2+Opus, the Opus payload
+    /// is decoded to PCM16 and written to the <paramref name="pcm"/> buffer.
     /// </summary>
     public static bool TryDecrypt(
         AesGcm aes,
@@ -58,21 +90,29 @@ public static class AudioPipeline
         byte[] pcm,
         out ulong sessionId,
         out uint sequence,
-        out int sampleRate)
+        out int sampleRate,
+        OpusDecoder? opusDecoder = null)
     {
         sessionId = 0;
         sequence = 0;
         sampleRate = 0;
-        if (data.Length != DatagramBytes) return false;
 
         var span = data.AsSpan();
-        if (!span[..4].SequenceEqual(Magic)) return false;
+        if (span.Length < 5 || !span[..4].SequenceEqual(Magic)) return false;
 
-        // Protocol version, the encrypted flag, and the declared header length are all checked
-        // before the AEAD is touched. A v2 sender or a plaintext frame must be rejected here
-        // rather than failing later as an authentication error, which would be misdiagnosed as
-        // a pairing key mismatch.
-        if (span[4] != ProtocolVersion || (span[5] & FlagEncrypted) == 0) return false;
+        var version = span[4];
+
+        // Dispatch to version-specific handling.
+        if (version == ProtocolVersionV2)
+        {
+            return TryDecryptV2(aes, data, nonce, pcm, opusDecoder,
+                out sessionId, out sequence, out sampleRate);
+        }
+
+        // v1 path (original logic, preserved exactly).
+        if (version != ProtocolVersion) return false;
+        if (data.Length != DatagramBytes) return false;
+        if ((span[5] & FlagEncrypted) == 0) return false;
         if (BinaryPrimitives.ReadUInt16BigEndian(span.Slice(6, 2)) != HeaderSize) return false;
 
         sessionId = BinaryPrimitives.ReadUInt64BigEndian(span.Slice(8, 8));
@@ -90,6 +130,73 @@ public static class AudioPipeline
                 span.Slice(HeaderSize + PacketPcmBytes, TagSize),
                 pcm,
                 span[..HeaderSize]);
+            return true;
+        }
+        catch (CryptographicException)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Protocol v2 decryption and Opus decode. The decrypted payload is Opus-encoded
+    /// data; it is decoded to PCM16 and written to the caller's <c>pcm</c> buffer.
+    /// </summary>
+    private static bool TryDecryptV2(
+        AesGcm aes,
+        byte[] data,
+        byte[] nonce,
+        byte[] pcm,
+        OpusDecoder? opusDecoder,
+        out ulong sessionId,
+        out uint sequence,
+        out int sampleRate)
+    {
+        sessionId = 0;
+        sequence = 0;
+        sampleRate = 0;
+
+        var span = data.AsSpan();
+        if (data.Length < HeaderSizeV2 + TagSize) return false;
+
+        // Header fields common to all v2 packets.
+        if ((span[5] & FlagEncrypted) == 0) return false;
+        if (BinaryPrimitives.ReadUInt16BigEndian(span.Slice(6, 2)) != HeaderSizeV2) return false;
+
+        sessionId = BinaryPrimitives.ReadUInt64BigEndian(span.Slice(8, 8));
+        sequence = BinaryPrimitives.ReadUInt32BigEndian(span.Slice(16, 4));
+        sampleRate = BinaryPrimitives.ReadInt32BigEndian(span.Slice(20, 4));
+        var payloadLength = BinaryPrimitives.ReadInt32BigEndian(span.Slice(24, 4));
+
+        if (payloadLength <= 0 || payloadLength > 1024) return false;
+        if (data.Length != HeaderSizeV2 + payloadLength + TagSize) return false;
+
+        BinaryPrimitives.WriteUInt64BigEndian(nonce.AsSpan(0, 8), sessionId);
+        BinaryPrimitives.WriteUInt32BigEndian(nonce.AsSpan(8, 4), sequence);
+
+        try
+        {
+            // Decrypt the Opus-encoded payload into a temporary buffer.
+            var opusPayload = new byte[payloadLength];
+            aes.Decrypt(
+                nonce,
+                span.Slice(HeaderSizeV2, payloadLength),
+                span.Slice(HeaderSizeV2 + payloadLength, TagSize),
+                opusPayload,
+                span[..HeaderSizeV2]);
+
+            // Decode Opus to PCM16. If no decoder is available, the packet is
+            // rejected — the caller must supply one for v2 streams.
+            if (opusDecoder is null) return false;
+
+            var opusBytes = opusPayload.AsSpan(0, payloadLength);
+            var pcmSamples = new short[PacketPcmBytes / 2]; // 480 samples
+            int decoded = opusDecoder.Decode(opusBytes, pcmSamples);
+
+            if (decoded <= 0) return false;
+
+            // Write decoded PCM16 little-endian into the output buffer.
+            Buffer.BlockCopy(pcmSamples, 0, pcm, 0, decoded * 2);
             return true;
         }
         catch (CryptographicException)

@@ -16,6 +16,22 @@ const val MAX_PORT = 65_534
 
 const val MIN_PAIRING_KEY_LENGTH = 8
 
+/**
+ * Audio codec selection. PCM16 is the v1 default; Opus is opt-in via v2.
+ * The codec determines which protocol version the sender uses:
+ *   - PCM  → version 1, fixed 960-byte payload, 1000-byte datagram
+ *   - OPUS → version 2, variable-length payload, ~100-byte datagram
+ */
+enum class AudioCodec(val wireValue: String) {
+    PCM("pcm"),
+    OPUS("opus");
+
+    companion object {
+        fun fromWireValue(value: String?): AudioCodec =
+            entries.firstOrNull { it.wireValue == value } ?: PCM
+    }
+}
+
 enum class CaptureMode(val wireValue: String) {
     CLEAN("clean"),
     VOICE("voice"),
@@ -57,6 +73,7 @@ data class MicConfig(
     val pairingKey: String,
     val captureMode: CaptureMode,
     val gain: Float,
+    val codec: AudioCodec = AudioCodec.PCM,
 ) {
     /**
      * The three connection rules both the service and the activity must agree on, in one
@@ -98,6 +115,7 @@ object AppPrefs {
     private const val KEY = "pairing_key"
     private const val MODE = "capture_mode"
     private const val GAIN = "gain"
+    private const val CODEC = "audio_codec"
     private const val AUTO_CONNECT = "auto_connect"
     private const val FAB_CORNER = "fab_corner"
 
@@ -190,6 +208,9 @@ object AppPrefs {
                 plain.getString(MODE, CaptureMode.VOICE.wireValue),
             ),
             gain = plain.getFloat(GAIN, 1.0f).coerceIn(0.5f, 3.0f),
+            codec = AudioCodec.fromWireValue(
+                plain.getString(CODEC, AudioCodec.PCM.wireValue),
+            ),
         )
     }
 
@@ -199,6 +220,7 @@ object AppPrefs {
             .putInt(PORT, config.port)
             .putString(MODE, config.captureMode.wireValue)
             .putFloat(GAIN, config.gain)
+            .putString(CODEC, config.codec.wireValue)
             .apply()
         // Pairing key goes to encrypted storage only.
         encryptedPrefs(context).edit()

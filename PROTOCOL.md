@@ -1,15 +1,26 @@
-# PocketMic UDP protocol v1
+# PocketMic UDP protocol
 
 PocketMic sends one authenticated encrypted datagram for each 10 ms microphone frame.
+Two protocol versions are in active use: v1 carries raw PCM16, v2 carries Opus-compressed audio.
 
 ## Audio
 
+### Protocol v1 (PCM16)
 - signed PCM16 little-endian;
 - mono;
 - 48,000 Hz;
 - 480 samples / 960 plaintext bytes per packet;
 - 100 packets per second;
 - 768 kbit/s raw audio.
+
+### Protocol v2 (Opus)
+- Opus-encoded audio (libopus, VOIP application, FEC enabled);
+- mono;
+- 48,000 Hz;
+- 480 samples / 10 ms frames;
+- 32–48 kbit/s target bitrate;
+- 100 packets per second;
+- ~384 kbit/s at 48 kbit/s (6× compression over PCM).
 
 ## Datagram
 
@@ -29,12 +40,33 @@ Header integers are big-endian. Audio samples inside the encrypted payload are l
 
 Total datagram length: exactly `1000` bytes.
 
+### Protocol v2 datagram (Opus)
+
+Header integers are big-endian. The header is 4 bytes longer than v1, adding a payload length field.
+
+| Offset | Bytes | Field |
+|---:|---:|---|
+| 0 | 4 | ASCII `PMIC` |
+| 4 | 1 | protocol version (`2`) |
+| 5 | 1 | flags; bit 0 = AES-GCM encrypted, bit 1 = Opus codec |
+| 6 | 2 | header length (`28`) |
+| 8 | 8 | random stream session ID |
+| 16 | 4 | unsigned packet sequence |
+| 20 | 4 | sample rate (`48000`) |
+| 24 | 4 | payload length in bytes (before encryption) |
+| 28 | *n* | AES-GCM ciphertext (Opus-encoded audio) |
+| 28+*n* | 16 | AES-GCM authentication tag |
+
+Total datagram length: `28 + n + 16` bytes, where *n* is the Opus payload length (typically 60–150 bytes at 48 kbit/s).
+
+The receiver determines the codec from the version byte: version 1 = PCM16, version 2 = Opus. Both versions are accepted simultaneously — the receiver handles whichever the sender uses.
+
 ## Encryption
 
 - key: `SHA-256(UTF-8(pairing key))`;
 - cipher: AES-256-GCM;
 - nonce: 8-byte session ID followed by 4-byte sequence;
-- authenticated data: complete 24-byte header;
+- authenticated data: complete header (24 bytes for v1, 28 bytes for v2);
 - authentication tag: 128 bits.
 
 The session ID changes when a stream starts. Every sequence value is used at most once within that session. The Android sender terminates the stream before sequence reuse.
