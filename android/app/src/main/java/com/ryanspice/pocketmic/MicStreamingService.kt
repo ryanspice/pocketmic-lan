@@ -1,6 +1,8 @@
 package com.ryanspice.pocketmic
 
 import android.Manifest
+import android.content.Context
+import kotlin.math.min
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -169,6 +171,7 @@ class MicStreamingService : Service() {
         var senderJob: Job? = null
         var sendQueue: Channel<ByteArray>? = null
         var terminalError: String? = null
+        var opusEncoder: OpusEncoder? = null
 
         try {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
@@ -229,7 +232,7 @@ class MicStreamingService : Service() {
 
             // When Opus is selected, create the encoder. If the native library fails
             // to load, fall back to PCM silently rather than crashing the stream.
-            val opusEncoder: OpusEncoder? = if (config.codec == AudioCodec.OPUS) {
+            opusEncoder = if (config.codec == AudioCodec.OPUS) {
                 OpusEncoder.create(
                     sampleRate = SAMPLE_RATE,
                     channels = 1,

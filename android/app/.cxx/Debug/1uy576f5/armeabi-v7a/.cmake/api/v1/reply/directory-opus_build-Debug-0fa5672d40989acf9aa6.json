@@ -1,0 +1,59 @@
+{
+	"backtraceGraph" : 
+	{
+		"commands" : 
+		[
+			"install"
+		],
+		"files" : 
+		[
+			"opus/CMakeLists.txt"
+		],
+		"nodes" : 
+		[
+			{
+				"file" : 0
+			},
+			{
+				"command" : 0,
+				"file" : 0,
+				"line" : 602,
+				"parent" : 0
+			}
+		]
+	},
+	"installers" : 
+	[
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "lib",
+			"paths" : 
+			[
+				"B:/Dev/android/pocketmic-lan/android/app/build/intermediates/cxx/Debug/1uy576f5/obj/armeabi-v7a/libopus.so"
+			],
+			"targetId" : "opus::@e42b9166975b3a2be099",
+			"targetIndex" : 0,
+			"type" : "target"
+		},
+		{
+			"backtrace" : 1,
+			"component" : "Unspecified",
+			"destination" : "include/opus",
+			"paths" : 
+			[
+				"opus/include/opus.h",
+				"opus/include/opus_defines.h",
+				"opus/include/opus_multistream.h",
+				"opus/include/opus_projection.h",
+				"opus/include/opus_types.h"
+			],
+			"type" : "file"
+		}
+	],
+	"paths" : 
+	{
+		"build" : "opus_build",
+		"source" : "opus"
+	}
+}

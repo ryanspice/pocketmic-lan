@@ -69,7 +69,7 @@ object PacketCrypto {
             .order(ByteOrder.BIG_ENDIAN)
             .put(MAGIC)
             .put(VERSION_V2)
-            .put((FLAG_ENCRYPTED or FLAG_OPUS).toByte())
+            .put((FLAG_ENCRYPTED.toInt() or FLAG_OPUS.toInt()).toByte())
             .putShort(HEADER_SIZE_V2.toShort())
             .putLong(sessionId)
             .putInt(sequence)
@@ -199,7 +199,7 @@ object PacketCrypto {
                     // Write v2 header
                     MAGIC.copyInto(packet, destinationOffset = 0)
                     packet[4] = VERSION_V2
-                    packet[5] = (FLAG_ENCRYPTED or FLAG_OPUS).toByte()
+                    packet[5] = (FLAG_ENCRYPTED.toInt() or FLAG_OPUS.toInt()).toByte()
                     writeShortBigEndian(packet, 6, HEADER_SIZE_V2)
                     writeLongBigEndian(packet, 8, sessionId)
                     writeIntBigEndian(packet, 16, sequence)

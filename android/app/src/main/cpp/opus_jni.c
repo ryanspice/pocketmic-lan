@@ -14,7 +14,7 @@
 #include <jni.h>
 #include <stdlib.h>
 #include <string.h>
-#include <opus/opus.h>
+#include <opus.h>
 #include <android/log.h>
 
 #define TAG "PocketMic"
@@ -52,7 +52,7 @@ Java_com_ryanspice_pocketmic_OpusEncoder_nativeCreate(
        every frame so the decoder can recover from a single lost packet.
        On a LAN the loss rate is low, but the overhead is negligible and
        the quality improvement when a loss does happen is dramatic. */
-    opus_encoder_ctl(enc, OPUS_SET_FEC(1));
+    opus_encoder_ctl(enc, OPUS_SET_INBAND_FEC(1));
 
     /* Signal type hint: VOIP application already does this, but be explicit. */
     opus_encoder_ctl(enc, OPUS_SET_SIGNAL(OPUS_SIGNAL_VOICE));

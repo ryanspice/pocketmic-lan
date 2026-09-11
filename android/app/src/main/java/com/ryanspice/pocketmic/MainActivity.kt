@@ -67,6 +67,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.material3.AlertDialog
 import androidx.core.content.ContextCompat
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
