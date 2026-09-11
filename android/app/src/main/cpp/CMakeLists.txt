@@ -1,43 +1,39 @@
 cmake_minimum_required(VERSION 3.22.1)
-project("pocketmic" C)
+project("pocketmic" C CXX)
 
 # ---------------------------------------------------------------------------
-# libopus – prebuilt per-ABI static library
+# PocketMic Android native build
 #
-# Place the prebuilt archives at:
-#   app/src/main/jniLibs/<abi>/libopus.a
-#
-# Build them from the opus source tree with the Android NDK toolchain, e.g.:
-#   for abi in arm64-v8a armeabi-v7a x86_64; do
-#     cmake -B build-$abi -DCMAKE_TOOLCHAIN_FILE=$NDK/build/cmake/android.toolchain.cmake \
-#           -DANDROID_ABI=$abi -DANDROID_PLATFORM=android-26 \
-#           -DOPUS_BUILD_SHARED_LIBRARY=OFF -DOPUS_BUILD_TESTING=OFF \
-#           -DBUILD_SHARED_LIBS=OFF <opus-src>
-#     cmake --build build-$abi -j$(nproc)
-#   done
-#
-# The header lives at app/src/main/cpp/include/opus/opus.h (copy from opus/include/).
+# Builds libopus from source (pinned at 1.5.2) and the opus_jni wrapper.
+# The opus source tree must be at app/src/main/cpp/opus/
 # ---------------------------------------------------------------------------
 
-add_library(opus SHARED IMPORTED)
-set_target_properties(opus PROPERTIES
-    IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libopus.so
+# --- libopus (built from source) ---
+
+set(OPUS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/opus")
+
+# Disable everything we don't need
+set(OPUS_BUILD_SHARED_LIBRARY ON CACHE BOOL "" FORCE)
+set(OPUS_BUILD_TESTING OFF CACHE BOOL "" FORCE)
+set(OPUS_BUILD_PROGRAMS OFF CACHE BOOL "" FORCE)
+set(OPUS_INSTALL_PKG_CONFIG_MODULE OFF CACHE BOOL "" FORCE)
+set(OPUS_INSTALL_CMAKE_CONFIG_MODULE OFF CACHE BOOL "" FORCE)
+
+# VOIP mode for voice; enables SILK, CELT, and the hybrid mode
+set(OPUS_APPLICATION_VOIP ON CACHE BOOL "" FORCE)
+
+add_subdirectory(${OPUS_SOURCE_DIR} opus_build)
+
+# --- opus_jni (PocketMic JNI wrapper) ---
+
+add_library(pocketmic_jni SHARED opus_jni.c)
+
+target_include_directories(pocketmic_jni PRIVATE
+    ${OPUS_SOURCE_DIR}/include
 )
 
-# If you prefer a static link, replace the above with:
-# add_library(opus STATIC IMPORTED)
-# set_target_properties(opus PROPERTIES
-#     IMPORTED_LOCATION ${CMAKE_SOURCE_DIR}/../jniLibs/${ANDROID_ABI}/libopus.a
-# )
+target_link_libraries(pocketmic_jni PRIVATE opus)
 
-add_library(pocketmic_opus SHARED opus_jni.c)
-
-target_include_directories(pocketmic_opus PRIVATE
-    ${CMAKE_SOURCE_DIR}/include
-)
-
-target_link_libraries(pocketmic_opus
-    opus
-    android
-    log
-)
+# Link Android log library for __android_log_print
+find_library(log-lib log)
+target_link_libraries(pocketmic_jni PRIVATE ${log-lib})
