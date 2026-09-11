@@ -218,6 +218,8 @@ public sealed class LinkQualityPolicy
         // Clamp to user bounds.
         var clampedPrebuffer = Math.Clamp(_recommendedPrebuffer, userPrebufferMin, userPrebufferMax);
 
+        var (tierMin, tierMax) = TierBounds(_currentTier);
+
         return new LinkAssessment
         {
             Tier = _currentTier,
@@ -225,6 +227,8 @@ public sealed class LinkQualityPolicy
             ConcealmentPackets = _recommendedConcealmentPackets,
             Action = action,
             Reason = reason,
+            TierPrebufferMin = tierMin,
+            TierPrebufferMax = tierMax,
         };
     }
 
@@ -260,6 +264,21 @@ public sealed class LinkQualityPolicy
         _ => (GoodPrebufferTarget, GoodConcealmentPackets),
     };
 
+    /// <summary>
+    /// Returns the prebuffer range (min, max) for the given tier.  The adaptive
+    /// jitter buffer fine-tunes within these bounds; the policy's recommended
+    /// prebuffer sits somewhere in the middle.  Ranges are non-overlapping and
+    /// cover the full [40, 300] ms slider range.
+    /// </summary>
+    public static (int Min, int Max) TierBounds(LinkTier tier) => tier switch
+    {
+        LinkTier.Excellent => (ExcellentPrebufferMin, GoodPrebufferMin),       // 40–60
+        LinkTier.Good => (GoodPrebufferMin, DegradedPrebufferMin),            // 60–120
+        LinkTier.Degraded => (DegradedPrebufferMin, PoorPrebufferMin),        // 120–200
+        LinkTier.Poor => (PoorPrebufferMin, PoorPrebufferMin + 100),          // 200–300
+        _ => (GoodPrebufferMin, DegradedPrebufferMin),
+    };
+
     public void Reset()
     {
         _currentTier = LinkTier.Good;
@@ -287,7 +306,8 @@ public enum LinkAction
 /// <summary>
 /// The policy's recommendation for this window. The engine applies the prebuffer
 /// if it falls within the user's slider bounds; the concealment is applied directly;
-/// the action and reason are surfaced in diagnostics.
+/// the action and reason are surfaced in diagnostics.  Tier bounds are provided so
+/// the adaptive jitter buffer can fine-tune within them.
 /// </summary>
 public sealed record LinkAssessment
 {
@@ -296,4 +316,11 @@ public sealed record LinkAssessment
     public int ConcealmentPackets { get; init; }
     public LinkAction Action { get; init; }
     public string Reason { get; init; } = "";
+
+    /// <summary>Minimum prebuffer for the assessed tier (from <see cref="LinkQualityPolicy.TierBounds"/>).
+    /// The adaptive jitter buffer clamps its target to this range.</summary>
+    public int TierPrebufferMin { get; init; }
+
+    /// <summary>Maximum prebuffer for the assessed tier.</summary>
+    public int TierPrebufferMax { get; init; }
 }
