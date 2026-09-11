@@ -6,8 +6,10 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.os.PowerManager
 import android.os.SystemClock
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -140,6 +142,9 @@ private fun PocketMicScreen() {
     var showInfo by rememberSaveable { mutableStateOf(false) }
     var showDiagnostics by rememberSaveable { mutableStateOf(false) }
     var showQrScanner by rememberSaveable { mutableStateOf(false) }
+    var showBatteryDialog by rememberSaveable { mutableStateOf(false) }
+    var pendingConfig by remember { mutableStateOf<MicConfig?>(null) }
+    var pendingPeerName by rememberSaveable { mutableStateOf("") }
     var dsp by remember { mutableStateOf(AppPrefs.loadDsp(context)) }
 
     val captureMode = CaptureMode.fromWireValue(captureModeWire)
@@ -269,6 +274,17 @@ private fun PocketMicScreen() {
         }
         val name = discoveredName(peer)
         if (missing.isEmpty()) {
+            // Before starting, check whether battery optimization may throttle the service.
+            // The wake lock keeps the CPU alive, but Doze mode can still restrict network
+            // access. Prompting for an exemption once is enough; the setting persists.
+            val pm = context.getSystemService(PowerManager::class.java)
+            val exempt = pm?.isIgnoringBatteryOptimizations(context.packageName) == true
+            if (!exempt) {
+                pendingConfig = config
+                pendingPeerName = name
+                showBatteryDialog = true
+                return
+            }
             startService(context, config, name)
         } else {
             permissionLauncher.launch(missing.toTypedArray())
@@ -378,6 +394,28 @@ private fun PocketMicScreen() {
     // and adding one for a single diagnostics page would cost more than it explains.
     if (showDiagnostics) {
         DiagnosticsScreen(onBack = { showDiagnostics = false })
+    }
+
+    if (showBatteryDialog) {
+        BatteryOptimizationDialog(
+            onAllow = {
+                showBatteryDialog = false
+                val intent = Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                    data = Uri.parse("package:${context.packageName}")
+                }
+                context.startActivity(intent)
+                // Start the stream after prompting — the exemption takes effect on return.
+                val cfg = pendingConfig
+                if (cfg != null) startService(context, cfg, pendingPeerName)
+                pendingConfig = null
+            },
+            onContinue = {
+                showBatteryDialog = false
+                val cfg = pendingConfig
+                if (cfg != null) startService(context, cfg, pendingPeerName)
+                pendingConfig = null
+            },
+        )
     }
 }
 
@@ -860,6 +898,32 @@ private fun CaptureCard(
             }
         }
     }
+}
+
+@Composable
+private fun BatteryOptimizationDialog(
+    onAllow: () -> Unit,
+    onContinue: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onContinue,
+        containerColor = Surface,
+        title = { Text("Battery optimization") },
+        text = {
+            Text(
+                "PocketMic streams audio in the background. Disabling battery optimization " +
+                    "prevents the system from throttling network access while streaming. " +
+                    "You can still stop the stream at any time.",
+                style = MaterialTheme.typography.bodyMedium,
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onAllow) { Text("Allow") }
+        },
+        dismissButton = {
+            TextButton(onClick = onContinue) { Text("Continue anyway") }
+        },
+    )
 }
 
 @OptIn(androidx.compose.material3.ExperimentalMaterial3Api::class)
