@@ -6,7 +6,9 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
+import android.content.BroadcastReceiver
 import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo
 import android.media.AudioFormat
@@ -66,6 +68,12 @@ class MicStreamingService : Service() {
     /** Machine name of the receiver, supplied by discovery. Blank when entered manually. */
     private var peerName: String = ""
 
+    /** Screen state drives Wi-Fi lock policy: LOW_LATENCY is wasteful when the screen is off. */
+    @Volatile
+    private var screenOn = true
+
+    private var screenReceiver: BroadcastReceiver? = null
+
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
@@ -97,6 +105,7 @@ class MicStreamingService : Service() {
         destroying = true
         streamJob?.cancel()
         stopActiveAudioRecord()
+        unregisterScreenReceiver()
         releaseWakeLock()
         stopForeground(STOP_FOREGROUND_REMOVE)
         scope.cancel()
@@ -145,6 +154,7 @@ class MicStreamingService : Service() {
         }
 
         acquireWakeLock()
+        registerScreenReceiver()
         val job = scope.launch { runStream(config) }
         streamJob = job
         job.invokeOnCompletion {
@@ -270,8 +280,26 @@ class MicStreamingService : Service() {
             val sendTarget = SendTarget(address, config.port)
             senderJob = scope.launch(Dispatchers.IO) {
                 val senderDatagram = DatagramPacket(ByteArray(0), 0, address, config.port)
+                // Packet pacing: enforce even 10 ms inter-packet spacing to prevent
+                // bursty transmission that overwhelms the receiver's jitter buffer.
+                // Without pacing the sender fires as fast as the queue delivers, which
+                // produces bursts of back-to-back datagrams followed by silence.
+                var nextSendTime = SystemClock.elapsedRealtime()
                 while (coroutineContext.isActive) {
                     val packet = queue.receiveCatching().getOrNull() ?: break
+                    // Sleep in small increments until the next pacing slot arrives.
+                    var now = SystemClock.elapsedRealtime()
+                    while (now < nextSendTime && coroutineContext.isActive) {
+                        Thread.sleep(min(5L, nextSendTime - now))
+                        now = SystemClock.elapsedRealtime()
+                    }
+                    // If we fell more than one interval behind (queue was drained or
+                    // a long stall cleared), reset the timeline to avoid a catch-up burst.
+                    if (now > nextSendTime + PACING_INTERVAL_MS) {
+                        nextSendTime = now
+                    }
+                    nextSendTime += PACING_INTERVAL_MS
+
                     senderDatagram.setData(packet, 0, packet.size)
                     senderDatagram.address = sendTarget.address
                     senderDatagram.port = sendTarget.port
@@ -724,6 +752,12 @@ class MicStreamingService : Service() {
      */
     @Suppress("DEPRECATION")
     private fun desiredWifiLockMode(): Int {
+        // When the screen is off, LOW_LATENCY's aggregation-free per-packet contention
+        // is wasteful (no visual feedback, no real-time monitoring) and may drain the
+        // battery faster. Fall back to HIGH_PERF which still keeps the radio active but
+        // allows normal aggregation, saving power without losing the wake lock benefit.
+        if (!screenOn) return WifiManager.WIFI_MODE_FULL_HIGH_PERF
+
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
             return WifiManager.WIFI_MODE_FULL_HIGH_PERF
         }
@@ -788,6 +822,44 @@ class MicStreamingService : Service() {
         wakeLock = null
     }
 
+    /**
+     * Listens for screen on/off to drive Wi-Fi lock policy: when the screen is off the stream
+     * continues, but LOW_LATENCY is downgraded to HIGH_PERF to avoid unnecessary airtime
+     * contention. The 10-second revalidation cadence also picks this up, but the receiver
+     * makes the transition immediate so the mode switch is not delayed by a stale timer.
+     */
+    private fun registerScreenReceiver() {
+        if (screenReceiver != null) return
+        val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_OFF)
+            addAction(Intent.ACTION_SCREEN_ON)
+        }
+        screenReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                when (intent.action) {
+                    Intent.ACTION_SCREEN_OFF -> {
+                        screenOn = false
+                        revalidateWifiLock()
+                    }
+                    Intent.ACTION_SCREEN_ON -> {
+                        screenOn = true
+                        revalidateWifiLock()
+                    }
+                }
+            }
+        }
+        @Suppress("DEPRECATION")
+        registerReceiver(screenReceiver, filter)
+    }
+
+    private fun unregisterScreenReceiver() {
+        screenReceiver?.let { receiver ->
+            runCatching { unregisterReceiver(receiver) }
+        }
+        screenReceiver = null
+        screenOn = true
+    }
+
     companion object {
         const val TAG = "PocketMic"
 
@@ -808,6 +880,14 @@ class MicStreamingService : Service() {
         private const val MIN_BUFFER_PACKET_MULTIPLIER = 4
 
         private const val UDP_SEND_BUFFER_BYTES = 256 * 1024
+
+        /**
+         * Minimum spacing between UDP sends, matching the 10 ms packet interval
+         * (48 kHz / 100 packets-per-second = 480 samples = 10 ms). Keeps the
+         * transmission even rather than bursty, which is what the receiver's jitter
+         * buffer is sized for.
+         */
+        private const val PACING_INTERVAL_MS = 10L
 
         /**
          * How many packets the send queue may hold before the oldest is dropped. Eight packets
