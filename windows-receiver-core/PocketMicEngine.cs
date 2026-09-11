@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
@@ -134,9 +135,17 @@ public sealed class PocketMicEngine
     private int _highWaterMilliseconds = AudioPipeline.DefaultHighWaterMilliseconds;
 
     private readonly LinkQualityPolicy _linkPolicy = new();
+    private readonly AdaptiveJitterBuffer _adaptiveBuffer = new();
+    private IOpusDecoder? _opusDecoder;
     private LinkAssessment? _lastAssessment;
     private int _bufferSliderMin = 40;
     private int _bufferSliderMax = 300;
+
+    /// <summary>Tier bounds from the last LinkQualityPolicy assessment. The adaptive
+    /// buffer clamps its target within these so it never violates the tier's range.
+    /// Initialised to the full slider range until the first 10-second window closes.</summary>
+    private int _tierPrebufferMin = 40;
+    private int _tierPrebufferMax = 300;
 
     /// <summary>
     /// The link quality policy's current assessment. Null until the first 10-second
@@ -241,6 +250,22 @@ public sealed class PocketMicEngine
             _highWaterMilliseconds = AudioPipeline.HighWaterFor(value);
         }
     }
+
+    /// <summary>
+    /// Optional Opus decoder for compressed audio and packet loss concealment.
+    /// When set, lost frames use Opus PLC (smoother spectral continuation) instead
+    /// of PCM16 waveform repetition.  Set to null to fall back to PCM16 concealment.
+    /// </summary>
+    public IOpusDecoder? OpusDecoder
+    {
+        get => _opusDecoder;
+        set => _opusDecoder = value;
+    }
+
+    /// <summary>
+    /// The adaptive jitter buffer's current target, exposed for diagnostics.
+    /// </summary>
+    public AdaptiveJitterBuffer AdaptiveBuffer => _adaptiveBuffer;
 
     /// <summary>Backlog above which buffered audio may be trimmed. Derived from the prebuffer.</summary>
     public int HighWaterMilliseconds => _highWaterMilliseconds;
@@ -356,8 +381,11 @@ public sealed class PocketMicEngine
         _lastStatus = EngineStatus.Stopped;
         _lastStatusMessage = string.Empty;
         _linkPolicy.Reset();
+        _adaptiveBuffer.Reset();
         _lastAssessment = null;
         _concealmentPackets = AudioPipeline.MaxConcealedGapPackets;
+        _tierPrebufferMin = 40;
+        _tierPrebufferMax = 300;
         _lastReportedEndpoint = null;
 
         StartAnalytics(options);
@@ -506,11 +534,11 @@ public sealed class PocketMicEngine
 
                 _lastAssessment = assessment;
 
-                if (assessment.Prebuffer != _prebufferMilliseconds)
-                {
-                    _prebufferMilliseconds = assessment.Prebuffer;
-                    _highWaterMilliseconds = AudioPipeline.HighWaterFor(assessment.Prebuffer);
-                }
+                // Store tier bounds so the adaptive jitter buffer can clamp its
+                // target within the policy's range.  The adaptive buffer — not
+                // the policy — now controls _prebufferMilliseconds on each packet.
+                _tierPrebufferMin = assessment.TierPrebufferMin;
+                _tierPrebufferMax = assessment.TierPrebufferMax;
                 _concealmentPackets = assessment.ConcealmentPackets;
 
                 LinkQualityChanged?.Invoke(this, assessment);
@@ -1076,11 +1104,13 @@ public sealed class PocketMicEngine
                     {
                         for (var index = 0; index < delta; index++)
                         {
-                            // Substituting digital silence for a lost frame produces a hard edge
-                            // in the waveform, and a run of those is heard as crackle. Repeating
-                            // the last good frame at a decaying level fades into the gap instead,
-                            // which is far less audible for the short gaps that dominate here.
-                            AudioPipeline.BuildConcealmentFrame(conceal, lastGood, haveLastGood, index);
+                            // Opus PLC produces a smoother spectral continuation than
+                            // PCM16 waveform repetition; fall back to the legacy
+                            // concealment when no decoder is attached or PLC fails.
+                            if (_opusDecoder?.TryGeneratePlc(conceal) != true)
+                            {
+                                AudioPipeline.BuildConcealmentFrame(conceal, lastGood, haveLastGood, index);
+                            }
                             _audioBuffer?.AddSamples(conceal, 0, conceal.Length);
                         }
                     }
@@ -1106,6 +1136,20 @@ public sealed class PocketMicEngine
                 (int)(buffer?.BufferedDuration.TotalMilliseconds ?? 0),
                 LevelDbfs(_recentRms),
                 _voice.GateActive);
+
+            // Adaptive jitter buffer: record interarrival and update target.
+            // The effective prebuffer is clamped to the current tier bounds so
+            // the adaptive buffer only fine-tunes within the policy's range.
+            _adaptiveBuffer.RecordPacket(
+                Stopwatch.GetTimestamp(),
+                buffer?.BufferedDuration.TotalMilliseconds ?? 0);
+            var effectivePrebuffer = _adaptiveBuffer.ComputeEffectivePrebuffer(
+                _tierPrebufferMin, _tierPrebufferMax);
+            if (effectivePrebuffer != _prebufferMilliseconds)
+            {
+                _prebufferMilliseconds = effectivePrebuffer;
+                _highWaterMilliseconds = AudioPipeline.HighWaterFor(effectivePrebuffer);
+            }
 
             if (buffer is not null)
             {
@@ -1160,6 +1204,8 @@ public sealed class PocketMicEngine
         try { _waveOut?.Pause(); }
         catch { }
         _audioBuffer?.ClearBuffer();
+        _adaptiveBuffer.Reset();
+        _opusDecoder?.Reset();
     }
 
     private bool TryDecryptPacket(
