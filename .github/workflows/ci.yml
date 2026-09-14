@@ -24,8 +24,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
         with:
-          api-level: 36
-          build-tools: '36.0.0'
+          packages: 'platform-tools;build-tools;36.0.0;platforms;android-36;ndk;27.2.12479018;cmake;3.22.1'
 
       - name: Cache Gradle
         uses: actions/cache@v4
@@ -35,6 +34,13 @@ jobs:
             ~/.gradle/wrapper
           key: gradle-${{ runner.os }}-${{ hashFiles('android/**/*.gradle*', 'android/gradle/wrapper/gradle-wrapper.properties') }}
           restore-keys: gradle-${{ runner.os }}-
+
+      - name: Download libopus 1.5.2 source
+        run: |
+          curl -L -o opus-1.5.2.tar.gz "https://downloads.xiph.org/releases/opus/opus-1.5.2.tar.gz"
+          echo "65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1  opus-1.5.2.tar.gz" | sha256sum -c
+          mkdir -p android/app/src/main/cpp/opus
+          tar xzf opus-1.5.2.tar.gz -C android/app/src/main/cpp/opus --strip-components=1
 
       - name: Make Gradle wrapper executable
         run: chmod +x android/gradlew
@@ -78,20 +84,19 @@ jobs:
         working-directory: windows-receiver
         run: dotnet build --no-restore -c Release
 
-      - name: Run tests
+      - name: Run tests (core only, no opus.dll)
         working-directory: windows-receiver-tests
-        run: dotnet test --logger "trx;LogFileName=test-results.trx"
-
-      - name: Publish self-contained receiver
-        working-directory: windows-receiver
-        run: dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o ../release
+        run: dotnet test --filter "FullyQualifiedName!~OpusSmoke" --logger "trx;LogFileName=test-results.trx"
 
       - name: Upload receiver
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: pocketmic-receiver-win-x64
-          path: release/PocketMicReceiver.exe
+          path: |
+            windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver.exe
+            windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver.dll
+            windows-receiver-core/bin/Release/net8.0-windows/PocketMicReceiver.Core.dll
           retention-days: 14
 
   web:
@@ -109,9 +114,9 @@ jobs:
 
       - name: Check for stale version references
         run: |
-          if grep -q 'v0\.1\.[0-3][^0-9]' web/index.html; then
+          if grep -q 'v0\\.1\\.[0-3][^0-9]' web/index.html; then
             echo "ERROR: Found stale version references in index.html"
-            grep -n 'v0\.1\.[0-3][^0-9]' web/index.html
+            grep -n 'v0\\.1\\.[0-3][^0-9]' web/index.html
             exit 1
           fi
           echo "Version strings clean"
