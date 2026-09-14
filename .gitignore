@@ -22,3 +22,5 @@ opus-*.tar.gz
 build-opus/
 android/app/.cxx/
 android/app/build/
+publish/
+release/
