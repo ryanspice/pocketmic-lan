@@ -940,7 +940,7 @@ class MicStreamingService : Service() {
         private const val WIFI_POLICY_RECHECK_MS = 10_000L
 
         private const val CHANNEL_ID = "mic_stream"
-        private const val NOTIFICATION_ID = DEFAULT_PORT
+        private const val NOTIFICATION_ID = 10001
         private val secureRandom = SecureRandom()
     }
 }

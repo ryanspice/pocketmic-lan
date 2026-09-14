@@ -50,6 +50,9 @@ public static class AudioPipeline
     /// <summary>Protocol v2 header is 4 bytes larger (adds payload length at offset 24).</summary>
     public const int HeaderSizeV2 = 28;
 
+    /// <summary>Maximum Opus frame size at 48 kHz mono, 48 kbit/s. Opus cannot exceed 512 bytes.</summary>
+    public const int MaxOpusPayloadBytes = 512;
+
     private static ReadOnlySpan<byte> Magic => "PMIC"u8;
 
     /// <summary>
@@ -91,7 +94,8 @@ public static class AudioPipeline
         out ulong sessionId,
         out uint sequence,
         out int sampleRate,
-        IOpusDecoder? opusDecoder = null)
+        IOpusDecoder? opusDecoder = null,
+        byte[]? opusBuffer = null)
     {
         sessionId = 0;
         sequence = 0;
@@ -106,7 +110,8 @@ public static class AudioPipeline
         if (version == ProtocolVersionV2)
         {
             return TryDecryptV2(aes, data, nonce, pcm, opusDecoder,
-                out sessionId, out sequence, out sampleRate);
+                out sessionId, out sequence, out sampleRate,
+                opusBuffer ?? new byte[MaxOpusPayloadBytes]);
         }
 
         // v1 path (original logic, preserved exactly).
@@ -150,7 +155,8 @@ public static class AudioPipeline
         IOpusDecoder? opusDecoder,
         out ulong sessionId,
         out uint sequence,
-        out int sampleRate)
+        out int sampleRate,
+        byte[] opusBuffer)
     {
         sessionId = 0;
         sequence = 0;
@@ -176,21 +182,20 @@ public static class AudioPipeline
 
         try
         {
-            // Decrypt the Opus-encoded payload into a temporary buffer.
-            var opusPayload = new byte[payloadLength];
+            // Decrypt the Opus-encoded payload into the pre-allocated buffer
+            // (avoids per-packet allocation in the hot path).
             aes.Decrypt(
                 nonce,
                 span.Slice(HeaderSizeV2, payloadLength),
                 span.Slice(HeaderSizeV2 + payloadLength, TagSize),
-                opusPayload,
+                opusBuffer.AsSpan(0, payloadLength),
                 span[..HeaderSizeV2]);
 
             // Decode Opus to PCM16. If no decoder is available, the packet is
             // rejected — the caller must supply one for v2 streams.
             if (opusDecoder is null) return false;
 
-            var opusBytes = opusPayload.AsSpan(0, payloadLength).ToArray();
-            if (!opusDecoder.TryDecode(opusBytes, opusBytes.Length, pcm))
+            if (!opusDecoder.TryDecode(opusBuffer, payloadLength, pcm))
                 return false;
 
             return true;

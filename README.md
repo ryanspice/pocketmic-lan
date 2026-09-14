@@ -8,7 +8,7 @@
 
 **v0.1.5** · Encrypted wireless microphone for your PC
 
-PocketMic turns an Android phone into an encrypted wireless microphone for a Windows PC on the same private LAN. 48 kHz mono PCM16, AES-256-GCM on every packet, zero cloud, zero account.
+PocketMic turns an Android phone into an encrypted wireless microphone for a Windows PC on the same private LAN. 48 kHz mono, AES-256-GCM on every packet, zero cloud, zero account. Supports both PCM16 (v1) and Opus (v2) codecs.
 
 **Live site:** [canopydigital.ca/sites/pocketmic-lan/](https://canopydigital.ca/sites/pocketmic-lan/)
 
@@ -27,7 +27,7 @@ PocketMic turns an Android phone into an encrypted wireless microphone for a Win
 |-----------|-------|-------------|
 | Android transmitter | Kotlin, Jetpack Compose | Foreground microphone service with QR pairing |
 | Windows receiver | C#/.NET 8, WinForms, NAudio 2.3 | Audio playback with voice processing |
-| Wire protocol | UDP, AES-256-GCM | 48 kHz mono PCM16, 10 ms packets, 100 pps |
+| Wire protocol | UDP, AES-256-GCM | v1: PCM16 (768 kbit/s), v2: Opus (~106 kbit/s), 10 ms packets |
 | Control channel | HMAC-SHA256 | Discovery, statistics, DSP config on `audioPort + 1` |
 
 Additional capabilities:
@@ -35,6 +35,7 @@ Additional capabilities:
 - LAN receiver discovery with manual IPv4 fallback
 - PM-LAN virtual audio cable — built-in app routing, no VB-CABLE needed
 - Adaptive quality — auto-tunes bit rate and packets based on connection quality (RSSI, loss, jitter)
+- Opus codec (v2) — 16× bandwidth reduction over PCM, with FEC and PLC for loss recovery
 - Clean, voice-processed, and custom capture modes
 - Adjustable input gain and live input level meter
 - Selectable Windows playback device (speakers, VB-CABLE, VoiceMeeter)
@@ -121,7 +122,7 @@ Allow the selected UDP port on **Private networks** only. Default: `49500`.
 
 ## Verification
 
-The Android build runs Kotlin/JVM tests and lint by default. The Windows build runs 100 xUnit tests. Standalone protocol checks:
+The Android build runs Kotlin/JVM tests and lint by default. The Windows build runs 146 xUnit tests (100 existing + 6 Opus smoke + 21 protocol fixtures + 19 jitter buffer). Standalone protocol checks:
 
 ```powershell
 python .\tools\verify_protocol.py

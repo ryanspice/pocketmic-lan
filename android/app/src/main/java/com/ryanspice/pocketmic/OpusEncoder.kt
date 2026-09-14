@@ -10,8 +10,10 @@ package com.ryanspice.pocketmic
  * Construction is fallible: the native library may fail to initialise the
  * encoder (e.g. if the NDK-compiled libopus was not bundled). Callers should
  * handle a null return from [create] and fall back to PCM16.
+ *
+ * Must call [release] when done. After release, the encoder is unusable.
  */
-class OpusEncoder private constructor(private val handle: Long) {
+class OpusEncoder private constructor(private var handle: Long) : java.io.Closeable {
 
     /**
      * Encodes one frame of PCM16 mono audio into Opus.
@@ -28,12 +30,19 @@ class OpusEncoder private constructor(private val handle: Long) {
 
     /**
      * Releases the native encoder. Must be called when streaming stops.
+     * Safe to call multiple times.
      */
     fun release() {
         if (handle != 0L) {
             nativeDestroy(handle)
+            handle = 0L
         }
     }
+
+    /**
+     * Closeable implementation — delegates to [release].
+     */
+    override fun close() = release()
 
     companion object {
         /**

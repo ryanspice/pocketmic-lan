@@ -1011,6 +1011,7 @@ public sealed class PocketMicEngine
         var discard = new byte[AudioPipeline.PacketPcmBytes];
         var conceal = new byte[AudioPipeline.PacketPcmBytes];
         var lastGood = new byte[AudioPipeline.PacketPcmBytes];
+        var opusBuffer = new byte[AudioPipeline.MaxOpusPayloadBytes];
         var haveLastGood = false;
 
         // Captured once: the collector exists for the whole run, and every call below is a
@@ -1031,7 +1032,7 @@ public sealed class PocketMicEngine
             }
 
             var data = result.Buffer;
-            if (!TryDecryptPacket(data, nonce, pcm, out var sessionId, out var sequence, out var sampleRate) ||
+            if (!TryDecryptPacket(data, nonce, pcm, out var sessionId, out var sequence, out var sampleRate, opusBuffer) ||
                 sampleRate != AudioPipeline.SampleRate)
             {
                 _rejectedPackets++;
@@ -1214,14 +1215,15 @@ public sealed class PocketMicEngine
         byte[] pcm,
         out ulong sessionId,
         out uint sequence,
-        out int sampleRate)
+        out int sampleRate,
+        byte[]? opusBuffer = null)
     {
         sessionId = 0;
         sequence = 0;
         sampleRate = 0;
         if (_aes is null) return false;
 
-        return AudioPipeline.TryDecrypt(_aes, data, nonce, pcm, out sessionId, out sequence, out sampleRate, _opusDecoder);
+        return AudioPipeline.TryDecrypt(_aes, data, nonce, pcm, out sessionId, out sequence, out sampleRate, _opusDecoder, opusBuffer);
     }
 
     /// <summary>
