@@ -177,7 +177,7 @@
       <li><span class="step-num" aria-hidden="true">2</span><div class="step-body"><h3>Scan the QR code with your phone</h3><p>Open PocketMic on Android and scan the QR code. IP, port, and encryption key fill in automatically.</p></div></li>
       <li><span class="step-num" aria-hidden="true">3</span><div class="step-body"><h3>Tap Start</h3><p>Your phone captures audio at 48&nbsp;kHz, encrypts every 10&nbsp;ms frame with AES-256-GCM, and streams it to your PC over UDP.</p></div></li>
     </ol>
-    <p class="steps-note">Route into Discord, OBS, or Teams by selecting <code>CABLE Input</code> as the playback output — then pick <code>CABLE Output</code> as the microphone in the target app. <strong>Coming in the next release:</strong> our own virtual audio cable (PM-LAN) replaces the VB-CABLE dependency.</p>
+    <p class="steps-note">To route into Discord, OBS, or Teams, install <a href="https://vb-audio.com/Cable/">VB-CABLE</a>, select <code>CABLE Input</code> as PocketMic Receiver output, then select <code>CABLE Output</code> as the microphone in the target app. A built-in virtual audio device remains on the roadmap.</p>
   </div>
 </section>
 
@@ -442,7 +442,7 @@ Set-ExecutionPolicy -Scope Process Bypass
       <li class="limit">Windows receiver only — no macOS or Linux yet</li>
       <li class="limit">PCM16 uses more bandwidth than Opus; current release estimates are modeled, not a universal network result</li>
       <li class="limit">v0.1.5 adds adaptive jitter handling; live-device validation remains open</li>
-      <li class="limit">No signed Android release, Windows installer, or auto-updater</li>
+      <li class="limit">No production-signed Android release, Windows installer, or auto-updater</li>
       <li class="limit">No internet relay — both devices must be on the same LAN</li>
       <li class="limit">Designed for voice, not real-time music monitoring</li>
     </ul>
@@ -472,7 +472,7 @@ Set-ExecutionPolicy -Scope Process Bypass
         </span>
         <span class="download-info">
           <strong>Android APK</strong>
-          <span>Kotlin · Jetpack Compose · API 26+</span>
+          <span>Kotlin · Jetpack Compose · API 26+ · Debug-signed APK</span>
         </span>
         <span class="download-action">Download .apk <span aria-hidden="true">→</span></span>
       </a>

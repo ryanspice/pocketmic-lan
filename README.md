@@ -16,7 +16,7 @@ PocketMic turns an Android phone into an encrypted wireless microphone for a Win
 
 - Source: <https://github.com/ryanspice/pocketmic-lan>
 - Releases: <https://github.com/ryanspice/pocketmic-lan/releases>
-- Android APK: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/app-debug.apk>
+- Android APK (debug signed): <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/app-debug.apk>
 - Windows receiver: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip>
 - Release checksums: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/SHA256SUMS.txt>
 - Marketing site: <https://canopydigital.ca/sites/pocketmic-lan/>
@@ -33,7 +33,7 @@ PocketMic turns an Android phone into an encrypted wireless microphone for a Win
 Additional capabilities:
 - QR code pairing — scan from phone, zero manual IP entry
 - LAN receiver discovery with manual IPv4 fallback
-- PM-LAN virtual audio cable — built-in app routing, no VB-CABLE needed
+- VB-CABLE routing for Windows app audio; an installable PocketMic virtual device remains planned
 - Adaptive quality — auto-tunes bit rate and packets based on connection quality (RSSI, loss, jitter)
 - Opus codec (v2) — 16× bandwidth reduction over PCM, with FEC and PLC for loss recovery
 - Clean, voice-processed, and custom capture modes
@@ -78,7 +78,7 @@ The Android script uses the committed Gradle wrapper. Its default path runs the 
 Expected outputs:
 
 ```text
-release\\app-debug.apk
+release\app-debug.apk
 release\PocketMicReceiver-win-x64.zip
 ```
 
@@ -105,9 +105,9 @@ adb install -r .\release\app-debug.apk
 
 ### Route into Discord, Teams, OBS, or a game
 
-1. Install [PM-LAN](https://github.com/ryanspice/pocketmic-lan/releases/latest) (preferred) or [VB-Audio VB-CABLE](https://vb-audio.com/Cable/).
-2. Select `PM-LAN Input` (or `CABLE Input`) in PocketMic Receiver.
-3. Select `PM-LAN Output` (or `CABLE Output`) as the microphone in the target application.
+1. Install [VB-Audio VB-CABLE](https://vb-audio.com/Cable/). An installable PocketMic virtual audio device is on the roadmap.
+2. Select `CABLE Input` in PocketMic Receiver.
+3. Select `CABLE Output` as the microphone in the target application.
 
 The receiver has a "Use PocketMic as Windows microphone" button that repoints the system default recording device.
 
@@ -172,8 +172,8 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 - Windows receiver only — no macOS or Linux yet
 - LAN discovery with manual IPv4 fallback and QR pairing
 - PCM uses more bandwidth than Opus (~768 kbit/s)
-- v0.1.5 adds adaptive jitter handling and clock-drift compensation; live-device validation remains open
-- No signed Android release, Windows installer, or auto-updater
+- v0.1.5 adds Opus and adaptive jitter handling; end-to-end device validation remains open
+- No production-signed Android release, Windows installer, or auto-updater
 - No internet relay — both devices must be on the same LAN
 - Designed for voice, not real-time music monitoring
 
