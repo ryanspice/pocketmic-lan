@@ -100,14 +100,14 @@
           <tr><td>Adaptive quality</td><td class="yes">LinkQualityPolicy</td><td class="no">Fixed</td><td class="no">Fixed</td><td class="no">Fixed</td><td class="no">Fixed</td></tr>
           <tr><td>Open source</td><td class="yes">MIT</td><td class="no">Proprietary</td><td class="yes">MIT</td><td class="no">Freemium</td><td class="yes">MIT</td></tr>
           <tr><td>Sample rate</td><td>48 kHz PCM16</td><td>Up to 48 kHz</td><td>Configurable</td><td>Device-dependent</td><td>Browser-dependent</td></tr>
-          <tr><td>Virtual mic</td><td>VB-CABLE / PM-LAN</td><td>Built-in</td><td>VB-CABLE</td><td>Built-in</td><td>VB-CABLE</td></tr>
+          <tr><td>Virtual mic</td><td>VB-CABLE; built-in device planned</td><td>Built-in</td><td>VB-CABLE</td><td>Built-in</td><td>VB-CABLE</td></tr>
           <tr><td>Diagnostics</td><td class="yes">Exportable reports</td><td class="no">Basic counter</td><td class="no">None</td><td class="no">Basic</td><td class="no">None</td></tr>
           <tr><td>iOS support</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="yes">Any browser</td></tr>
           <tr><td>USB transport</td><td class="partial">Planned</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="na">N/A</td></tr>
         </tbody>
       </table>
     </div>
-    <p class="source-note" style="margin-top:1rem;font-size:.82rem;color:var(--muted)">Ratings and features checked September 2026. PocketMic "planned" items are documented below.</p>
+    <p class="source-note" style="margin-top:1rem;font-size:.82rem;color:var(--muted)">Ratings and features checked September 2026. PocketMic v0.1.5 is the current release; remaining planned items are listed below.</p>
   </div>
 </section>
 
@@ -116,12 +116,12 @@
   <div class="wrap">
     <p class="sec-eyebrow">Current state</p>
     <h2>What works today</h2>
-    <p class="lede">v0.1.5 is an early release with real-device validation and honest documentation.</p>
+    <p class="lede">v0.1.5 is the current release. Opus and adaptive jitter handling are implemented; live-device acceptance checks are still open.</p>
     <div class="status-grid">
       <div class="status-card status-working">
         <h3>✅ Working</h3>
         <ul>
-          <li>48 kHz mono PCM16 over encrypted UDP</li>
+          <li>48 kHz mono audio over encrypted UDP: PCM16 (protocol v1) and Opus (protocol v2)</li>
           <li>AES-256-GCM on every packet</li>
           <li>QR code pairing (CameraX + ML Kit)</li>
           <li>LAN receiver discovery</li>
@@ -130,18 +130,18 @@
           <li>Wi-Fi lock policy (LOW_LATENCY / HIGH_PERF)</li>
           <li>EncryptedSharedPreferences for key at rest</li>
           <li>Session diagnostics with exportable reports</li>
-          <li>Adaptive quality (LinkQualityPolicy)</li>
+          <li>Adaptive quality tiers, jitter buffering, packet pacing, and clock-drift compensation in the v0.1.5 code</li>
           <li>Windows receiver with voice processing</li>
           <li>One-click default microphone switching</li>
+          <li>Android battery-optimization guidance and screen-aware Wi-Fi lock policy</li>
         </ul>
       </div>
       <div class="status-card status-partial">
         <h3>⚠️ Partially working</h3>
         <ul>
-          <li>Reconnect state machine — code complete, needs physical testing</li>
-          <li>Version negotiation — UI complete, needs cross-version testing</li>
-          <li>Adaptive quality — wired in, needs real-device validation</li>
-          <li>Android unit tests — pass locally, crash on CI (PATH issue)</li>
+          <li>Android Opus encoder to Windows receiver round trip — needs physical end-to-end testing</li>
+          <li>Long screen-locked session, Wi-Fi recovery, packet pacing, and drift convergence — need device/network receipts</li>
+          <li>Cross-version PCM fallback — needs additional device-pair testing</li>
         </ul>
       </div>
       <div class="status-card status-planned">
@@ -152,9 +152,7 @@
           <li>macOS / Linux receiver</li>
           <li>iOS app</li>
           <li>Google Play / production-signed APK</li>
-          <li>Opus codec</li>
-          <li>Adaptive jitter buffer</li>
-        </ul>
+                            </ul>
       </div>
     </div>
   </div>
@@ -174,15 +172,15 @@
         <div class="timeline-content">
           <div class="timeline-header">
             <span class="timeline-badge">v0.1.5</span>
-            <span class="timeline-status">In progress</span>
+            <span class="timeline-status">Released</span>
           </div>
-          <h3>Near-term improvements</h3>
+          <h3>Opus audio and adaptive buffering</h3>
           <ul>
-            <li><strong>LinkQualityPolicy integration</strong> — adaptive prebuffer and concealment ✅</li>
             <li><strong>Version mismatch UI</strong> — clear message when versions don't match ✅</li>
             <li><strong>Reconnect tracking</strong> — elapsed time display during reconnecting ✅</li>
-            <li><strong>Test coverage</strong> — 100/100 Windows tests, 22 new quick-win tests ✅</li>
-            <li><strong>Marketing site v3</strong> — merged design, multi-page, social kit ✅</li>
+            <li><strong>Protocol v2 with Opus</strong> — 48 kHz, 10 ms frames, PCM16 fallback ✅</li>
+            <li><strong>Adaptive receiver path</strong> — jitter buffer, packet pacing, drift compensation, and screen-aware Wi-Fi policy ✅</li>
+            <li><strong>Release trail</strong> — APK, Windows ZIP, checksums, links, and debug signing identified ✅</li>
           </ul>
         </div>
       </div>
@@ -194,13 +192,11 @@
             <span class="timeline-badge">v0.2</span>
             <span class="timeline-status">Planned</span>
           </div>
-          <h3>Make it a real-time system</h3>
+          <h3>Finish the local audio path</h3>
           <ul>
-            <li><strong>PM-LAN virtual audio cable</strong> — replaces VB-CABLE. Kernel-mode driver with render→capture loopback.</li>
-            <li><strong>Opus codec</strong> — 48–64 kbit/s, drops bandwidth 12×. Needs libopus NDK + Concentus.</li>
-            <li><strong>USB transport</strong> — TCP over adb reverse, auto-established. ~10–20 ms latency.</li>
-            <li><strong>Adaptive jitter buffer</strong> — reorder window, depth 15–200ms, driven by measured jitter.</li>
-            <li><strong>Clock-drift resampler</strong> — continuously adjusted resampling ratio. Highest difficulty.</li>
+            <li><strong>PM-LAN virtual audio device</strong> — package and validate an installable route between receiver playback and Windows capture.</li>
+                        <li><strong>USB transport</strong> — TCP over adb reverse, auto-established. ~10–20 ms latency.</li>
+                        <li><strong>Complete v0.1.5 acceptance checks</strong> — Opus end-to-end, screen-off soak, packet pacing, and clock-drift measurements.</li>
             <li><strong>Capture profiles</strong> — proper Voice/Clean/Custom with source detection.</li>
             <li><strong>Lifecycle state machine</strong> — Idle / Armed / Streaming. No mic in standby.</li>
           </ul>
@@ -265,8 +261,8 @@
         <p>Current latency is 100–250 ms. The bottleneck is Wi-Fi jitter. USB transport (v0.2) would bring this to ~10–20 ms. Real-time instrument monitoring needs &lt;10 ms — that requires USB.</p>
       </details>
       <details class="faq-item">
-        <summary>Opus codec for lower bandwidth</summary>
-        <p>Planned for v0.2. Would drop bandwidth from 768 kbit/s to ~64 kbit/s. PCM stays as a lossless USB-only mode.</p>
+        <summary>What does Opus change?</summary>
+        <p>v0.1.5 supports Opus in protocol v2, with PCM16 fallback for compatible version pairings. The release estimates lower network use, but a complete physical Android-to-Windows Opus session still needs validation. See the <a href="https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.5">v0.1.5 release notes</a> and <a href="https://github.com/ryanspice/pocketmic-lan/blob/master/BUILD-EVIDENCE.md">dated build evidence</a>.</p>
       </details>
       <details class="faq-item">
         <summary>No-install browser mode</summary>
