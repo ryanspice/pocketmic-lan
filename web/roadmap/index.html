@@ -14,7 +14,7 @@
 <meta property="og:description" content="Where PocketMic stands, what's next, and how we compare to alternatives.">
 <meta property="og:url" content="https://canopydigital.ca/sites/pocketmic-lan/roadmap/">
 <meta property="og:image" content="https://canopydigital.ca/sites/pocketmic-lan/og-image.png">
-<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+
 <link rel="stylesheet" href="../styles.css">
 <script type="application/ld+json">
 {
@@ -49,8 +49,8 @@
       </label>
       <ul id="nav-list" class="nav-list">
         <li><a href="../index.html#use-cases">Use cases</a></li>
-        <li><a href="../setup/index.html">Setup</a></li>
-        <li><a href="../technical/index.html">Technical</a></li>
+        <li><a href="../index.html#build-install">Setup</a></li>
+        <li><a href="../index.html#build-install">Technical</a></li>
         <li><a href="../index.html#download">Download</a></li>
       </ul>
     </nav>
@@ -152,7 +152,7 @@
           <li>macOS / Linux receiver</li>
           <li>iOS app</li>
           <li>Google Play / production-signed APK</li>
-                            </ul>
+        </ul>
       </div>
     </div>
   </div>
@@ -195,8 +195,8 @@
           <h3>Finish the local audio path</h3>
           <ul>
             <li><strong>PM-LAN virtual audio device</strong> — package and validate an installable route between receiver playback and Windows capture.</li>
-                        <li><strong>USB transport</strong> — TCP over adb reverse, auto-established. ~10–20 ms latency.</li>
-                        <li><strong>Complete v0.1.5 acceptance checks</strong> — Opus end-to-end, screen-off soak, packet pacing, and clock-drift measurements.</li>
+            <li><strong>USB transport</strong> — evaluate TCP over adb reverse against the Wi-Fi path before making a latency claim.</li>
+            <li><strong>Complete v0.1.5 acceptance checks</strong> — Opus end-to-end, screen-off soak, packet pacing, and clock-drift measurements before the next milestone.</li>
             <li><strong>Capture profiles</strong> — proper Voice/Clean/Custom with source detection.</li>
             <li><strong>Lifecycle state machine</strong> — Idle / Armed / Streaming. No mic in standby.</li>
           </ul>
@@ -312,8 +312,8 @@
     <div class="f-links">
       <a href="https://github.com/ryanspice/pocketmic-lan">GitHub</a>
       <a href="../index.html">Home</a>
-      <a href="../technical/index.html">Technical</a>
-      <a href="../privacy/index.html">Privacy</a>
+      <a href="../index.html#build-install">Technical</a>
+      <a href="../policy.html">Privacy</a>
     </div>
     <p class="f-legal">Copyright &copy; <span id="year">2026</span> Ryan Spice-Finnie · <a href="https://github.com/ryanspice/pocketmic-lan/blob/master/LICENSE">MIT License</a></p>
   </div>
