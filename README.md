@@ -16,7 +16,7 @@ PocketMic turns an Android phone into an encrypted wireless microphone for a Win
 
 - Source: <https://github.com/ryanspice/pocketmic-lan>
 - Releases: <https://github.com/ryanspice/pocketmic-lan/releases>
-- Android APK: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.5-debug.apk>
+- Android APK: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/app-debug.apk>
 - Windows receiver: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip>
 - Release checksums: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/SHA256SUMS.txt>
 - Marketing site: <https://canopydigital.ca/sites/pocketmic-lan/>
@@ -78,14 +78,14 @@ The Android script uses the committed Gradle wrapper. Its default path runs the 
 Expected outputs:
 
 ```text
-release\\PocketMic-v0.1.5-debug.apk
+release\\app-debug.apk
 release\PocketMicReceiver-win-x64.zip
 ```
 
 Install or update the Android app:
 
 ```powershell
-adb install -r .\release\PocketMic-v0.1.5-debug.apk
+adb install -r .\release\app-debug.apk
 ```
 
 ### Faster rebuilds
@@ -172,7 +172,7 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 - Windows receiver only — no macOS or Linux yet
 - LAN discovery with manual IPv4 fallback and QR pairing
 - PCM uses more bandwidth than Opus (~768 kbit/s)
-- Fixed prebuffer with simple latency trimming, not adaptive jitter/clock recovery
+- v0.1.5 adds adaptive jitter handling and clock-drift compensation; live-device validation remains open
 - No signed Android release, Windows installer, or auto-updater
 - No internet relay — both devices must be on the same LAN
 - Designed for voice, not real-time music monitoring

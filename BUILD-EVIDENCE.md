@@ -1,155 +1,65 @@
-# PocketMic LAN v0.1.5 — Build Evidence
+# PocketMic LAN v0.1.5 — Build and Release Evidence
 
-> Stage 6A of STABILIZATION-PLAN.md
-> Recorded: 2026-09-11
+> Release: https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.5
+> Evidence refreshed: 2026-09-23 (artifact integrity and distribution metadata)
+> Runtime/build evidence below remains from 2026-09-11 unless explicitly noted.
 
----
+## Published artifact verification (2026-09-23)
 
-## Pinned Dependencies
+Downloaded the tag-pinned public release assets and checked them against the attached `SHA256SUMS.txt` manifest and GitHub asset digests.
 
-### libopus 1.5.2
+| Artifact | SHA-256 | Result |
+|---|---|---|
+| `app-debug.apk` | `4a770f661b094bb3dc597dc20dec88a7459efc8a7177496242e3b918adc70367` | PASS — matches manifest and GitHub asset digest |
+| `PocketMicReceiver-win-x64.zip` | `593e9d23a32f29aa0562cc5af69dda9b49c9a078aa943e4f40e1673a57c7d2d9` | PASS — matches manifest and GitHub asset digest |
+| `SHA256SUMS.txt` | `d6f5c286338b374abb0a6a7cf7e5ea0e0326aebfe3dec2f2c21a3d070ee02c44` | PASS — matches GitHub asset digest |
 
-| Field | Value |
-|-------|-------|
-| Version | 1.5.2 |
-| Download URL | https://downloads.xiph.org/releases/opus/opus-1.5.2.tar.gz |
-| SHA-256 | `65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1` |
-| License | BSD (COPYING file in source tree) |
-| Why 1.5.2 not 1.6.1 | Research synthesis written against 1.5.x API; CMakeLists and JNI designed for 1.5.x; upgrading needs separate validation |
-| Installed at | `android/app/src/main/cpp/opus/` |
-| Setup script | `scripts/setup-libopus.ps1` |
+The APK signature verifies with APK Signature Scheme v2. Its signer is the Android Debug certificate (SHA-256 `1db6ab0b00cc70d19bcfce6f5160212bf1e3fc18efcb4fcb61b4fec6cf2b2c45`). This is a debug-signed APK, not a production-signed Android release.
 
-### Android NDK / CMake
+The Windows ZIP contains `opus.dll`, `LICENSE`, and `PocketMicReceiver.exe`. The ZIP manifest hash validates; no binaries were executed during this inspection.
 
-| Field | Value |
-|-------|-------|
-| NDK version | (record after build) |
-| CMake version | (record after build) |
-| Kotlin version | 2.2.21 (from build.gradle.kts) |
-| AGP version | 8.13.2 (from build.gradle.kts) |
-| compileSdk | 36 |
-| minSdk | 26 |
-| targetSdk | 36 |
-| Supported ABIs | arm64-v8a, armeabi-v7a, x86_64 |
+### Distribution references
 
-### Windows .NET
+- The actual Android release asset is named `app-debug.apk`; README, landing-page download link, install examples, and release notes now use that exact name.
+- The Windows ZIP and checksum download names match the published assets.
+- The Android artifact remains debug signed. Do not describe it as a production or store release.
 
-| Field | Value |
-|-------|-------|
-| .NET version | 8.0 (from csproj TargetFramework) |
-| NAudio | (record version from csproj) |
-| Architecture | win-x64 |
+## Build and behavioral verification (recorded 2026-09-11)
 
----
+The following project checks were recorded in the original v0.1.5 build run; this refresh did not rerun builds or tests:
 
-## Native Library Convention
+- Windows receiver build and 127 xUnit tests passed, including Opus smoke tests and protocol fixtures.
+- Android debug build and native Opus libraries for arm64-v8a, armeabi-v7a, and x86_64 passed packaging checks.
+- Protocol and jitter-buffer unit fixtures passed.
+- OnePlus 9 Pro Android 14 installation was recorded as successful.
 
-| Platform | P/Invoke name | Resolved filename | Load mechanism |
-|----------|---------------|-------------------|----------------|
-| Windows | `"opus"` | `opus.dll` | .NET DllImport appends .dll |
-| Android | `"opus"` | `libopus.so` | System.loadLibrary prepends lib |
+### Still requires live-device or network evidence
 
----
+These checks remain open; the public release artifact/hash verification does not establish their completion:
 
-## CMakeLists.txt
+| Check | Status | Required receipt |
+|---|---|---|
+| Android encoder smoke test | BLOCKED | App launch and encoder output/logcat on a physical device |
+| Android-to-Windows Opus round trip | BLOCKED | End-to-end capture and decode/playback evidence |
+| 30-minute screen-locked session | BLOCKED | Timed physical-device soak result |
+| Packet pacing | BLOCKED | Packet capture from a real phone-to-PC session |
+| Clock drift convergence | BLOCKED | Timed real-device/network measurements |
 
-Builds libopus from source as a shared library, then links `pocketmic_jni` (opus_jni.c) against it.
+## Existing implementation evidence
 
-**Source tree**: `android/app/src/main/cpp/opus/`
-**JNI wrapper**: `android/app/src/main/cpp/opus_jni.c`
+The 2026-09-11 record reports Windows build/test and Android packaging results. See Git history and the v0.1.5 source tag for the full original per-check detail. Do not treat modeled bandwidth or unit-level jitter fixtures as a substitute for live audio, device lifecycle, or network measurements.
 
----
+## Release checklist for the next tag
 
-## Build Verification
+1. Freeze the candidate commit and ensure its changelog, version constants, and release tag agree.
+2. Build Android and Windows artifacts from that exact commit; retain build logs and commit SHA.
+3. Run unit, protocol, packaging, and required hardware/network checks. Record each result, date, environment, and evidence link; keep blockers explicit.
+4. Compute SHA-256 hashes from final release files, create `SHA256SUMS.txt`, then verify the published files against it after upload.
+5. Verify APK signing identity and state whether it is debug or production signed. Do not label a debug APK as a production release.
+6. Publish the GitHub release with filenames copied from the actual assets; verify each tag-pinned download.
+7. Update README and the PocketMic landing page version, install commands, direct asset links, compatibility notes, and checksums.
+8. Check the release page, README, landing page, and all download URLs after publication; record the final evidence date and commit/tag.
 
-### Windows receiver
+## Pinned dependency reference
 
-| Check | Result | Evidence |
-|-------|--------|----------|
-| Build (dotnet build) | ✅ PASS | 0 warnings, 0 errors |
-| Tests (100 xUnit) | ✅ PASS | 100/100, 182ms |
-| opus.dll built from source | ✅ PASS | libopus 1.5.2, SHA-256: `08ee50be...`, 456704 bytes |
-| Opus smoke tests (6) | ✅ PASS | 6/6: create, PLC, decode, reset, double-dispose |
-| Protocol fixture tests (21) | ✅ PASS | v1/v2 decrypt, tamper, replay, nonce, header parsing |
-| All tests (127 xUnit) | ✅ PASS | 127/127, 33ms |
-| P/Invoke fix | ✅ PASS | opus_decoder_create returns IntPtr, takes out int |
-
-### Stage 6B — Protocol & Codec Correctness
-
-| Check | Result | Evidence |
-|-------|--------|----------|
-| Cross-language vectors | ✅ PASS | tests/fixtures/vectors.json (Python-generated, C#-verified) |
-| v1 decrypt matches expected PCM | ✅ PASS | 960-byte alternating payload |
-| v2 without decoder returns false | ✅ PASS | Expected: no decoder → reject |
-| Tampered header rejected | ✅ PASS | Bit flip in session ID → AAD mismatch |
-| Tampered ciphertext rejected | ✅ PASS | Bit flip at offset 30 → GCM failure |
-| Tampered tag rejected | ✅ PASS | Bit flip in tag → GCM failure |
-| Wrong key rejected | ✅ PASS | Different key → GCM failure |
-| Truncated payload rejected | ✅ PASS | 500-byte packet → length check |
-| Wrong version rejected | ✅ PASS | Version 3 → unsupported |
-| v2 tampered payload length rejected | ✅ PASS | Bit flip at offset 24 |
-| No encryption flag rejected | ✅ PASS | Flags=0 → rejected |
-| Appended bytes rejected | ✅ PASS | 1010-byte packet → length check |
-| Nonce includes session ID | ✅ PASS | Different session → different nonce |
-| Nonce includes sequence | ✅ PASS | Different seq → different nonce |
-| HeaderInfo v1/v2/invalid | ✅ PASS | Correct size and codec detection |
-| Decrypt is deterministic | ✅ PASS | Same input → same output |
-
-### Stage 6C — Runtime Behavior
-
-| Check | Result | Evidence |
-|-------|--------|----------|
-| P95 steady state (10ms) | ✅ PASS | RawP95Ms ≈ 10ms after 250 packets |
-| P95 moderate jitter (10/15ms) | ✅ PASS | RawP95Ms ≈ 15ms |
-| P95 single outage (510ms gap) | ✅ PASS | Gap rejected (>500ms), P95 unchanged |
-| P95 short gap (200ms) | ✅ PASS | One gap doesn't raise 95th percentile |
-| Rate limiter caps growth | ✅ PASS | Target stays in [30, 120] with sudden jitter |
-| Target clamped to min floor | ✅ PASS | Low jitter → target converges to 30ms |
-| Target clamped to max ceiling | ✅ PASS | High jitter → target reaches 120ms |
-| Tier bounds: Excellent [40,60] | ✅ PASS | |
-| Tier bounds: Good [60,120] | ✅ PASS | |
-| Tier bounds: Degraded [120,200] | ✅ PASS | |
-| Tier bounds: Poor [200,300] | ✅ PASS | |
-| Tier boundaries non-overlapping | ✅ PASS | Excellent.Max == Good.Min, etc. |
-| Effective prebuffer clamped to tier | ✅ PASS | Target 30ms → clamped to 60ms in Good tier |
-| Effective prebuffer follows target | ✅ PASS | Within tier range |
-| Reset clears all state | ✅ PASS | RawP95=0, drift=0, target=default |
-| Drift rate zero before warmup | ✅ PASS | <20 packets → drift=0 |
-| Drift rate zero before 2s | ✅ PASS | <2s wall-clock → drift=0 |
-| Drift warmup packets skipped | ✅ PASS | <20 packets → drift=0 |
-| Default prebuffer positive | ✅ PASS | |
-
-### BLOCKED (needs hardware)
-
-| Check | Status | Blocker |
-|-------|--------|---------|
-| Android build (NDK) | ✅ PASS | assembleDebug SUCCESS, 30s |
-| APK: libopus.so (arm64-v8a) | ✅ PASS | apkanalyzer confirms |
-| APK: libopus.so (armeabi-v7a) | ✅ PASS | apkanalyzer confirms |
-| APK: libopus.so (x86_64) | ✅ PASS | apkanalyzer confirms |
-| APK: libpocketmic_jni.so (all ABIs) | ✅ PASS | apkanalyzer confirms |
-| Install on OnePlus 9 Pro (Android 14) | ✅ PASS | adb install Success |
-| Android encoder smoke test | ⬜ BLOCKED | Needs app launch + logcat |
-| v2 with Opus decoder round-trip | ⬜ BLOCKED | Needs end-to-end test |
-| 30-min locked-screen soak | ⬜ BLOCKED | Needs real-time test |
-| Packet pacing PCAP trace | ⬜ BLOCKED | Needs real network |
-| Drift convergence (real clock) | ⬜ BLOCKED | Needs 2+ seconds real-time test |
-
----
-
-## Signing
-
-| Artifact | Signing | Certificate fingerprint |
-|----------|---------|------------------------|
-| Debug APK | Debug keystore | (record after build) |
-| Release APK | Release key | ⬜ Needs key generation |
-
----
-
-## Upstream Licenses
-
-Opus BSD license included at: `android/app/src/main/cpp/opus/COPYING`
-
-Must be bundled in:
-- [ ] Windows ZIP
-- [ ] Android APK (assets or about screen)
+libopus 1.5.2 is pinned at SHA-256 `65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1`. Its BSD license source is `android/app/src/main/cpp/opus/COPYING`; the released Windows archive includes a `LICENSE` file.

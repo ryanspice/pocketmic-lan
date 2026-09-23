@@ -30,7 +30,7 @@
   "applicationCategory": "MultimediaApplication",
   "description": "Turn your Android phone into an encrypted wireless microphone for your Windows PC. LAN-only, zero cloud.",
   "url": "https://github.com/ryanspice/pocketmic-lan",
-  "softwareVersion": "0.1.4",
+  "softwareVersion": "0.1.5",
   "license": "https://opensource.org/licenses/MIT",
   "author": { "@type": "Person", "name": "Ryan Spice-Finnie" }
 }
@@ -235,7 +235,7 @@
   <div class="wrap">
     <p class="sec-eyebrow">Screenshots</p>
     <h2>Real captures, real hardware</h2>
-    <p class="lede">From the v0.1.4 artifacts on a OnePlus 9 Pro and Windows 11 PC. No mockups.</p>
+    <p class="lede">From the v0.1.5 artifacts on a OnePlus 9 Pro and Windows 11 PC. No mockups.</p>
     <div class="screenshots-showcase">
       <div class="screenshot-device">
         <div class="device-frame device-phone">
@@ -302,8 +302,8 @@
 <section id="performance" class="section">
   <div class="wrap">
     <p class="sec-eyebrow">Performance</p>
-    <h2>Measured on real hardware</h2>
-    <p class="lede">These numbers come from a OnePlus 9 Pro and Windows 11 PC over 5 GHz Wi-Fi.</p>
+    <h2>Measured baseline, with the new path in progress</h2>
+    <p class="lede">These baseline PCM figures were recorded on a OnePlus 9 Pro and Windows 11 PC over 5 GHz Wi-Fi. The v0.1.5 adaptive Opus path still needs its end-to-end hardware and network checks.</p>
     <dl class="stats">
       <div class="stat tile"><dt>Prebuffer</dt><dd>100 <span>ms</span></dd><p>Adjustable 40–300 ms on the receiver.</p></div>
       <div class="stat tile"><dt>High-water</dt><dd>220 <span>ms</span></dd><p>Buffered latency trimmed above this mark.</p></div>
@@ -322,7 +322,7 @@
         <li>Audio source tested by actually starting a recording</li>
         <li>Wi-Fi lock policy fed by live network (band, RSSI, loss)</li>
       </ul>
-      <p class="note">These settings are intentionally fixed until real-device measurements justify adaptive tuning.</p>
+      <p class="note">The v0.1.5 receiver adds adaptive Opus buffering; see the release notes for implementation details and the project evidence file for remaining live-device checks.</p>
     </div>
   </div>
 </section>
@@ -401,7 +401,7 @@
   <div class="wrap">
     <p class="sec-eyebrow">Build from source</p>
     <h2>One-command builds</h2>
-    <p class="lede">The package ships source plus tooling. It does not pretend an APK or EXE was built without the SDKs.</p>
+    <p class="lede">The package ships source plus tooling. The current GitHub release includes a debug-signed Android APK and a pre-built Windows receiver; neither is a store installer.</p>
     <div class="build-grid">
       <div>
         <h3>Requirements</h3>
@@ -421,7 +421,7 @@ Set-ExecutionPolicy -Scope Process Bypass
       </div>
       <div>
         <h3>Install</h3>
-        <pre class="term" aria-label="Install command"><span class="term-dots"><i></i><i></i><i></i></span><code>adb install -r .\release\PocketMic-v0.1.4-debug.apk</code></pre>
+        <pre class="term" aria-label="Install command"><span class="term-dots"><i></i><i></i><i></i></span><code>adb install -r .\release\app-debug.apk</code></pre>
       </div>
       <div>
         <h3>Firewall</h3>
@@ -440,8 +440,8 @@ Set-ExecutionPolicy -Scope Process Bypass
     <p class="lede">None of these are hidden before you build.</p>
     <ul class="limits-grid">
       <li class="limit">Windows receiver only — no macOS or Linux yet</li>
-      <li class="limit">PCM uses more bandwidth than Opus (~768 kbit/s)</li>
-      <li class="limit">Fixed prebuffer and simple latency trimming, not adaptive jitter</li>
+      <li class="limit">PCM16 uses more bandwidth than Opus; current release estimates are modeled, not a universal network result</li>
+      <li class="limit">v0.1.5 adds adaptive jitter handling; live-device validation remains open</li>
       <li class="limit">No signed Android release, Windows installer, or auto-updater</li>
       <li class="limit">No internet relay — both devices must be on the same LAN</li>
       <li class="limit">Designed for voice, not real-time music monitoring</li>
@@ -466,7 +466,7 @@ Set-ExecutionPolicy -Scope Process Bypass
         </span>
         <span class="download-action">Download .zip <span aria-hidden="true">→</span></span>
       </a>
-      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.4-debug.apk">
+      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/app-debug.apk">
         <span class="download-icon" aria-hidden="true">
           <svg viewBox="0 0 24 24" width="24" height="24"><rect x="7" y="2" width="10" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         </span>
@@ -487,7 +487,7 @@ Set-ExecutionPolicy -Scope Process Bypass
         <span class="download-action">View on GitHub <span aria-hidden="true">→</span></span>
       </a>
     </div>
-    <p class="download-footer-note">Or install via <code>adb install -r PocketMic-v0.1.4-debug.apk</code>. See <a href="https://github.com/ryanspice/pocketmic-lan/releases">all releases</a> for checksums and previous versions.</p>
+    <p class="download-footer-note">Or install via <code>adb install -r app-debug.apk</code>. See <a href="https://github.com/ryanspice/pocketmic-lan/releases">all releases</a> for checksums and previous versions.</p>
   </div>
 </section>
 
