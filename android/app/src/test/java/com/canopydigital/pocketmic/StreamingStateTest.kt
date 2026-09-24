@@ -1,6 +1,7 @@
 package com.canopydigital.pocketmic
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -36,7 +37,7 @@ class StreamingStateTest {
         assertEquals(0L, snapshot.packetsSent)
         assertEquals(0, snapshot.reconnects)
         assertEquals(0f, snapshot.level)
-        assertEquals("", snapshot.error)
+        assertNull(snapshot.error)
         assertEquals(WifiLockMode.NONE, snapshot.wifiLockMode)
     }
 }
