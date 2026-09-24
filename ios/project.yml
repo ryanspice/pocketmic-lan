@@ -22,6 +22,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         CODE_SIGNING_ALLOWED: NO
     info:
+      path: Generated/Info.plist
       properties:
         NSMicrophoneUsageDescription: PocketMic captures your voice and streams it to your Windows receiver over your local network.
         NSLocalNetworkUsageDescription: PocketMic sends encrypted microphone audio to your receiver on your local network.
