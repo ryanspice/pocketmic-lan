@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, 'codex/**']
   pull_request:
     branches: [master]
 
@@ -62,7 +62,6 @@ jobs:
       - name: Run unit tests
         working-directory: android
         run: ./gradlew testDebugUnitTest
-        continue-on-error: true
 
       - name: Upload APK
         if: success()

@@ -1,4 +1,4 @@
-package com.ryanspice.pocketmic
+package com.canopydigital.pocketmic
 
 /** What the streaming loop should do next about the state of the link. */
 enum class LinkAction {

@@ -1,4 +1,4 @@
-package com.ryanspice.pocketmic
+package com.canopydigital.pocketmic
 
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel

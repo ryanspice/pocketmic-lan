@@ -1,4 +1,4 @@
-package com.ryanspice.pocketmic
+package com.canopydigital.pocketmic
 
 import android.Manifest
 import android.content.ClipData

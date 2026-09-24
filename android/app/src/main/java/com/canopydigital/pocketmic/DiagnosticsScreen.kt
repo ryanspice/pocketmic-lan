@@ -1,4 +1,4 @@
-package com.ryanspice.pocketmic
+package com.canopydigital.pocketmic
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

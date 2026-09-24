@@ -1,4 +1,4 @@
-package com.ryanspice.pocketmic
+package com.canopydigital.pocketmic
 
 import android.content.Context
 import android.net.ConnectivityManager

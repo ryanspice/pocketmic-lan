@@ -1,4 +1,4 @@
-package com.ryanspice.pocketmic
+package com.canopydigital.pocketmic
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse

@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.6] - Unreleased
+
+### Added
+- Experimental iOS PCM streaming client and GitHub Actions simulator build artifact.
+
+### Changed
+- Use `com.canopydigital.pocketmic` as the Android and iOS application identifier. Android users must install this as a new app; it cannot upgrade the v0.1.5 package.
+- Bump Android, iOS, and Windows build versions to 0.1.6.
+
+### Fixed
+- Move iOS PCM conversion, framing, and encryption off the real-time audio callback; serialize processor state and drain it during shutdown.
+- Deactivate the iOS audio session on stop and prevent packet sequence wrap from reusing an AES-GCM nonce.
+
 ## [0.1.5] - 2026-09-11
 
 ### Added

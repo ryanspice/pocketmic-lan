@@ -1,4 +1,4 @@
-package com.ryanspice.pocketmic
+package com.canopydigital.pocketmic
 
 import java.security.MessageDigest
 import javax.crypto.Mac

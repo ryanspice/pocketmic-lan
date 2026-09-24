@@ -1,4 +1,4 @@
-package com.ryanspice.pocketmic
+package com.canopydigital.pocketmic
 
 import android.Manifest
 import android.content.Context
@@ -892,8 +892,8 @@ class MicStreamingService : Service() {
     companion object {
         const val TAG = "PocketMic"
 
-        const val ACTION_START = "com.ryanspice.pocketmic.START"
-        const val ACTION_STOP = "com.ryanspice.pocketmic.STOP"
+        const val ACTION_START = "com.canopydigital.pocketmic.START"
+        const val ACTION_STOP = "com.canopydigital.pocketmic.STOP"
         const val EXTRA_HOST = "host"
         const val EXTRA_PORT = "port"
         const val EXTRA_KEY = "key"

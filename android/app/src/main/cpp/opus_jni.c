@@ -26,7 +26,7 @@
 #define MAX_ENCODED_BYTES 512
 
 JNIEXPORT jlong JNICALL
-Java_com_ryanspice_pocketmic_OpusEncoder_nativeCreate(
+Java_com_canopydigital_pocketmic_OpusEncoder_nativeCreate(
     JNIEnv *env, jobject thiz, jint sampleRate, jint channels, jint bitrate)
 {
     int err;
@@ -65,7 +65,7 @@ Java_com_ryanspice_pocketmic_OpusEncoder_nativeCreate(
 }
 
 JNIEXPORT jbyteArray JNICALL
-Java_com_ryanspice_pocketmic_OpusEncoder_nativeEncode(
+Java_com_canopydigital_pocketmic_OpusEncoder_nativeEncode(
     JNIEnv *env, jobject thiz, jlong handle, jshortArray pcm, jint pcmLength,
     jint maxOutputBytes)
 {
@@ -111,7 +111,7 @@ Java_com_ryanspice_pocketmic_OpusEncoder_nativeEncode(
 }
 
 JNIEXPORT void JNICALL
-Java_com_ryanspice_pocketmic_OpusEncoder_nativeDestroy(
+Java_com_canopydigital_pocketmic_OpusEncoder_nativeDestroy(
     JNIEnv *env, jobject thiz, jlong handle)
 {
     if (handle != 0) {

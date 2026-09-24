@@ -13,8 +13,8 @@ final class AudioStreamer: ObservableObject {
     @Published var errorMessage: String?
 
     private let engine = AVAudioEngine()
-    private let processingQueue = DispatchQueue(label: "com.ryanspice.pocketmic.audio-processing")
-    private let networkQueue = DispatchQueue(label: "com.ryanspice.pocketmic.network")
+    private let processingQueue = DispatchQueue(label: "com.canopydigital.pocketmic.audio-processing")
+    private let networkQueue = DispatchQueue(label: "com.canopydigital.pocketmic.network")
     private let processor = AudioPacketProcessor()
     private var connection: NWConnection?
     private var permissionRequestID: UUID?

@@ -1,4 +1,4 @@
-package com.ryanspice.pocketmic
+package com.canopydigital.pocketmic
 
 /**
  * Kotlin-side wrapper for the native libopus encoder.

@@ -1,4 +1,4 @@
-package com.ryanspice.pocketmic
+package com.canopydigital.pocketmic
 
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
