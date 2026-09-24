@@ -2,6 +2,7 @@
 
 > Generated 2026-09-10 after completing Phases 1-5 implementation.
 > This document covers everything needed to release, test, and validate v0.1.5.
+> Historical v0.1.5 snapshot. For the expanded v0.1.6 Phase 3 scope and the deferred Phase 4–7 sequence, see `ROADMAP.md`.
 
 ---
 

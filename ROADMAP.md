@@ -65,18 +65,50 @@
 
 ---
 
-## v0.1.6 — Polish & Usability (PLANNED)
+## v0.1.6 — Cross-platform Reach & Localization (EXPANDED PLAN)
+
+### Phase 3 — Mac receiver, mobile compatibility, and global usability
+
+This is the expanded Phase 3 release scope. Do not tag v0.1.6 until its acceptance gates below pass. Phase 3 now includes the macOS receiver, reliable interoperability with both mobile clients, and a complete initial localization pass. Later work stays in Phases 4–7 and starts after this release scope is complete.
+
+- [ ] Build a native macOS receiver with the core Windows receiver workflow: LAN listening, manual pairing, pairing-key security, status/diagnostics, virtual microphone selection, and clean start/stop/recovery. The initial Mac preview is PCM v1/manual pairing; QR, discovery, Opus, and production distribution remain later work unless explicitly completed and accepted.
+- [ ] Keep packet framing, protocol crypto, and shared control-message models in a platform-neutral Swift package where the iOS client and macOS receiver can use the same implementation; verify compatibility against Kotlin and C# fixtures.
+- [ ] Make the macOS receiver accept the supported Android and iOS client protocols. Cover PCM v1 and Android's negotiated Opus v2 path where the protocol supports it; add shared cross-language fixtures for framing, key derivation, AES-GCM fields, valid packets, tamper/wrong-key rejection, and sequence exhaustion.
+- [ ] Ship a macOS Audio Server Plug-in virtual microphone path so receiver audio is selectable as a microphone by conferencing/recording apps. Require physical Mac acceptance for installation, device visibility, continuity, recovery, and latency; a CI build does not prove this gate.
+- [ ] Add macOS build, unit, protocol, and packaging jobs to GitHub Actions on a hosted macOS runner, so development and release builds remain possible from Windows. CI is compile/test evidence, not physical audio-device acceptance.
+- [ ] Localize every user-facing surface across Android, iOS, macOS, Windows, and the public marketing site. The initial target is 21 locales: Canadian English (en-CA), American English (en-US), Spanish, French, Brazilian Portuguese, German, Italian, Dutch, Polish, Turkish, Russian, Ukrainian, Arabic, Hindi, Indonesian, Japanese, Korean, Simplified Chinese, Traditional Chinese, Central Kurdish (Sorani, ckb), and Northern Kurdish (Kurmanji, kmr). Track the target tags in `localization/target-locales.json`.
+- [ ] Introduce locale-aware string resources/catalogs and formatting, an agreed translation glossary, locale selection/fallback rules, and an update workflow that makes additional locales data-only where practical. Include pluralization, text expansion, accessibility labels, and right-to-left layout support (especially Arabic) in acceptance.
+- [ ] Establish one reviewable localization source and validation workflow for web and native catalogs, with checks for missing keys, fallback coverage, malformed locale files, and accidental untranslated UI text.
+- [ ] Translate the core marketing/onboarding/download, privacy, and troubleshooting pages in the same initial locales as the apps. Keep claims and version/download metadata consistent in every locale. Expand further only when translations can be reviewed and maintained.
+
+There is no technical “magic number” of supported languages. The 21-locale target is a bounded, reviewable first release goal; the code and content pipeline should make additional locales straightforward. `en-CA` is the default fallback, while a supported device/user locale takes precedence. Canadian English is not UK English (`en-GB`). Kurdish is represented by the two distinct locale tags above. Do not advertise a locale as supported when important setup, error, privacy, or troubleshooting text is still machine-only, missing, or unreviewed.
+
+### Phases 4–7 — Deferred until Phase 3 is complete
+
+- **Phase 4 — Audio and transport enhancements:** take up remaining codec, transport, DSP, or routing work after cross-platform compatibility is stable.
+- **Phase 5 — Product expansion:** revisit USB transport, multi-device, recording, and advanced routing after the Mac receiver and mobile clients interoperate.
+- **Phase 6 — Extended validation:** continue broader device/network experiments, performance measurement, and long-session testing beyond the Phase 3 release acceptance matrix.
+- **Phase 7 — Distribution and promotion:** pursue store signing, notarization, installers, wider tester outreach, and launch promotion only after artifact quality and platform behavior are verified.
+
+These phases are deferred work, not prerequisites to expanding Phase 3 implementation. Release-critical acceptance evidence remains required for the platforms and claims included in v0.1.6.
+
+### Future cross-device clients — after v0.1.6
+
+- [ ] Expand mobile clients so Android phones/tablets and iPhones/iPads can act as either microphone publishers or audio consumers, with the same role model on Mac and Windows where platform audio APIs permit it.
+- [ ] Define one cross-platform pairing, discovery, codec, and audio-routing model before implementing the consumer role. Keep Android consumer/client work out of v0.1.6 so the Mac receiver and the current mobile-to-desktop path can be validated first.
+- [ ] Validate role combinations across Android phone/tablet, iPhone/iPad, Mac, and Windows, including which platforms can capture, publish, receive, and expose a system-wide virtual device. Do not promise that every OS can expose a virtual microphone until its native extension/driver model is implemented and accepted.
 
 ### Release gates — complete before creating the v0.1.6 tag
 
 These are acceptance checks for the release candidate, separate from feature plans below.
 
-- [ ] Decide and document the iOS support level. The current client is an unsigned preview that has only passed a simulator build. If iOS is presented as supported, first install it on a physical iPhone and verify iPhone-to-Windows playback. Otherwise label it experimental and keep it out of platform support and store claims.
-- [ ] Build Android, Windows, and iOS from one frozen candidate commit. Require Android build/lint/unit tests, Windows build/tests, and the iOS simulator build to pass; confirm Android unit-test failures fail CI.
-- [ ] Add cross-language iOS protocol fixtures: exact PMIC header, SHA-256 pairing-key derivation, AES-GCM nonce/AAD/ciphertext/tag, and a receiver-accepted packet. Include tamper and wrong-key rejection, plus a sequence-limit test proving nonce reuse is prevented.
-- [ ] On a physical iPhone and Windows PC on the same private LAN, verify microphone permission grant/denial, correct and incorrect pairing keys, audible receiver playback, repeated start/stop, app backgrounding, network loss/recovery, and a sustained session. Capture the device model/iOS version, Windows receiver version, logs, and packet or playback evidence. Keep any unrun scenario marked BLOCKED.
+- [ ] Keep iOS labelled experimental until a physical iPhone-to-receiver session passes. Verify both iPhone-to-Windows and iPhone-to-macOS behavior before claiming broad iOS support.
+- [ ] Build Android, Windows, iOS, and macOS from one frozen candidate commit. Require Android build/lint/unit tests, Windows build/tests, iOS simulator build, and macOS build/tests to pass. Android unit-test failures must fail CI.
+- [ ] On physical iPhone and Android devices with Windows and macOS receivers on the same private LAN, verify permission grant/denial, correct and incorrect pairing keys, audible playback, repeated start/stop, backgrounding where supported, network loss/recovery, and a sustained session. Capture device/OS/app versions, logs, and packet or playback evidence. Keep every unrun scenario marked BLOCKED.
+- [ ] Have an external tester with a physical Mac verify audio-device selection and the documented virtual-audio route. GitHub's macOS runner can compile and test protocol behavior but cannot prove real microphone/client playback or end-user routing.
+- [ ] Have fluent reviewers check all 21 initial target locales, including both Kurdish varieties, right-to-left layout, text expansion, system-language changes, critical permission/security/error copy, privacy language, and translated setup steps. Keep any locale that has not passed review out of the supported-language list.
 - [ ] Recheck the existing Android-to-Windows release gates in `BUILD-EVIDENCE.md`; do not convert its encoder, Opus round-trip, locked-screen soak, packet-pacing, or clock-drift BLOCKED items into passes without new evidence.
-- [ ] Align Android, Windows, iOS, README, website, release notes, download names, and the `v0.1.6` tag to the same version and commit. Build release artifacts from that candidate, record their SHA-256 values, and verify the uploaded assets and tag-pinned downloads.
+- [ ] Align Android, Windows, iOS, macOS, README, localized website, release notes, download names, and the `v0.1.6` tag to the same version and commit. Build release artifacts from that candidate, record their SHA-256 values, and verify uploaded assets and tag-pinned downloads.
 - [ ] Validate the new Android application ID `com.canopydigital.pocketmic` from a clean install. Document that it installs separately from v0.1.5 and that existing app data/pairing keys do not automatically migrate.
 - [ ] State signing accurately. The Android release is not production-signed today, and iOS CI produces an unsigned archive. Do not claim Play Store/App Store/TestFlight availability unless signing, installation, and upload are configured and verified.
 - [ ] After publication, verify GitHub release assets, checksums, README/website links, and compatibility notes against the live tagged release.

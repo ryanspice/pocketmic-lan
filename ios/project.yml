@@ -17,6 +17,7 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.canopydigital.pocketmic
+        INFOPLIST_KEY_CFBundleDevelopmentRegion: en-CA
         MARKETING_VERSION: "0.1.6"
         CURRENT_PROJECT_VERSION: "6"
         PRODUCT_NAME: PocketMic
@@ -26,5 +27,6 @@ targets:
     info:
       path: Generated/Info.plist
       properties:
-        NSMicrophoneUsageDescription: PocketMic captures your voice and streams it to your Windows receiver over your local network.
-        NSLocalNetworkUsageDescription: PocketMic sends encrypted microphone audio to your receiver on your local network.
+        CFBundleDevelopmentRegion: en-CA
+        NSMicrophoneUsageDescription: PocketMic captures your voice and streams it to a PocketMic receiver over your local network.
+        NSLocalNetworkUsageDescription: PocketMic sends encrypted microphone audio to a receiver on your local network.

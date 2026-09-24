@@ -1,0 +1,31 @@
+{
+  "defaultLocale": "en-CA",
+  "locales": [
+    { "tag": "en-CA", "name": "Canadian English", "status": "target" },
+    { "tag": "en-US", "name": "American English", "status": "target" },
+    { "tag": "es", "name": "Spanish", "status": "target" },
+    { "tag": "fr", "name": "French", "status": "target" },
+    { "tag": "pt-BR", "name": "Brazilian Portuguese", "status": "target" },
+    { "tag": "de", "name": "German", "status": "target" },
+    { "tag": "it", "name": "Italian", "status": "target" },
+    { "tag": "nl", "name": "Dutch", "status": "target" },
+    { "tag": "pl", "name": "Polish", "status": "target" },
+    { "tag": "tr", "name": "Turkish", "status": "target" },
+    { "tag": "ru", "name": "Russian", "status": "target" },
+    { "tag": "uk", "name": "Ukrainian", "status": "target" },
+    { "tag": "ar", "name": "Arabic", "status": "target" },
+    { "tag": "hi", "name": "Hindi", "status": "target" },
+    { "tag": "id", "name": "Indonesian", "status": "target" },
+    { "tag": "ja", "name": "Japanese", "status": "target" },
+    { "tag": "ko", "name": "Korean", "status": "target" },
+    { "tag": "zh-Hans", "name": "Simplified Chinese", "status": "target" },
+    { "tag": "zh-Hant", "name": "Traditional Chinese", "status": "target" },
+    { "tag": "ckb", "name": "Central Kurdish (Sorani)", "status": "target" },
+    { "tag": "kmr", "name": "Northern Kurdish (Kurmanji)", "status": "target" }
+  ],
+  "notes": [
+    "Canadian English is en-CA; it is not UK English (en-GB).",
+    "The defaultLocale is the fallback when no supported device preference is available; a supported user or device language takes precedence.",
+    "Target locales are not considered supported until app and website copy is translated, reviewed, and validated."
+  ]
+}

@@ -3,6 +3,7 @@
 [![Version](https://img.shields.io/badge/version-v0.1.5-b88a3b)](https://github.com/ryanspice/pocketmic-lan/releases)
 [![CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml)
 [![iOS CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ios.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ios.yml)
+[![macOS CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/macos.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/macos.yml)
 [![Lighthouse](https://github.com/ryanspice/pocketmic-lan/actions/workflows/lighthouse.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/lighthouse.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows-blue)]()
@@ -28,6 +29,7 @@ PocketMic turns an Android phone into an encrypted wireless microphone for a Win
 |-----------|-------|-------------|
 | Android transmitter | Kotlin, Jetpack Compose | Foreground microphone service with QR pairing |
 | Windows receiver | C#/.NET 8, WinForms, NAudio 2.3 | Audio playback with voice processing |
+| macOS receiver preview | SwiftUI, CoreAudio Audio Server Plug-in | Unsigned PCM v1 receiver and virtual microphone under physical-Mac testing; see [macOS preview setup](macos/README.md) |
 | Wire protocol | UDP, AES-256-GCM | v1: PCM16 (768 kbit/s), v2: Opus (~106 kbit/s), 10 ms packets |
 | Control channel | HMAC-SHA256 | Discovery, statistics, DSP config on `audioPort + 1` |
 

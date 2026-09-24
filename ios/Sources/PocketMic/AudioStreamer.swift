@@ -44,7 +44,7 @@ final class AudioStreamer: ObservableObject {
                 self.isStarting = false
                 guard granted else {
                     self.status = "Ready"
-                    self.errorMessage = "Allow microphone access in iOS Settings to stream audio."
+                    self.errorMessage = "Allow microphone access in Settings to stream audio."
                     return
                 }
                 self.beginCapture(host: receiver, port: nwPort, pairingKey: pairingKey)

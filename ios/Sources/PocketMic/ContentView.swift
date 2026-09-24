@@ -9,7 +9,7 @@ struct ContentView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Windows receiver") {
+                Section("PocketMic receiver") {
                     TextField("IP address or host name", text: $host)
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
@@ -44,7 +44,7 @@ struct ContentView: View {
                 }
 
                 Section("About this iOS preview") {
-                    Text("Streams 48 kHz mono PCM audio to PocketMic Receiver on the same private Wi-Fi network. Enter the receiver IP address and pairing key shown in the Windows app.")
+                    Text("Streams 48 kHz mono PCM audio to a PocketMic receiver on the same private Wi-Fi network. Enter the receiver IP address and pairing key shown in its app.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                     Text("Keep PocketMic in the foreground while streaming. QR pairing, receiver discovery, and Opus are not included in this initial iOS client.")
