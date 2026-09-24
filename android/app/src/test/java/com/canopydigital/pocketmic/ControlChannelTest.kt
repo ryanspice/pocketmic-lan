@@ -68,6 +68,21 @@ class ControlChannelTest {
     }
 
     @Test
+    fun clearingDiscoveryInvalidatesEveryPreviouslySentNonce() {
+        val ring = ControlChannel.ProbeNonceRing(2)
+        val previous = nonce(1)
+        ring.remember(previous)
+        ring.remember(nonce(2))
+
+        ring.clear()
+
+        assertFalse(ring.isFresh(previous))
+        assertFalse(ring.isFresh(nonce(2)))
+        ring.remember(nonce(3))
+        assertTrue(ring.isFresh(nonce(3)))
+    }
+
+    @Test
     fun rememberingRequiresTheRightSize() {
         val ring = ControlChannel.ProbeNonceRing(2)
 

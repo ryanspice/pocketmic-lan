@@ -43,6 +43,7 @@ sealed interface PeerState {
         val audioProtocolMatches: Boolean = true,
         val frontEnd: String = "",
         val buildVersion: String = "",
+        val discoveredAtMillis: Long = 0L,
     ) : PeerState
 
     /**
@@ -71,6 +72,7 @@ object ControlChannel {
     private const val PROBE_INTERVAL_MS = 1_000L
     private const val NOT_FOUND_AFTER_MS = 4_000L
     const val STATS_TIMEOUT_MS = 2_000L
+    const val FOUND_TTL_MS = 2_500L
 
     /**
      * An announce is only fresh when it echoes a probe this phone sent in the current round or
@@ -114,11 +116,21 @@ object ControlChannel {
     @Synchronized
     fun start(context: Context, pairingKey: String, audioPort: Int, probe: Boolean) {
         val port = ControlProtocol.controlPort(audioPort)
-        controlKey = ControlProtocol.deriveControlKey(pairingKey)
+        val nextKey = ControlProtocol.deriveControlKey(pairingKey)
+        val identityChanged = startedPort != port || controlKey?.contentEquals(nextKey) != true
+        val probingChanged = this.probing != probe
+        if (identityChanged || probingChanged) resetDiscoveryState(searching = probe)
+
+        controlKey = nextKey
         probing = probe
 
         if (socket != null && startedPort == port) {
-            if (probe) restartProbeLoop(context, audioPort)
+            if (probe) {
+                restartProbeLoop(context, audioPort)
+            } else {
+                probeJob?.cancel()
+                probeJob = null
+            }
             return
         }
 
@@ -146,8 +158,24 @@ object ControlChannel {
 
     @Synchronized
     fun setProbing(context: Context, audioPort: Int, enabled: Boolean) {
+        if (probing == enabled) return
         probing = enabled
-        if (enabled) restartProbeLoop(context, audioPort) else probeJob?.cancel()
+        resetDiscoveryState(searching = enabled)
+        if (enabled) {
+            restartProbeLoop(context, audioPort)
+        } else {
+            probeJob?.cancel()
+            probeJob = null
+        }
+    }
+
+    private fun resetDiscoveryState(searching: Boolean) {
+        sentProbeNonces.clear()
+        mutablePeer.value = if (searching) PeerState.Searching else PeerState.NotFound
+        mutableStats.value = null
+        mutableStatsAt.value = 0L
+        mutableStaleAnnounces.value = 0L
+        mutableBindError.value = null
     }
 
     private fun restartProbeLoop(context: Context, audioPort: Int) {
@@ -188,10 +216,7 @@ object ControlChannel {
     @Synchronized
     fun stop() {
         stopInternal()
-        mutablePeer.value = PeerState.NotFound
-        mutableStats.value = null
-        mutableStatsAt.value = 0L
-        mutableStaleAnnounces.value = 0L
+        resetDiscoveryState(searching = false)
     }
 
     private fun stopInternal() {
@@ -212,6 +237,12 @@ object ControlChannel {
             val key = controlKey
             val active = socket
             if (key == null || active == null) break
+
+            val now = SystemClock.elapsedRealtime()
+            val current = mutablePeer.value
+            if (current is PeerState.Found && now - current.discoveredAtMillis >= FOUND_TTL_MS) {
+                mutablePeer.value = PeerState.Searching
+            }
 
             val targets = broadcastTargets(context)
             if (targets.isEmpty()) {
@@ -271,7 +302,10 @@ object ControlChannel {
                     // should not be believed — and accepting it would re-surface a stale
                     // address or port as fresh discovery. The next probe round (1 s) replaces
                     // it with the truth either way.
-                    if (announce == null || !sentProbeNonces.isFresh(announce.nonce)) {
+                    if (announce == null ||
+                        (authentic && announce.audioPort !in MIN_PORT..MAX_PORT) ||
+                        !sentProbeNonces.isFresh(announce.nonce)
+                    ) {
                         if (announce != null) mutableStaleAnnounces.update { it + 1 }
                         continue
                     }
@@ -290,6 +324,7 @@ object ControlChannel {
                         audioProtocolMatches = !authentic || announce.audioProtocolMatches,
                         frontEnd = if (authentic) announce.frontEndName else "",
                         buildVersion = if (authentic) announce.buildVersion else "",
+                        discoveredAtMillis = SystemClock.elapsedRealtime(),
                     )
                 }
 
@@ -352,6 +387,13 @@ object ControlChannel {
                 if (nonces[slot].contentEquals(nonce)) return true
             }
             return false
+        }
+
+        @Synchronized
+        fun clear() {
+            nonces.forEach { it.fill(0) }
+            count = 0
+            index = 0
         }
     }
 

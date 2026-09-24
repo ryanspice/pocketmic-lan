@@ -115,8 +115,7 @@ public sealed class PocketMicEngine
     private long _latePackets;
     private long _rejectedPackets;
     private long _trimmedPackets;
-    private ulong? _sessionId;
-    private uint? _lastSequence;
+    private readonly AudioPacketOrder _packetOrder = new();
     private long _lastUpdateTick;
     private bool _playbackStarted;
     private long _runId;
@@ -336,7 +335,10 @@ public sealed class PocketMicEngine
         {
             _opusDecoder = new OpusDecoder();
         }
-        catch (InvalidOperationException)
+        catch (Exception exception) when (exception is InvalidOperationException or
+                                          DllNotFoundException or
+                                          EntryPointNotFoundException or
+                                          BadImageFormatException)
         {
             // opus.dll not found — v2 packets will be rejected at the TryDecrypt
             // level, but v1 PCM packets still work. The receiver degrades gracefully.
@@ -373,8 +375,7 @@ public sealed class PocketMicEngine
         _latePackets = 0;
         _rejectedPackets = 0;
         _trimmedPackets = 0;
-        _sessionId = null;
-        _lastSequence = null;
+        _packetOrder.Reset();
         _lastUpdateTick = 0;
         _lastPacketTick = 0;
         _playbackStarted = false;
@@ -449,9 +450,6 @@ public sealed class PocketMicEngine
         control?.Close();
         StopMonitorOutput();
 
-        _opusDecoder?.Dispose();
-        _opusDecoder = null;
-
         foreach (var task in new[] { controlReceive, controlStats })
         {
             if (task is null) continue;
@@ -467,6 +465,13 @@ public sealed class PocketMicEngine
             catch (ObjectDisposedException) { }
             catch (SocketException) { }
         }
+
+        // The receive loop owns the native decoder while it can be inside Decode/PLC/Reset.
+        // Cancellation and closing the socket do not wait for a synchronous P/Invoke to finish.
+        // Release the handle only after the loop has exited, or stop can race opus_decoder_destroy
+        // against opus_decode on the receive thread.
+        _opusDecoder?.Dispose();
+        _opusDecoder = null;
 
         // Only once every loop that can enqueue a sample has left, so the final flush sees the
         // whole run rather than racing a packet that is still being counted.
@@ -1007,11 +1012,11 @@ public sealed class PocketMicEngine
     private async Task ReceiveLoopAsync(UdpClient udp, CancellationToken cancellationToken, long runId)
     {
         var pcm = new byte[AudioPipeline.PacketPcmBytes];
+        var packetPayload = new byte[AudioPipeline.PacketPcmBytes];
         var nonce = new byte[12];
         var discard = new byte[AudioPipeline.PacketPcmBytes];
         var conceal = new byte[AudioPipeline.PacketPcmBytes];
         var lastGood = new byte[AudioPipeline.PacketPcmBytes];
-        var opusBuffer = new byte[AudioPipeline.MaxOpusPayloadBytes];
         var haveLastGood = false;
 
         // Captured once: the collector exists for the whole run, and every call below is a
@@ -1032,8 +1037,8 @@ public sealed class PocketMicEngine
             }
 
             var data = result.Buffer;
-            if (!TryDecryptPacket(data, nonce, pcm, out var sessionId, out var sequence, out var sampleRate, opusBuffer) ||
-                sampleRate != AudioPipeline.SampleRate)
+            if (!TryAuthenticatePacket(data, nonce, packetPayload, out var packet) ||
+                packet.SampleRate != AudioPipeline.SampleRate)
             {
                 _rejectedPackets++;
                 analytics?.RecordRejected();
@@ -1067,60 +1072,75 @@ public sealed class PocketMicEngine
                 continue;
             }
 
+            // Authenticate first, then enforce session/sequence policy before touching the
+            // stateful codec. Commit occurs only after decoding succeeds.
+            var order = _packetOrder.Inspect(packet);
+            if (order.Status == AudioPacketOrderStatus.CodecChangedWithinSession)
+            {
+                _rejectedPackets++;
+                analytics?.RecordRejected();
+                continue;
+            }
+
+            if (order.Status == AudioPacketOrderStatus.Late)
+            {
+                _latePackets++;
+                if (order.SequenceDelta == -1) analytics?.RecordDuplicate();
+                else analytics?.RecordReordered();
+                continue;
+            }
+
+            if (order.NewSession)
+            {
+                Array.Clear(lastGood);
+                haveLastGood = false;
+                ResetPlaybackForResync();
+            }
+
+            if (order.MissingPackets > 0)
+            {
+                var delta = order.MissingPackets;
+                _lostPackets += delta;
+                analytics?.RecordLost(delta);
+                if (delta <= _concealmentPackets)
+                {
+                    for (var index = 0; index < delta; index++)
+                    {
+                        var usedPlc = packet.Codec == AudioPipeline.Codec.Opus &&
+                            _opusDecoder?.TryGeneratePlc(conceal) == true;
+                        if (!usedPlc)
+                        {
+                            AudioPipeline.BuildConcealmentFrame(conceal, lastGood, haveLastGood, index);
+                        }
+                        _audioBuffer?.AddSamples(conceal, 0, conceal.Length);
+                    }
+                }
+                else
+                {
+                    ResetPlaybackForResync();
+                    Array.Clear(lastGood);
+                    haveLastGood = false;
+                }
+            }
+
+            // Only an in-order, authenticated packet is allowed to advance codec state.
+            if (packet.Codec == AudioPipeline.Codec.Pcm)
+            {
+                Buffer.BlockCopy(packetPayload, 0, pcm, 0, AudioPipeline.PacketPcmBytes);
+            }
+            else if (_opusDecoder?.TryDecode(packetPayload, packet.PayloadLength, pcm) != true)
+            {
+                _rejectedPackets++;
+                analytics?.RecordRejected();
+                continue;
+            }
+
+            _packetOrder.Commit(packet);
+
             // Remember where authenticated audio came from so statistics can be sent back.
             _phoneAddress = result.RemoteEndPoint.Address;
             _lastPacketTick = Environment.TickCount64;
             analytics?.Connection.MarkAuthenticatedPacket();
-
-            if (_sessionId != sessionId)
-            {
-                _sessionId = sessionId;
-                _lastSequence = null;
-                ResetPlaybackForResync();
-            }
-
-            if (_lastSequence.HasValue)
-            {
-                var expected = _lastSequence.Value + 1;
-                var delta = unchecked((int)(sequence - expected));
-                if (delta < 0)
-                {
-                    _latePackets++;
-
-                    // The single "late" counter hides the two failures it can mean. A delta of
-                    // exactly -1 is the sequence already accepted arriving a second time — a
-                    // duplicate, which is harmless. Anything older is a genuine reorder, which
-                    // means the network delivered out of order and the jitter buffer was too
-                    // shallow to absorb it. Splitting them costs one comparison here.
-                    if (delta == -1) analytics?.RecordDuplicate();
-                    else analytics?.RecordReordered();
-                    continue;
-                }
-
-                if (delta > 0)
-                {
-                    _lostPackets += delta;
-                    analytics?.RecordLost(delta);
-                    if (delta <= _concealmentPackets)
-                    {
-                        for (var index = 0; index < delta; index++)
-                        {
-                            // Opus PLC produces a smoother spectral continuation than
-                            // PCM16 waveform repetition; fall back to the legacy
-                            // concealment when no decoder is attached or PLC fails.
-                            if (_opusDecoder?.TryGeneratePlc(conceal) != true)
-                            {
-                                AudioPipeline.BuildConcealmentFrame(conceal, lastGood, haveLastGood, index);
-                            }
-                            _audioBuffer?.AddSamples(conceal, 0, conceal.Length);
-                        }
-                    }
-                    else
-                    {
-                        ResetPlaybackForResync();
-                    }
-                }
-            }
 
             var buffer = _audioBuffer;
             // Condition before buffering, and measure the level after conditioning so the trim
@@ -1131,7 +1151,6 @@ public sealed class PocketMicEngine
             _monitorBuffer?.AddSamples(pcm, 0, pcm.Length);
             Buffer.BlockCopy(pcm, 0, lastGood, 0, AudioPipeline.PacketPcmBytes);
             haveLastGood = true;
-            _lastSequence = sequence;
             _packetCount++;
             analytics?.RecordDelivered(
                 (int)(buffer?.BufferedDuration.TotalMilliseconds ?? 0),
@@ -1209,21 +1228,14 @@ public sealed class PocketMicEngine
         _opusDecoder?.Reset();
     }
 
-    private bool TryDecryptPacket(
+    private bool TryAuthenticatePacket(
         byte[] data,
         byte[] nonce,
-        byte[] pcm,
-        out ulong sessionId,
-        out uint sequence,
-        out int sampleRate,
-        byte[]? opusBuffer = null)
+        byte[] payload,
+        out AudioPacketInfo packet)
     {
-        sessionId = 0;
-        sequence = 0;
-        sampleRate = 0;
-        if (_aes is null) return false;
-
-        return AudioPipeline.TryDecrypt(_aes, data, nonce, pcm, out sessionId, out sequence, out sampleRate, _opusDecoder, opusBuffer);
+        packet = default;
+        return _aes is not null && AudioPipeline.TryAuthenticate(_aes, data, nonce, payload, out packet);
     }
 
     /// <summary>

@@ -150,6 +150,14 @@ object AppPrefs {
         plainPrefs(context).edit().putBoolean(AUTO_CONNECT, enabled).apply()
     }
 
+    /** Clears only the remembered receiver address/port; encrypted pairing credentials stay put. */
+    fun clearReceiverTarget(context: Context) {
+        plainPrefs(context).edit()
+            .remove(HOST)
+            .putInt(PORT, DEFAULT_PORT)
+            .apply()
+    }
+
     fun loadDsp(context: Context): DspSettings {
         val prefs = plainPrefs(context)
         val defaults = DspSettings()

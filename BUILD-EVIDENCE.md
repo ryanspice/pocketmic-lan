@@ -4,6 +4,16 @@
 > Evidence refreshed: 2026-09-23 (artifact integrity and distribution metadata)
 > Runtime/build evidence below remains from 2026-09-11 unless explicitly noted.
 
+## v0.1.6 development verification (2026-09-24)
+
+These are working-tree checks, not release-candidate or published-artifact evidence. They were run on branch `codex/ios-initial-client` before the current changes were committed or pushed.
+
+- Android: `android/gradlew.bat --max-workers=1 --no-daemon --console=plain testDebugUnitTest` — PASS. The full JVM suite completed successfully after the Auto-connect discovery reset changes. The build emitted an Android SDK XML schema-version warning and existing `MasterKeys`/`EncryptedSharedPreferences` deprecation warnings.
+- Windows receiver: the updated core and regression tests previously passed 160/160; desktop build completed with 0 warnings and 0 errors. This working-tree result must be rerun by CI on the candidate commit.
+- Android Auto-connect source behavior: toggling clears the saved receiver IP and restores the port default while retaining encrypted pairing credentials; discovery only runs while enabled and idle (the service may still probe during active-session reconnect); auto-fill requires a fresh, authenticated, protocol-compatible announce and stores its advertised audio port. Unit coverage now verifies nonce reset.
+- Windows protocol source behavior: v2 Opus bounds are validated before decode; authenticated packets are ordered before decoder state changes; decoder teardown waits for the receive loop. These changes do not prove physical Opus audio behavior.
+- Not verified by these checks: macOS driver installation/routing, physical iOS or Android audio, Android Opus native-device behavior, true pre-Start Windows receiver handshake, translation review, or release signing/distribution.
+
 ## Published artifact verification (2026-09-23)
 
 Downloaded the tag-pinned public release assets and checked them against the attached `SHA256SUMS.txt` manifest and GitHub asset digests.

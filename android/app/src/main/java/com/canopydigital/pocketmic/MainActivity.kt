@@ -163,23 +163,29 @@ private fun PocketMicScreen() {
     //
     // MicStreamingService drives the same switch, because reconnect has to work with this
     // activity destroyed. Both derive it from one status, so they cannot disagree.
-    val shouldProbe = !isActive || snapshot.status == StreamStatus.RECONNECTING
+    val shouldProbe = autoConnect && (!isActive || snapshot.status == StreamStatus.RECONNECTING)
     DisposableEffect(pairingKey, port, shouldProbe) {
         ControlChannel.start(context, pairingKey, port, probe = shouldProbe)
         ControlChannel.setProbing(context, port, enabled = shouldProbe)
         onDispose { }
     }
 
-    // Auto-fill from discovery. Only the address is adopted; starting capture stays manual.
+    // Auto-fill from a fresh, authenticated discovery result. Starting capture stays manual.
     // A receiver whose protocol this app cannot speak is not adopted: pointing at it silently
     // would produce a stream it rejects every packet of.
     LaunchedEffect(peer, autoConnect) {
         val found = peer as? PeerState.Found ?: return@LaunchedEffect
-        if (autoConnect && found.keyMatches && found.audioProtocolMatches &&
-            !isActive && host != found.address
+        val fresh = found.discoveredAtMillis > 0L &&
+            SystemClock.elapsedRealtime() - found.discoveredAtMillis < ControlChannel.FOUND_TTL_MS
+        if (autoConnect && fresh && found.keyMatches && found.audioProtocolMatches &&
+            !isActive && (host != found.address || port != found.audioPort)
         ) {
             host = found.address
-            AppPrefs.save(context, MicConfig(found.address, port, pairingKey, captureMode, gain))
+            portText = found.audioPort.toString()
+            AppPrefs.save(
+                context,
+                MicConfig(found.address, found.audioPort, pairingKey, captureMode, gain),
+            )
         }
     }
 
@@ -329,6 +335,9 @@ private fun PocketMicScreen() {
                 ConnectionCard(
                     autoConnect = autoConnect,
                     onAutoConnectChange = {
+                        host = ""
+                        portText = DEFAULT_PORT.toString()
+                        AppPrefs.clearReceiverTarget(context)
                         autoConnect = it
                         AppPrefs.saveAutoConnect(context, it)
                     },

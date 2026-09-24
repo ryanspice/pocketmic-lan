@@ -1,6 +1,6 @@
 # PocketMic LAN — Roadmap
 
-> Last updated: 2026-09-24 | Current: v0.1.5 | Master: v1.0.0
+> Last updated: 2026-09-24 | Latest published: v0.1.5 | Next: v0.1.6 | Master: v1.0.0
 
 ---
 
@@ -15,7 +15,9 @@
 
 ---
 
-## 🔨 v0.1.5 — Performance & Quality (IN PROGRESS)
+## ✅ v0.1.5 — Performance & Quality (RELEASED 2026-09-14)
+
+v0.1.5 is published. The checklist below preserves its original implementation scope; its unchecked hardware and measurement items are follow-up evidence, not a claim that the release is still in progress. See `BUILD-EVIDENCE.md` for the checks that remain blocked and `MASTER-PLAN.md` for the current release sequence.
 
 ### Phase 1: Release Consistency ✅ DONE
 - [x] Version bump to 0.1.5 across all projects
@@ -86,7 +88,7 @@ There is no technical “magic number” of supported languages. The 21-locale t
 ### Phases 4–7 — Deferred until Phase 3 is complete
 
 - **Phase 4 — Audio and transport enhancements:** take up remaining codec, transport, DSP, or routing work after cross-platform compatibility is stable.
-- **Phase 5 — Product expansion:** revisit USB transport, multi-device, recording, and advanced routing after the Mac receiver and mobile clients interoperate.
+- **Phase 5 — Product expansion:** revisit a Linux desktop receiver, USB transport, multi-device, recording, and advanced routing after the Mac receiver and mobile clients interoperate. Linux scope includes encrypted LAN receive/playback, pairing/status UX, a system-wide virtual microphone route, packaging, and a supported-distribution policy.
 - **Phase 6 — Extended validation:** continue broader device/network experiments, performance measurement, and long-session testing beyond the Phase 3 release acceptance matrix.
 - **Phase 7 — Distribution and promotion:** pursue store signing, notarization, installers, wider tester outreach, and launch promotion only after artifact quality and platform behavior are verified.
 
@@ -95,8 +97,9 @@ These phases are deferred work, not prerequisites to expanding Phase 3 implement
 ### Future cross-device clients — after v0.1.6
 
 - [ ] Expand mobile clients so Android phones/tablets and iPhones/iPads can act as either microphone publishers or audio consumers, with the same role model on Mac and Windows where platform audio APIs permit it.
+- [ ] Build a Linux desktop receiver after v0.1.6, with the Windows/Mac receiver core workflow and a supported virtual-microphone route. Choose the initial Linux audio backend, packaging format(s), and supported distributions before implementation; require Linux CI plus physical playback/routing acceptance.
 - [ ] Define one cross-platform pairing, discovery, codec, and audio-routing model before implementing the consumer role. Keep Android consumer/client work out of v0.1.6 so the Mac receiver and the current mobile-to-desktop path can be validated first.
-- [ ] Validate role combinations across Android phone/tablet, iPhone/iPad, Mac, and Windows, including which platforms can capture, publish, receive, and expose a system-wide virtual device. Do not promise that every OS can expose a virtual microphone until its native extension/driver model is implemented and accepted.
+- [ ] Validate role combinations across Android phone/tablet, iPhone/iPad, Mac, Windows, and Linux, including which platforms can capture, publish, receive, and expose a system-wide virtual device. Do not promise that every OS can expose a virtual microphone until its native extension/driver model is implemented and accepted.
 
 ### Release gates — complete before creating the v0.1.6 tag
 

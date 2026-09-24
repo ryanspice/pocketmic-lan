@@ -77,7 +77,10 @@ public sealed class OpusDecoder : IOpusDecoder
     /// </summary>
     public bool TryDecode(byte[] opusData, int length, byte[] pcmOutput)
     {
-        if (_handle == IntPtr.Zero || length <= 0) return false;
+        if (_handle == IntPtr.Zero || length <= 0 ||
+            length > AudioPipeline.MaxOpusPayloadBytes ||
+            length > opusData.Length ||
+            pcmOutput.Length < AudioPipeline.PacketPcmBytes) return false;
 
         int samples = NativeDecode(
             _handle,
@@ -85,7 +88,7 @@ public sealed class OpusDecoder : IOpusDecoder
             _decodeBuffer, MaxFrameSize,
             0);
 
-        if (samples <= 0) return false;
+        if (samples != MaxFrameSize) return false;
 
         // Convert short[] to byte[] (little-endian PCM16)
         int byteCount = samples * 2;
@@ -99,7 +102,7 @@ public sealed class OpusDecoder : IOpusDecoder
     /// </summary>
     public bool TryGeneratePlc(byte[] pcmOutput)
     {
-        if (_handle == IntPtr.Zero) return false;
+        if (_handle == IntPtr.Zero || pcmOutput.Length < AudioPipeline.PacketPcmBytes) return false;
 
         int samples = NativeDecode(
             _handle,
@@ -107,7 +110,7 @@ public sealed class OpusDecoder : IOpusDecoder
             _decodeBuffer, MaxFrameSize,
             0);
 
-        if (samples <= 0) return false;
+        if (samples != MaxFrameSize) return false;
 
         int byteCount = samples * 2;
         Buffer.BlockCopy(_decodeBuffer, 0, pcmOutput, 0, byteCount);
