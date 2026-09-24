@@ -26,5 +26,3 @@ targets:
       properties:
         NSMicrophoneUsageDescription: PocketMic captures your voice and streams it to your Windows receiver over your local network.
         NSLocalNetworkUsageDescription: PocketMic sends encrypted microphone audio to your receiver on your local network.
-        UIBackgroundModes:
-          - audio

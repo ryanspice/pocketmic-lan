@@ -1,6 +1,6 @@
 # PocketMic LAN — Roadmap
 
-> Last updated: 2026-09-10 | Current: v0.1.5 | Master: v1.0.0
+> Last updated: 2026-09-24 | Current: v0.1.5 | Master: v1.0.0
 
 ---
 
@@ -66,6 +66,19 @@
 ---
 
 ## v0.1.6 — Polish & Usability (PLANNED)
+
+### Release gates — complete before creating the v0.1.6 tag
+
+These are acceptance checks for the release candidate, separate from feature plans below.
+
+- [ ] Decide and document the iOS support level. The current client is an unsigned preview that has only passed a simulator build. If iOS is presented as supported, first install it on a physical iPhone and verify iPhone-to-Windows playback. Otherwise label it experimental and keep it out of platform support and store claims.
+- [ ] Build Android, Windows, and iOS from one frozen candidate commit. Require Android build/lint/unit tests, Windows build/tests, and the iOS simulator build to pass; fix the Android CI step that currently allows unit-test failures.
+- [ ] Add cross-language iOS protocol fixtures: exact PMIC header, SHA-256 pairing-key derivation, AES-GCM nonce/AAD/ciphertext/tag, and a receiver-accepted packet. Include tamper and wrong-key rejection, plus a sequence-limit test proving nonce reuse is prevented.
+- [ ] On a physical iPhone and Windows PC on the same private LAN, verify microphone permission grant/denial, correct and incorrect pairing keys, audible receiver playback, repeated start/stop, app backgrounding, network loss/recovery, and a sustained session. Capture the device model/iOS version, Windows receiver version, logs, and packet or playback evidence. Keep any unrun scenario marked BLOCKED.
+- [ ] Recheck the existing Android-to-Windows release gates in `BUILD-EVIDENCE.md`; do not convert its encoder, Opus round-trip, locked-screen soak, packet-pacing, or clock-drift BLOCKED items into passes without new evidence.
+- [ ] Align Android, Windows, iOS, README, website, release notes, download names, and the `v0.1.6` tag to the same version and commit. Build release artifacts from that candidate, record their SHA-256 values, and verify the uploaded assets and tag-pinned downloads.
+- [ ] State signing accurately. The Android release is not production-signed today, and iOS CI produces an unsigned archive. Do not claim Play Store/App Store/TestFlight availability unless signing, installation, and upload are configured and verified.
+- [ ] After publication, verify GitHub release assets, checksums, README/website links, and compatibility notes against the live tagged release.
 
 ### Android Native Capture
 - [ ] Oboe MMAP exclusive mode (bypass mixer)

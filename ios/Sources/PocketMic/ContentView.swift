@@ -20,7 +20,7 @@ struct ContentView: View {
                         .textInputAutocapitalization(.never)
                         .autocorrectionDisabled()
                 }
-                .disabled(streamer.isStreaming)
+                .disabled(streamer.isStreaming || streamer.isStarting)
 
                 Section {
                     HStack(spacing: 12) {
@@ -30,8 +30,8 @@ struct ContentView: View {
                         Text(streamer.status)
                             .font(.subheadline)
                     }
-                    Button(streamer.isStreaming ? "Stop microphone" : "Start microphone") {
-                        if streamer.isStreaming {
+                    Button(buttonTitle) {
+                        if streamer.isStreaming || streamer.isStarting {
                             streamer.stop()
                         } else {
                             streamer.start(host: host, port: port, pairingKey: pairingKey)
@@ -39,8 +39,8 @@ struct ContentView: View {
                     }
                     .frame(maxWidth: .infinity)
                     .fontWeight(.semibold)
-                    .tint(streamer.isStreaming ? .red : .accentColor)
-                    .disabled(!streamer.isStreaming && (host.isEmpty || pairingKey.isEmpty))
+                    .tint(streamer.isStreaming || streamer.isStarting ? .red : .accentColor)
+                    .disabled(!streamer.isStreaming && !streamer.isStarting && (host.isEmpty || pairingKey.isEmpty))
                 }
 
                 Section("About this iOS preview") {
@@ -53,7 +53,7 @@ struct ContentView: View {
                 }
             }
             .navigationTitle("PocketMic")
-            .alert("Microphone unavailable", isPresented: Binding(
+            .alert("PocketMic issue", isPresented: Binding(
                 get: { streamer.errorMessage != nil },
                 set: { if !$0 { streamer.errorMessage = nil } }
             )) {
@@ -62,5 +62,10 @@ struct ContentView: View {
                 Text(streamer.errorMessage ?? "")
             }
         }
+    }
+
+    private var buttonTitle: String {
+        if streamer.isStarting { return "Cancel microphone request" }
+        return streamer.isStreaming ? "Stop microphone" : "Start microphone"
     }
 }

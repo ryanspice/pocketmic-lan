@@ -1,55 +1,75 @@
 import AVFoundation
+import AudioToolbox
 import CryptoKit
+import Darwin
 import Network
 import SwiftUI
 
 @MainActor
 final class AudioStreamer: ObservableObject {
     @Published private(set) var isStreaming = false
+    @Published private(set) var isStarting = false
     @Published private(set) var status = "Ready"
     @Published var errorMessage: String?
 
     private let engine = AVAudioEngine()
-    private let processingQueue = DispatchQueue(label: "com.ryanspice.pocketmic.audio")
+    private let processingQueue = DispatchQueue(label: "com.ryanspice.pocketmic.audio-processing")
+    private let networkQueue = DispatchQueue(label: "com.ryanspice.pocketmic.network")
+    private let processor = AudioPacketProcessor()
     private var connection: NWConnection?
-    private var converter: AVAudioConverter?
-    private var pendingSamples: [Float] = []
-    private var streamKey: SymmetricKey?
-    private var sessionID: UInt64 = 0
-    private var sequence: UInt32 = 0
+    private var permissionRequestID: UUID?
+    private var streamGeneration: UInt64 = 0
 
     func start(host: String, port portText: String, pairingKey: String) {
+        guard !isStreaming, !isStarting else { return }
         guard let portValue = UInt16(portText), portValue > 0,
               let nwPort = NWEndpoint.Port(rawValue: portValue) else {
             errorMessage = "Enter a valid UDP port between 1 and 65535."
             return
         }
-        guard !host.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              !pairingKey.isEmpty else {
+        let receiver = host.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !receiver.isEmpty, !pairingKey.isEmpty else {
             errorMessage = "Enter the receiver address and pairing key."
             return
         }
 
+        isStarting = true
+        status = "Waiting for microphone permission"
+        let requestID = UUID()
+        permissionRequestID = requestID
         AVAudioApplication.requestRecordPermission { [weak self] granted in
             Task { @MainActor in
-                guard let self else { return }
+                guard let self, self.permissionRequestID == requestID else { return }
+                self.permissionRequestID = nil
+                self.isStarting = false
                 guard granted else {
+                    self.status = "Ready"
                     self.errorMessage = "Allow microphone access in iOS Settings to stream audio."
                     return
                 }
-                self.beginCapture(host: host, port: nwPort, pairingKey: pairingKey)
+                self.beginCapture(host: receiver, port: nwPort, pairingKey: pairingKey)
             }
         }
     }
 
     func stop() {
+        permissionRequestID = nil
+        isStarting = false
+        streamGeneration &+= 1
+
         engine.inputNode.removeTap(onBus: 0)
         engine.stop()
-        connection?.cancel()
+        let stoppedConnection = connection
         connection = nil
-        converter = nil
-        streamKey = nil
-        pendingSamples.removeAll(keepingCapacity: false)
+
+        // The tap only copies buffers and queues them. Drain those queued buffers before
+        // clearing processor state so a late callback cannot race shutdown or a new stream.
+        processingQueue.sync {
+            processor.reset()
+        }
+        stoppedConnection?.cancel()
+        try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+
         isStreaming = false
         status = "Ready"
     }
@@ -63,30 +83,62 @@ final class AudioStreamer: ObservableObject {
 
             let input = engine.inputNode
             let inputFormat = input.outputFormat(forBus: 0)
-            let outputFormat = AVAudioFormat(commonFormat: .pcmFormatFloat32, sampleRate: 48_000, channels: 1, interleaved: false)!
-            guard let audioConverter = AVAudioConverter(from: inputFormat, to: outputFormat) else {
+            guard let outputFormat = AVAudioFormat(
+                commonFormat: .pcmFormatFloat32,
+                sampleRate: 48_000,
+                channels: 1,
+                interleaved: false
+            ), let audioConverter = AVAudioConverter(from: inputFormat, to: outputFormat) else {
                 throw StreamError.audioSetup("Could not configure 48 kHz microphone conversion.")
             }
-            converter = audioConverter
-            streamKey = SymmetricKey(data: Data(SHA256.hash(data: Data(pairingKey.utf8))))
-            sessionID = UInt64.random(in: 1...UInt64.max)
-            sequence = 0
-            pendingSamples.removeAll(keepingCapacity: true)
+
+            streamGeneration &+= 1
+            let generation = streamGeneration
+            let key = SymmetricKey(data: Data(SHA256.hash(data: Data(pairingKey.utf8))))
+            let sessionID = UInt64.random(in: 1...UInt64.max)
+            processingQueue.sync {
+                processor.configure(
+                    converter: audioConverter,
+                    key: key,
+                    sessionID: sessionID,
+                    generation: generation
+                )
+            }
 
             let udp = NWConnection(host: NWEndpoint.Host(host), port: port, using: .udp)
             connection = udp
-            udp.stateUpdateHandler = { [weak self] state in
+            udp.stateUpdateHandler = { [weak self, weak udp] state in
                 guard case .failed(let error) = state else { return }
                 Task { @MainActor in
-                    self?.errorMessage = "Receiver connection failed: \(error.localizedDescription)"
-                    self?.stop()
+                    guard let self, let udp, self.connection === udp else { return }
+                    self.errorMessage = "Receiver connection failed: \(error.localizedDescription)"
+                    self.stop()
                 }
             }
-            udp.start(queue: processingQueue)
+            udp.start(queue: networkQueue)
 
-            input.installTap(onBus: 0, bufferSize: 2_048, format: inputFormat) { [weak self] buffer, _ in
-                self?.convertAndSend(buffer, outputFormat: outputFormat)
+            let captureQueue = processingQueue
+            let packetProcessor = processor
+            input.installTap(onBus: 0, bufferSize: 2_048, format: inputFormat) { [weak self, weak udp] buffer, _ in
+                guard let udp, let ownedBuffer = copyAudioBuffer(buffer) else { return }
+                captureQueue.async { [weak self, weak udp] in
+                    guard let udp else { return }
+                    let exhaustedSequence = packetProcessor.process(
+                        ownedBuffer,
+                        generation: generation
+                    ) { packet in
+                        udp.send(content: packet, completion: .contentProcessed { _ in })
+                    }
+                    if exhaustedSequence {
+                        Task { @MainActor [weak self, weak udp] in
+                            guard let self, let udp, self.connection === udp else { return }
+                            self.errorMessage = "This audio session reached the packet limit. Start a new session to keep encryption nonces unique."
+                            self.stop()
+                        }
+                    }
+                }
             }
+
             try engine.start()
             isStreaming = true
             status = "Streaming to \(host):\(port.rawValue)"
@@ -95,12 +147,52 @@ final class AudioStreamer: ObservableObject {
             errorMessage = error.localizedDescription
         }
     }
+}
 
-    private func convertAndSend(_ inputBuffer: AVAudioPCMBuffer, outputFormat: AVAudioFormat) {
-        guard let converter, let streamKey else { return }
-        let ratio = outputFormat.sampleRate / inputBuffer.format.sampleRate
+/// Owns all conversion, framing, and sequence state on AudioStreamer.processingQueue.
+private final class AudioPacketProcessor {
+    private var converter: AVAudioConverter?
+    private var streamKey: SymmetricKey?
+    private var sessionID: UInt64 = 0
+    private var sequence: UInt32 = 0
+    private var generation: UInt64?
+    private var pendingSamples: [Float] = []
+    private var sequenceLimitReported = false
+
+    func configure(converter: AVAudioConverter, key: SymmetricKey, sessionID: UInt64, generation: UInt64) {
+        self.converter = converter
+        streamKey = key
+        self.sessionID = sessionID
+        sequence = 0
+        self.generation = generation
+        pendingSamples.removeAll(keepingCapacity: true)
+        sequenceLimitReported = false
+    }
+
+    func reset() {
+        converter = nil
+        streamKey = nil
+        sessionID = 0
+        sequence = 0
+        generation = nil
+        pendingSamples.removeAll(keepingCapacity: false)
+        sequenceLimitReported = false
+    }
+
+    /// Returns true once when the final unique sequence value has been sent.
+    func process(_ inputBuffer: AVAudioPCMBuffer, generation: UInt64, send: (Data) -> Void) -> Bool {
+        guard self.generation == generation, !sequenceLimitReported,
+              let converter, let streamKey else { return false }
+
+        let ratio = 48_000 / inputBuffer.format.sampleRate
         let capacity = AVAudioFrameCount(Double(inputBuffer.frameLength) * ratio + 512)
-        guard let converted = AVAudioPCMBuffer(pcmFormat: outputFormat, frameCapacity: capacity) else { return }
+        guard let outputFormat = AVAudioFormat(
+            commonFormat: .pcmFormatFloat32,
+            sampleRate: 48_000,
+            channels: 1,
+            interleaved: false
+        ), let converted = AVAudioPCMBuffer(pcmFormat: outputFormat, frameCapacity: capacity) else { return false }
+
         var suppliedInput = false
         var conversionError: NSError?
         let result = converter.convert(to: converted, error: &conversionError) { _, inputStatus in
@@ -112,7 +204,7 @@ final class AudioStreamer: ObservableObject {
             inputStatus.pointee = .haveData
             return inputBuffer
         }
-        guard result != .error, let samples = converted.floatChannelData?[0] else { return }
+        guard result != .error, let samples = converted.floatChannelData?[0] else { return false }
 
         pendingSamples.append(contentsOf: UnsafeBufferPointer(start: samples, count: Int(converted.frameLength)))
         while pendingSamples.count >= 480 {
@@ -128,9 +220,14 @@ final class AudioStreamer: ObservableObject {
             }
             pendingSamples.removeFirst(480)
             guard let packet = Self.makePacket(pcm: pcm, key: streamKey, sessionID: sessionID, sequence: sequence) else { continue }
-            sequence &+= 1
-            connection?.send(content: packet, completion: .contentProcessed { _ in })
+            send(packet)
+            guard sequence < UInt32.max else {
+                sequenceLimitReported = true
+                return true
+            }
+            sequence += 1
         }
+        return false
     }
 
     private static func makePacket(pcm: Data, key: SymmetricKey, sessionID: UInt64, sequence: UInt32) -> Data? {
@@ -150,6 +247,24 @@ final class AudioStreamer: ObservableObject {
         packet.append(sealed.tag)
         return packet
     }
+}
+
+private func copyAudioBuffer(_ source: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
+    guard let copy = AVAudioPCMBuffer(pcmFormat: source.format, frameCapacity: source.frameLength) else { return nil }
+    copy.frameLength = source.frameLength
+
+    let sourceBuffers = UnsafeAudioBufferListPointer(source.audioBufferList)
+    let destinationBuffers = UnsafeMutableAudioBufferListPointer(copy.mutableAudioBufferList)
+    guard sourceBuffers.count == destinationBuffers.count else { return nil }
+    for index in sourceBuffers.indices {
+        let byteCount = Int(sourceBuffers[index].mDataByteSize)
+        guard byteCount <= Int(destinationBuffers[index].mDataByteSize),
+              let sourceData = sourceBuffers[index].mData,
+              let destinationData = destinationBuffers[index].mData else { return nil }
+        memcpy(destinationData, sourceData, byteCount)
+        destinationBuffers[index].mDataByteSize = sourceBuffers[index].mDataByteSize
+    }
+    return copy
 }
 
 private enum StreamError: LocalizedError {
