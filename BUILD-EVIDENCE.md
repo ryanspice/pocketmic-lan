@@ -35,7 +35,8 @@ Working-tree implementation on top of `8fcb364`:
 - The effective playback prebuffer is displayed separately from queued audio and link-policy recommendations. Existing settings without the new field retain automatic mode through the property default.
 - Link-quality assessments with insufficient packets now preserve bounds for the current tier instead of returning `0..0`; adaptive targets intersect the user's configured bounds with the tier range.
 - Windows receiver core tests: **161 passed, 0 failed, 0 skipped**. Windows desktop build: **0 warnings, 0 errors**.
-- Not yet verified: interactive slider/toggle behavior, actual buffer depth and audio on a running Windows receiver, or physical network quality under changing conditions. Require the pushed CI result and a brief live receiver smoke before marking D1 fully accepted.
+- GitHub Actions on commit `4a244a17760f725091f497f470c4c5203d93d0f2`: primary CI (Android build/lint/unit tests, Windows build/tests, web checks) PASS in [run 36074751559](https://github.com/ryanspice/pocketmic-lan/actions/runs/36074751559); iOS PASS in [run 36074751544](https://github.com/ryanspice/pocketmic-lan/actions/runs/36074751544); macOS PASS in [run 36074751587](https://github.com/ryanspice/pocketmic-lan/actions/runs/36074751587); pull-request Lighthouse PASS in [run 36074755655](https://github.com/ryanspice/pocketmic-lan/actions/runs/36074755655).
+- Not yet verified: interactive slider/toggle behavior, actual buffer depth and audio on a running Windows receiver, or physical network quality under changing conditions. A brief live receiver smoke remains necessary before marking D1 fully accepted.
 
 ## Published artifact verification (2026-09-23)
 
