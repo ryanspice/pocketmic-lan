@@ -253,7 +253,7 @@ private func copyAudioBuffer(_ source: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
     guard let copy = AVAudioPCMBuffer(pcmFormat: source.format, frameCapacity: source.frameLength) else { return nil }
     copy.frameLength = source.frameLength
 
-    let sourceBuffers = UnsafeAudioBufferListPointer(source.audioBufferList)
+    let sourceBuffers = UnsafeMutableAudioBufferListPointer(UnsafeMutablePointer(mutating: source.audioBufferList))
     let destinationBuffers = UnsafeMutableAudioBufferListPointer(copy.mutableAudioBufferList)
     guard sourceBuffers.count == destinationBuffers.count else { return nil }
     for index in sourceBuffers.indices {
