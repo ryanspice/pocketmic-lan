@@ -1,0 +1,71 @@
+name: iOS
+
+on:
+  push:
+    branches: [master, 'codex/**']
+    tags: ['v*']
+  pull_request:
+    branches: [master]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  ios:
+    name: iOS — build
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate --spec ios/project.yml --project ios
+
+      - name: Select Xcode 26
+        run: sudo xcode-select -s /Applications/Xcode_26.app
+
+      - name: Cache Swift package dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData/SourcePackages
+          key: swiftpm-${{ runner.os }}-${{ hashFiles('ios/**/*.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved', 'ios/Package.swift', 'ios/Package.resolved') }}
+          restore-keys: swiftpm-${{ runner.os }}-
+
+      - name: Resolve Swift package dependencies
+        run: xcodebuild -resolvePackageDependencies -project ios/PocketMic.xcodeproj -scheme PocketMic
+
+      - name: Build for iOS Simulator
+        if: github.event_name != 'release' && !startsWith(github.ref, 'refs/tags/')
+        run: >-
+          xcodebuild -project ios/PocketMic.xcodeproj -scheme PocketMic
+          -sdk iphonesimulator -configuration Debug
+          -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
+
+      - name: Archive unsigned app
+        if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
+        run: >-
+          xcodebuild -project ios/PocketMic.xcodeproj -scheme PocketMic
+          -configuration Release -destination 'generic/platform=iOS'
+          -archivePath build/PocketMic.xcarchive CODE_SIGNING_ALLOWED=NO archive
+
+      - name: Upload simulator build
+        if: github.event_name != 'release' && !startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketmic-ios-simulator-${{ github.sha }}
+          path: build/DerivedData/Build/Products/Debug-iphonesimulator/PocketMic.app
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Upload unsigned archive
+        if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketmic-ios-unsigned-archive-${{ github.ref_name }}
+          path: build/PocketMic.xcarchive
+          if-no-files-found: error
+          retention-days: 30

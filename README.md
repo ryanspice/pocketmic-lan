@@ -2,6 +2,7 @@
 
 [![Version](https://img.shields.io/badge/version-v0.1.5-b88a3b)](https://github.com/ryanspice/pocketmic-lan/releases)
 [![CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml)
+[![iOS CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ios.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ios.yml)
 [![Lighthouse](https://github.com/ryanspice/pocketmic-lan/actions/workflows/lighthouse.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/lighthouse.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows-blue)]()
@@ -169,6 +170,7 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 
 ## Current limits
 
+- iOS has an initial PCM streaming client in `ios/`. It uses SwiftUI and XcodeGen, so Windows contributors can edit it and rely on the macOS GitHub Actions runner to generate the Xcode project and build it. Pull requests and `codex/**` pushes build an unsigned simulator app; version tags and published GitHub releases produce an unsigned `.xcarchive`.
 - Windows receiver only — no macOS or Linux yet
 - LAN discovery with manual IPv4 fallback and QR pairing
 - PCM uses more bandwidth than Opus (~768 kbit/s)
@@ -176,6 +178,19 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 - No production-signed Android release, Windows installer, or auto-updater
 - No internet relay — both devices must be on the same LAN
 - Designed for voice, not real-time music monitoring
+
+### iOS signing and TestFlight
+
+The iOS workflow does not sign or upload builds. To prepare a future signed TestFlight/App Store workflow, add these as encrypted GitHub Actions repository secrets under **Settings → Secrets and variables → Actions**:
+
+- `IOS_CERTIFICATE_P12_BASE64` — base64-encoded Apple Distribution `.p12` certificate.
+- `IOS_CERTIFICATE_PASSWORD` — password used to export that certificate.
+- `IOS_PROVISIONING_PROFILE_BASE64` — base64-encoded App Store provisioning profile for the app's bundle identifier.
+- `APP_STORE_CONNECT_API_KEY_ID` — App Store Connect API key ID.
+- `APP_STORE_CONNECT_ISSUER_ID` — App Store Connect issuer ID.
+- `APP_STORE_CONNECT_API_PRIVATE_KEY` — contents of the API key `.p8` file.
+
+An active Apple Developer Program membership and an App Store Connect app record are also required for TestFlight/App Store distribution. These secrets are not needed for the current unsigned CI builds. Do not commit certificates, profiles, or API keys to the repository.
 
 ## Project layout
 
