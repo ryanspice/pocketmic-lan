@@ -25,8 +25,15 @@ jobs:
       - name: Generate Xcode project
         run: xcodegen generate --spec ios/project.yml --project ios
 
-      - name: Select Xcode 26
-        run: sudo xcode-select -s /Applications/Xcode_26.app/Contents/Developer
+      - name: Verify Xcode 26 or newer
+        run: |
+          xcodebuild -version
+          version="$(xcodebuild -version | awk '/^Xcode / { print $2 }')"
+          major="${version%%.*}"
+          if [[ "$major" -lt 26 ]]; then
+            echo "Xcode 26 or newer is required; found $version"
+            exit 1
+          fi
 
       - name: Cache Swift package dependencies
         uses: actions/cache@v4
