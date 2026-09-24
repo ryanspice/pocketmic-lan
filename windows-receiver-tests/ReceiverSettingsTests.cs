@@ -24,6 +24,7 @@ public class ReceiverSettingsTests
         Assert.False(settings.StartMinimized);
         Assert.False(settings.SilentTakeover);
         Assert.Equal(100, settings.PrebufferMilliseconds);
+        Assert.True(settings.AutomaticBuffering);
         Assert.True(settings.VoiceEnhance);
         Assert.Equal(60, settings.VoiceStrength);
         Assert.True(settings.MonitorEnabled);
@@ -44,6 +45,7 @@ public class ReceiverSettingsTests
             StartMinimized = true,
             SilentTakeover = true,
             PrebufferMilliseconds = 200,
+            AutomaticBuffering = false,
             VoiceEnhance = false,
             VoiceStrength = 80,
             MonitorEnabled = false,
@@ -62,6 +64,7 @@ public class ReceiverSettingsTests
         Assert.Equal(original.StartMinimized, loaded.StartMinimized);
         Assert.Equal(original.SilentTakeover, loaded.SilentTakeover);
         Assert.Equal(original.PrebufferMilliseconds, loaded.PrebufferMilliseconds);
+        Assert.Equal(original.AutomaticBuffering, loaded.AutomaticBuffering);
         Assert.Equal(original.VoiceEnhance, loaded.VoiceEnhance);
         Assert.Equal(original.VoiceStrength, loaded.VoiceStrength);
         Assert.Equal(original.MonitorEnabled, loaded.MonitorEnabled);

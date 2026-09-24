@@ -27,6 +27,16 @@ Push-triggered workflows completed successfully on 2026-09-24:
 
 The macOS result is hosted build/package evidence only. It does not establish driver installation, microphone visibility, or end-to-end audio on a physical Mac.
 
+## Windows buffer-control fix (2026-09-24)
+
+Working-tree implementation on top of `8fcb364`:
+
+- Added an automatic-buffering setting, enabled by default. In automatic mode the slider is explicitly labeled as the minimum; with automatic mode off, it is the exact manual target and per-packet adaptation does not overwrite it.
+- The effective playback prebuffer is displayed separately from queued audio and link-policy recommendations. Existing settings without the new field retain automatic mode through the property default.
+- Link-quality assessments with insufficient packets now preserve bounds for the current tier instead of returning `0..0`; adaptive targets intersect the user's configured bounds with the tier range.
+- Windows receiver core tests: **161 passed, 0 failed, 0 skipped**. Windows desktop build: **0 warnings, 0 errors**.
+- Not yet verified: interactive slider/toggle behavior, actual buffer depth and audio on a running Windows receiver, or physical network quality under changing conditions. Require the pushed CI result and a brief live receiver smoke before marking D1 fully accepted.
+
 ## Published artifact verification (2026-09-23)
 
 Downloaded the tag-pinned public release assets and checked them against the attached `SHA256SUMS.txt` manifest and GitHub asset digests.

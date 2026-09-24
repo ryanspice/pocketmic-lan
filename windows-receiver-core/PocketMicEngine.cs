@@ -131,7 +131,9 @@ public sealed class PocketMicEngine
     private long _lastPacketTick;
 
     private int _prebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
+    private int _manualPrebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
     private int _highWaterMilliseconds = AudioPipeline.DefaultHighWaterMilliseconds;
+    private volatile bool _automaticBuffering = true;
 
     private readonly LinkQualityPolicy _linkPolicy = new();
     private readonly AdaptiveJitterBuffer _adaptiveBuffer = new();
@@ -154,11 +156,36 @@ public sealed class PocketMicEngine
 
     private int _concealmentPackets = AudioPipeline.MaxConcealedGapPackets;
 
-    /// <summary>Set the policy bounds from the UI slider.</summary>
+    /// <summary>Set the minimum and maximum automatic-buffer targets from the UI.</summary>
     public void SetBufferBounds(int min, int max)
     {
-        _bufferSliderMin = min;
-        _bufferSliderMax = max;
+        if (min < 40 || max > 300 || min > max)
+            throw new ArgumentOutOfRangeException(nameof(min), "Buffer bounds must be within 40–300 ms and min must not exceed max.");
+
+        Volatile.Write(ref _bufferSliderMin, min);
+        Volatile.Write(ref _bufferSliderMax, max);
+        _tierPrebufferMin = min;
+        _tierPrebufferMax = max;
+    }
+
+    /// <summary>Whether the link policy may adjust the effective prebuffer.</summary>
+    public bool AutomaticBuffering => _automaticBuffering;
+
+    /// <summary>The exact target to hold while automatic buffering is disabled.</summary>
+    public int ManualPrebufferMilliseconds => Volatile.Read(ref _manualPrebufferMilliseconds);
+
+    /// <summary>Apply UI buffer settings before a run or while the receiver is running.</summary>
+    public void ConfigureBuffering(bool automatic, int sliderMilliseconds, int maximumMilliseconds = 300)
+    {
+        if (sliderMilliseconds < 40 || sliderMilliseconds > 300)
+            throw new ArgumentOutOfRangeException(nameof(sliderMilliseconds), "Buffer target must be within 40–300 ms.");
+        if (maximumMilliseconds < sliderMilliseconds || maximumMilliseconds > 300)
+            throw new ArgumentOutOfRangeException(nameof(maximumMilliseconds), "Buffer maximum must be between the selected target and 300 ms.");
+
+        Volatile.Write(ref _manualPrebufferMilliseconds, sliderMilliseconds);
+        SetBufferBounds(sliderMilliseconds, maximumMilliseconds);
+        _automaticBuffering = automatic;
+        SetEffectivePrebuffer(sliderMilliseconds);
     }
 
     // Last values published, so a status or address that has not actually changed is not
@@ -242,12 +269,19 @@ public sealed class PocketMicEngine
     /// </summary>
     public int PrebufferMilliseconds
     {
-        get => _prebufferMilliseconds;
+        get => Volatile.Read(ref _prebufferMilliseconds);
         set
         {
-            _prebufferMilliseconds = value;
-            _highWaterMilliseconds = AudioPipeline.HighWaterFor(value);
+            var bounded = Math.Clamp(value, 40, 300);
+            Volatile.Write(ref _manualPrebufferMilliseconds, bounded);
+            SetEffectivePrebuffer(bounded);
         }
+    }
+
+    private void SetEffectivePrebuffer(int milliseconds)
+    {
+        Volatile.Write(ref _prebufferMilliseconds, milliseconds);
+        Volatile.Write(ref _highWaterMilliseconds, AudioPipeline.HighWaterFor(milliseconds));
     }
 
     /// <summary>
@@ -385,8 +419,8 @@ public sealed class PocketMicEngine
         _adaptiveBuffer.Reset();
         _lastAssessment = null;
         _concealmentPackets = AudioPipeline.MaxConcealedGapPackets;
-        _tierPrebufferMin = 40;
-        _tierPrebufferMax = 300;
+        _tierPrebufferMin = Volatile.Read(ref _bufferSliderMin);
+        _tierPrebufferMax = Volatile.Read(ref _bufferSliderMax);
         _lastReportedEndpoint = null;
 
         StartAnalytics(options);
@@ -534,16 +568,20 @@ public sealed class PocketMicEngine
             {
                 var assessment = _linkPolicy.Evaluate(
                     window,
-                    _bufferSliderMin,
-                    _bufferSliderMax);
+                    Volatile.Read(ref _bufferSliderMin),
+                    Volatile.Read(ref _bufferSliderMax));
 
                 _lastAssessment = assessment;
 
                 // Store tier bounds so the adaptive jitter buffer can clamp its
                 // target within the policy's range.  The adaptive buffer — not
                 // the policy — now controls _prebufferMilliseconds on each packet.
-                _tierPrebufferMin = assessment.TierPrebufferMin;
-                _tierPrebufferMax = assessment.TierPrebufferMax;
+                var userMin = Volatile.Read(ref _bufferSliderMin);
+                var userMax = Volatile.Read(ref _bufferSliderMax);
+                _tierPrebufferMin = Math.Max(userMin, assessment.TierPrebufferMin);
+                _tierPrebufferMax = Math.Max(
+                    _tierPrebufferMin,
+                    Math.Min(userMax, assessment.TierPrebufferMax));
                 _concealmentPackets = assessment.ConcealmentPackets;
 
                 LinkQualityChanged?.Invoke(this, assessment);
@@ -1163,12 +1201,12 @@ public sealed class PocketMicEngine
             _adaptiveBuffer.RecordPacket(
                 Stopwatch.GetTimestamp(),
                 buffer?.BufferedDuration.TotalMilliseconds ?? 0);
-            var effectivePrebuffer = _adaptiveBuffer.ComputeEffectivePrebuffer(
-                _tierPrebufferMin, _tierPrebufferMax);
-            if (effectivePrebuffer != _prebufferMilliseconds)
+            if (_automaticBuffering)
             {
-                _prebufferMilliseconds = effectivePrebuffer;
-                _highWaterMilliseconds = AudioPipeline.HighWaterFor(effectivePrebuffer);
+                var effectivePrebuffer = _adaptiveBuffer.ComputeEffectivePrebuffer(
+                    _tierPrebufferMin, _tierPrebufferMax);
+                if (effectivePrebuffer != Volatile.Read(ref _prebufferMilliseconds))
+                    SetEffectivePrebuffer(effectivePrebuffer);
             }
 
             if (buffer is not null)

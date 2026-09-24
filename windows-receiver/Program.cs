@@ -122,7 +122,14 @@ internal sealed class MainForm : Form
         Value = DefaultPrebufferMilliseconds,
     };
 
+    private readonly CheckBox _automaticBufferingCheck = new()
+    {
+        Text = "Automatic buffer (slider is the minimum)",
+        AutoSize = true,
+        Checked = true,
+    };
     private readonly Label _bufferLabel = new() { AutoSize = true };
+    private readonly Label _effectiveBufferLabel = new() { AutoSize = true };
     private readonly CheckBox _minimizeToTrayCheck = new()
     {
         Text = "Close to tray instead of exiting",
@@ -308,10 +315,13 @@ internal sealed class MainForm : Form
 
         var bufferSection = SectionLabel("Jitter buffer");
         root.Controls.Add(bufferSection);
+        root.Controls.Add(_automaticBufferingCheck);
         root.Controls.Add(_bufferLabel);
         root.Controls.Add(_bufferSlider);
+        root.Controls.Add(_effectiveBufferLabel);
         _bufferSlider.ValueChanged += (_, _) => ApplyBufferSetting();
-        _advancedControls.AddRange(new Control[] { bufferSection, _bufferLabel, _bufferSlider });
+        _automaticBufferingCheck.CheckedChanged += (_, _) => ApplyBufferSetting();
+        _advancedControls.AddRange(new Control[] { bufferSection, _automaticBufferingCheck, _bufferLabel, _bufferSlider, _effectiveBufferLabel });
 
         var voiceSection = SectionLabel("Voice processing");
         root.Controls.Add(voiceSection);
@@ -526,7 +536,10 @@ internal sealed class MainForm : Form
         _keyText.Text = _settings.PairingKey;
         _autoListenCheck.Checked = _settings.AutoListen;
         _minimizeToTrayCheck.Checked = _settings.MinimizeToTray;
-        _bufferSlider.Value = Math.Clamp(_settings.PrebufferMilliseconds, _bufferSlider.Minimum, _bufferSlider.Maximum);
+        var savedBuffer = Math.Clamp(_settings.PrebufferMilliseconds, _bufferSlider.Minimum, _bufferSlider.Maximum);
+        var savedAutomaticBuffering = _settings.AutomaticBuffering;
+        _automaticBufferingCheck.Checked = savedAutomaticBuffering;
+        _bufferSlider.Value = savedBuffer;
         ApplyBufferSetting();
         _voiceEnhanceCheck.Checked = _settings.VoiceEnhance;
         _voiceStrength.Value = Math.Clamp(_settings.VoiceStrength, _voiceStrength.Minimum, _voiceStrength.Maximum);
@@ -616,6 +629,7 @@ internal sealed class MainForm : Form
             {
                 if (runId != _runId || !_engine.IsRunning) return;
                 _statsLabel.Text = text;
+                UpdateEffectiveBufferLabel();
             });
         };
 
@@ -666,7 +680,7 @@ internal sealed class MainForm : Form
         _engine.LinkQualityChanged += (_, assessment) =>
         {
             var runId = _runId;
-            var text = $"Link: {assessment.Tier} — {assessment.Action} — {assessment.Prebuffer}ms buffer, {assessment.ConcealmentPackets} pkt concealment";
+            var text = $"Link: {assessment.Tier} — {assessment.Action} — recommends {assessment.Prebuffer} ms, {assessment.ConcealmentPackets} pkt concealment";
             PostUi(() =>
             {
                 if (runId != _runId) return;
@@ -707,27 +721,36 @@ internal sealed class MainForm : Form
     };
 
     /// <summary>
-    /// The buffer is the direct latency/robustness trade: more of it absorbs jitter spikes that
-    /// would otherwise become dropouts, at the cost of delay. The measured worst-case gap on
-    /// this network is around 250 ms, so anything below that will still drop out occasionally.
+    /// In automatic mode the slider is the user's minimum target. In manual mode it is the exact
+    /// playback prebuffer target. The effective target is displayed independently below.
     /// </summary>
     private void ApplyBufferSetting()
     {
-        _engine.PrebufferMilliseconds = _bufferSlider.Value;
+        _engine.ConfigureBuffering(
+            _automaticBufferingCheck.Checked,
+            _bufferSlider.Value,
+            _bufferSlider.Maximum);
 
-        var prebuffer = _engine.PrebufferMilliseconds;
-        var descriptor = prebuffer switch
+        var selected = _bufferSlider.Value;
+        var descriptor = selected switch
         {
-            < 70 => "lowest latency, expect dropouts on Wi-Fi",
-            < 120 => "balanced",
-            < 200 => "stable",
-            _ => "most robust, noticeably delayed",
+            < 70 => "lower target",
+            < 120 => "moderate target",
+            < 200 => "higher target",
+            _ => "high target",
         };
-        _bufferLabel.Text = $"Buffer {prebuffer} ms — {descriptor}   (trim above {_engine.HighWaterMilliseconds} ms)";
+        _bufferLabel.Text = _automaticBufferingCheck.Checked
+            ? $"Minimum buffer {selected} ms — {descriptor}"
+            : $"Manual buffer {selected} ms — {descriptor}";
+        UpdateEffectiveBufferLabel();
 
-        _settings.PrebufferMilliseconds = prebuffer;
+        _settings.PrebufferMilliseconds = selected;
+        _settings.AutomaticBuffering = _automaticBufferingCheck.Checked;
         _settings.Save();
     }
+
+    private void UpdateEffectiveBufferLabel() =>
+        _effectiveBufferLabel.Text = $"Effective playback prebuffer: {_engine.PrebufferMilliseconds} ms (trim above {_engine.HighWaterMilliseconds} ms)";
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
@@ -1195,7 +1218,7 @@ internal sealed class MainForm : Form
 
     private static string FormatStats(EngineStats stats) =>
         $"Packets: {stats.Packets:N0}   Lost: {stats.Lost:N0}   Late: {stats.Late:N0}   " +
-        $"Rejected: {stats.Rejected:N0}   Trimmed: {stats.Trimmed:N0}   Buffer: {stats.BufferedMilliseconds:0} ms";
+        $"Rejected: {stats.Rejected:N0}   Trimmed: {stats.Trimmed:N0}   Queued audio: {stats.BufferedMilliseconds:0} ms";
 
     private void PostUi(Action action)
     {

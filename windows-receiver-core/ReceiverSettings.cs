@@ -44,6 +44,9 @@ public sealed class ReceiverSettings
 
     public int PrebufferMilliseconds { get; set; } = 100;
 
+    /// <summary>When enabled, adapt the prebuffer to network conditions; the configured buffer is its minimum.</summary>
+    public bool AutomaticBuffering { get; set; } = true;
+
     public bool VoiceEnhance { get; set; } = true;
 
     public int VoiceStrength { get; set; } = 60;

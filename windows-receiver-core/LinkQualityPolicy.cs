@@ -128,6 +128,7 @@ public sealed class LinkQualityPolicy
         // Not enough data to assess — hold current settings.
         if (stats.PacketsReceived < MinPacketsForEvaluation)
         {
+            var (currentTierMin, currentTierMax) = TierBounds(_currentTier);
             return new LinkAssessment
             {
                 Tier = _currentTier,
@@ -135,6 +136,8 @@ public sealed class LinkQualityPolicy
                 ConcealmentPackets = _recommendedConcealmentPackets,
                 Action = LinkAction.Hold,
                 Reason = $"Insufficient data ({stats.PacketsReceived} packets)",
+                TierPrebufferMin = currentTierMin,
+                TierPrebufferMax = currentTierMax,
             };
         }
 
