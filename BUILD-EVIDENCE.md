@@ -14,6 +14,19 @@ These are working-tree checks, not release-candidate or published-artifact evide
 - Windows protocol source behavior: v2 Opus bounds are validated before decode; authenticated packets are ordered before decoder state changes; decoder teardown waits for the receive loop. These changes do not prove physical Opus audio behavior.
 - Not verified by these checks: macOS driver installation/routing, physical iOS or Android audio, Android Opus native-device behavior, true pre-Start Windows receiver handshake, translation review, or release signing/distribution.
 
+### GitHub Actions on commit `5aa8e788136789763116971be33cebdbaa1aeaf0`
+
+Push-triggered workflows completed successfully on 2026-09-24:
+
+| Workflow | Result | Evidence |
+|---|---|---|
+| Primary CI (Android build/lint/unit tests, Windows build/tests, web validation) | PASS | [run 36073518174](https://github.com/ryanspice/pocketmic-lan/actions/runs/36073518174) |
+| iOS simulator build | PASS | [run 36073518225](https://github.com/ryanspice/pocketmic-lan/actions/runs/36073518225) |
+| macOS build/tests/package | PASS | [run 36073518251](https://github.com/ryanspice/pocketmic-lan/actions/runs/36073518251) |
+| Lighthouse validation on the associated pull request | PASS | [run 36073521359](https://github.com/ryanspice/pocketmic-lan/actions/runs/36073521359) |
+
+The macOS result is hosted build/package evidence only. It does not establish driver installation, microphone visibility, or end-to-end audio on a physical Mac.
+
 ## Published artifact verification (2026-09-23)
 
 Downloaded the tag-pinned public release assets and checked them against the attached `SHA256SUMS.txt` manifest and GitHub asset digests.

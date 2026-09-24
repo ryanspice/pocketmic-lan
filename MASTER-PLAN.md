@@ -28,7 +28,7 @@ PocketMic LAN lets mobile devices publish microphone audio to desktop receivers 
 | Linux | Planned for after v0.1.6; no Linux receiver or virtual-mic implementation is part of the current build. | The Linux scope and architecture decisions are in the post-v0.1.6 plan below and [`ROADMAP.md`](ROADMAP.md). |
 | Android package identity | New application ID is `com.canopydigital.pocketmic`. | Android v0.1.5 (`com.ryanspice...`) installs separately; Android data and pairing keys are not automatically migrated. |
 
-The latest implementation commit is `783e9eac21789345f1678a16ade7d38e96e479c4` (`feat(macos): add virtual microphone preview and CI`). The primary CI, iOS, macOS, and Lighthouse runs for that commit passed. Recheck live GitHub run state before cutting a release; these links are the recorded evidence, not a substitute for a release-candidate rerun.
+The current implementation commit is `5aa8e788136789763116971be33cebdbaa1aeaf0` (`fix: harden audio protocol and discovery for 0.1.6`). Its push-triggered primary CI, iOS, and macOS workflows passed; its associated pull-request Lighthouse validation also passed. See the dated run receipts in [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md). These are development-branch checks, not a frozen release-candidate rerun. Recheck the live workflows before tagging.
 
 `BUILD-EVIDENCE.md` contains v0.1.5 artifact hash verification and older build evidence dated 2026-09-11. It still marks physical Android encoder smoke, Android-to-Windows Opus round trip, a 30-minute screen-locked session, packet pacing capture, and clock-drift convergence as blocked. Preserve those states until new receipts exist.
 
