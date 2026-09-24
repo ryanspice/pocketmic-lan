@@ -1,6 +1,6 @@
 # PocketMic LAN v0.1.5 — Review Handoff for Astra 6 Pro
 
-> **Repo**: `B:\Dev\android\pocketmic-lan` (GitHub: `ryanspice/pocketmic-lan`)
+> **Repo**: `B:\Dev\android\MetroOS\Android\pocketmic-lan` (GitHub: `ryanspice/pocketmic-lan`)
 > **Branch**: `master` at `dbb787a`
 > **Date**: 2026-09-11
 > **Reviewer**: Astra 6 Pro
@@ -116,14 +116,14 @@ ROADMAP.md              — v0.1.4 through v1.0.0
 
 ### Windows
 ```bash
-cd B:\Dev\android\pocketmic-lan
+cd /b/Dev/android/MetroOS/Android/pocketmic-lan
 "/c/Program Files/dotnet/dotnet.exe" build windows-receiver-core/PocketMicReceiver.Core.csproj
 "/c/Program Files/dotnet/dotnet.exe" test windows-receiver-tests/PocketMicReceiver.Tests.csproj
 ```
 
 ### Android (requires NDK)
 ```bash
-cd B:\Dev\android\pocketmic-lan\android
+cd /b/Dev/android/MetroOS/Android/pocketmic-lan/android
 # Need to download libopus source first:
 # https://opus-codec.org/downloads/
 # Extract to android/app/src/main/cpp/opus/

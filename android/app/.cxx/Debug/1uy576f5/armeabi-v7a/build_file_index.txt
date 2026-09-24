@@ -1,9 +1,0 @@
-B:\Dev\android\pocketmic-lan\android\app\src\main\cpp\CMakeLists.txt
-B:\Dev\android\pocketmic-lan\android\app\src\main\cpp\opus\CMakeLists.txt
-B:\Dev\android\pocketmic-lan\android\app\src\main\cpp\opus\cmake\CFeatureCheck.cmake
-B:\Dev\android\pocketmic-lan\android\app\src\main\cpp\opus\cmake\config.h.cmake.in
-B:\Dev\android\pocketmic-lan\android\app\src\main\cpp\opus\cmake\OpusBuildtype.cmake
-B:\Dev\android\pocketmic-lan\android\app\src\main\cpp\opus\cmake\OpusConfig.cmake
-B:\Dev\android\pocketmic-lan\android\app\src\main\cpp\opus\cmake\OpusFunctions.cmake
-B:\Dev\android\pocketmic-lan\android\app\src\main\cpp\opus\cmake\OpusPackageVersion.cmake
-B:\Dev\android\pocketmic-lan\android\app\src\main\cpp\opus\cmake\OpusSources.cmake
