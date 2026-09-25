@@ -35,6 +35,12 @@ jobs:
       - name: Generate macOS project
         run: xcodegen generate --spec macos/project.yml --project macos
 
+      - name: Test macOS protocol behavior
+        run: >-
+          xcodebuild test -project macos/PocketMicMac.xcodeproj -scheme PocketMicMac
+          -destination 'platform=macOS' -derivedDataPath build/macOS-tests
+          CODE_SIGNING_ALLOWED=NO
+
       - name: Build unsigned macOS app
         run: >-
           xcodebuild -project macos/PocketMicMac.xcodeproj -scheme PocketMicMac

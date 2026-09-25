@@ -148,7 +148,7 @@ final class PocketMicReceiver: ObservableObject {
             activeSessionID = frame.sessionID
             lastSequence = nil
         }
-        if let lastSequence, frame.sequence <= lastSequence { return false }
+        if let lastSequence, !PocketMicSequenceOrder.isForward(frame.sequence, after: lastSequence) { return false }
         lastSequence = frame.sequence
         return true
     }
@@ -200,6 +200,14 @@ final class PocketMicReceiver: ObservableObject {
               let plaintext = try? AES.GCM.open(box, using: key, authenticating: header),
               plaintext.count == 960 else { return nil }
         return PocketMicDecodedFrame(sessionID: sessionID, sequence: sequence, pcm: plaintext)
+    }
+}
+
+enum PocketMicSequenceOrder {
+    /// Matches the Windows receiver's signed modular delta policy, including UInt32 rollover.
+    static func isForward(_ sequence: UInt32, after lastSequence: UInt32) -> Bool {
+        let delta = sequence &- (lastSequence &+ 1)
+        return Int32(bitPattern: delta) >= 0
     }
 }
 

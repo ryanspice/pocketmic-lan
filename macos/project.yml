@@ -24,3 +24,17 @@ targets:
         INFOPLIST_KEY_CFBundleDevelopmentRegion: en-CA
         INFOPLIST_KEY_NSLocalNetworkUsageDescription: PocketMic receives encrypted microphone audio from a paired device on your local network.
         CODE_SIGNING_ALLOWED: NO
+    scheme:
+      testTargets:
+        - PocketMicMacTests
+  PocketMicMacTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/PocketMicMacTests
+    dependencies:
+      - target: PocketMicMac
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO

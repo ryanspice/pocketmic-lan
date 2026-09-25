@@ -79,7 +79,7 @@ These are working-tree checks, not release-candidate or published-artifact evide
 - Windows receiver: the updated core and regression tests previously passed 160/160; desktop build completed with 0 warnings and 0 errors. This working-tree result must be rerun by CI on the candidate commit.
 - Android Auto-connect source behavior: toggling clears the saved receiver IP and restores the port default while retaining encrypted pairing credentials; discovery only runs while enabled and idle (the service may still probe during active-session reconnect); auto-fill requires a fresh, authenticated, protocol-compatible announce and stores its advertised audio port. Unit coverage now verifies nonce reset.
 - Windows protocol source behavior: v2 Opus bounds are validated before decode; authenticated packets are ordered before decoder state changes; decoder teardown waits for the receive loop. These changes do not prove physical Opus audio behavior.
-- Not verified by these checks: macOS driver installation/routing, physical iOS or Android audio, Android Opus native-device behavior, true pre-Start Windows receiver handshake, translation review, or release signing/distribution.
+- Not verified by these checks: macOS driver installation/routing, physical iOS or Android audio, Android Opus native-device behavior, physical pre-Start readiness/delivery confirmation (source paths exist through Android idle probing and Windows default AutoListen), translation review, or release signing/distribution.
 
 ### GitHub Actions on commit `5aa8e788136789763116971be33cebdbaa1aeaf0`
 
