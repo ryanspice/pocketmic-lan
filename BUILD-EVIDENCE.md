@@ -38,6 +38,15 @@ Working-tree implementation on top of `8fcb364`:
 - GitHub Actions on commit `4a244a17760f725091f497f470c4c5203d93d0f2`: primary CI (Android build/lint/unit tests, Windows build/tests, web checks) PASS in [run 36074751559](https://github.com/ryanspice/pocketmic-lan/actions/runs/36074751559); iOS PASS in [run 36074751544](https://github.com/ryanspice/pocketmic-lan/actions/runs/36074751544); macOS PASS in [run 36074751587](https://github.com/ryanspice/pocketmic-lan/actions/runs/36074751587); pull-request Lighthouse PASS in [run 36074755655](https://github.com/ryanspice/pocketmic-lan/actions/runs/36074755655).
 - Not yet verified: interactive slider/toggle behavior, actual buffer depth and audio on a running Windows receiver, or physical network quality under changing conditions. A brief live receiver smoke remains necessary before marking D1 fully accepted.
 
+## Windows live monitor switching fix (2026-09-24)
+
+Working-tree implementation on top of `f3dc632`:
+
+- Changing the monitor output while the receiver is running now opens the new device before replacing the active one. If open fails, the old output and device selection remain in use; the rejected selection is not saved.
+- Enabling monitoring with an unavailable or conflicting device now returns an actionable error, resets the active checkbox, and keeps the receiver audio route running. A disabled monitor selection is only saved after the device opens successfully.
+- Windows receiver core tests: **161 passed, 0 failed, 0 skipped**. Windows desktop build: **0 warnings, 0 errors**.
+- Live device switching and audible output remain unverified on this machine. The pushed CI run is required for this source revision, followed by a real Windows receiver smoke with a phone stream and two selectable output devices.
+
 ## Published artifact verification (2026-09-23)
 
 Downloaded the tag-pinned public release assets and checked them against the attached `SHA256SUMS.txt` manifest and GitHub asset digests.

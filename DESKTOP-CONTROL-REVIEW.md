@@ -122,4 +122,4 @@ Cleanup included a normal desktop exit/relaunch to clear the synthetic Custom DS
 
 ## Delivery boundary
 
-This is review and implementation planning. The source defects have not been fixed. A passing unit suite cannot be used to mark the control matrix complete. Luna should implement bounded packets from the companion handoff and attach a result to each acceptance row; any hardware-dependent row without a receipt stays unverified.
+This document records the 2026-09-24 review snapshot; later source changes do not alter what was observed during that review. Follow-up implementation now addresses D1 (explicit automatic/manual buffer ownership and valid fallback bounds) and D2 (transactional live monitor-output switching). Windows build and core tests pass for these changes, but a passing unit suite does not complete the control matrix. D3-D5 remain open, and D1/D2 need live receiver/audio acceptance. Attach a result to each acceptance row; any hardware-dependent row without a receipt stays unverified.

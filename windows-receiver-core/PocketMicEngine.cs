@@ -99,10 +99,10 @@ public sealed class PocketMicEngine
     private AesGcm? _aes;
     private WaveOutEvent? _waveOut;
     private BufferedWaveProvider? _audioBuffer;
-    private WaveOutEvent? _monitorOut;
+    private MonitorOutput? _monitorOutput;
     private EngineOptions? _currentOptions;
     private bool _monitorEnabled;
-    private BufferedWaveProvider? _monitorBuffer;
+    private string? _lastMonitorError;
     private Task? _receiveTask;
     private Task? _controlReceiveTask;
     private Task? _controlStatsTask;
@@ -225,6 +225,9 @@ public sealed class PocketMicEngine
     /// the chosen monitor device should only do so once it is known to work.
     /// </summary>
     public event EventHandler? MonitorStarted;
+
+    /// <summary>Monitoring could not be opened; the routed receiver stream remains active.</summary>
+    public event EventHandler<string>? MonitorFailed;
 
     /// <summary>
     /// A diagnostics window closed: every 10 s, and every minute for the 1 min and cumulative
@@ -361,7 +364,13 @@ public sealed class PocketMicEngine
 
         _currentOptions = options;
         _monitorEnabled = options.MonitorEnabled;
-        StartMonitorOutput(options);
+        if (!StartMonitorOutput(options, out var monitorError))
+        {
+            _monitorEnabled = false;
+            _lastMonitorError = monitorError;
+            _currentOptions = options with { MonitorEnabled = false };
+            MonitorFailed?.Invoke(this, monitorError);
+        }
 
         // Lazily created: the decoder is cheap but we want it ready before the
         // receive loop starts so the first v2 packet does not block.
@@ -699,63 +708,177 @@ public sealed class PocketMicEngine
         set
         {
             if (_monitorEnabled == value) return;
-            _monitorEnabled = value;
 
             var options = _currentOptions;
-            if (!IsRunning || options is null) return;
-
-            if (value)
+            if (!IsRunning || options is null)
             {
-                StartMonitorOutput(options with { MonitorEnabled = true });
+                _monitorEnabled = value;
+                return;
+            }
+
+            if (!value)
+            {
+                _monitorEnabled = false;
+                _currentOptions = options with { MonitorEnabled = false };
+                StopMonitorOutput();
+            }
+            else if (StartMonitorOutput(options with { MonitorEnabled = true }, out var error))
+            {
+                _monitorEnabled = true;
+                _lastMonitorError = null;
+                _currentOptions = options with { MonitorEnabled = true };
             }
             else
             {
-                StopMonitorOutput();
+                _monitorEnabled = false;
+                _lastMonitorError = error;
+                _currentOptions = options with { MonitorEnabled = false };
             }
         }
     }
 
-    private void StartMonitorOutput(EngineOptions options)
+    /// <summary>The monitor device selected for the current run, or null before a run.</summary>
+    public int? MonitorDeviceNumber => _currentOptions?.MonitorDeviceNumber;
+
+    /// <summary>The last monitor output failure, if enabling or switching could not open it.</summary>
+    public string? LastMonitorError => _lastMonitorError;
+
+    /// <summary>
+    /// Changes the monitor device for the current run. A candidate output is opened before the
+    /// current one is replaced; on failure the old device and selection remain active.
+    /// </summary>
+    public bool TrySetMonitorDevice(int deviceNumber, out string error)
     {
-        StopMonitorOutput();
-        if (!options.MonitorEnabled) return;
+        var options = _currentOptions;
+        if (!IsRunning || options is null)
+        {
+            error = "The receiver must be running to change its monitor output.";
+            return false;
+        }
+
+        if (deviceNumber < -1)
+        {
+            error = "That monitor output is no longer available.";
+            _lastMonitorError = error;
+            return false;
+        }
+
+        if (deviceNumber == options.MonitorDeviceNumber)
+        {
+            error = string.Empty;
+            return true;
+        }
+
+        if (_monitorEnabled && deviceNumber == options.OutputDeviceNumber)
+        {
+            error = "Choose a monitor output that is different from the routed playback output.";
+            _lastMonitorError = error;
+            return false;
+        }
+
+        if (!_monitorEnabled)
+        {
+            _currentOptions = options with { MonitorDeviceNumber = deviceNumber };
+            error = string.Empty;
+            _lastMonitorError = null;
+            return true;
+        }
+
+        if (!TryCreateMonitorOutput(deviceNumber, out var candidate, out error))
+        {
+            _lastMonitorError = error;
+            return false;
+        }
+
+        _currentOptions = options with { MonitorDeviceNumber = deviceNumber };
+        ReplaceMonitorOutput(candidate!);
+        _lastMonitorError = null;
+        MonitorStarted?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    private bool StartMonitorOutput(EngineOptions options, out string error)
+    {
+        if (!options.MonitorEnabled)
+        {
+            StopMonitorOutput();
+            error = string.Empty;
+            return true;
+        }
 
         // Monitoring into the same endpoint we route to would be pointless and confusing.
-        if (options.MonitorDeviceNumber == options.OutputDeviceNumber) return;
+        if (options.MonitorDeviceNumber == options.OutputDeviceNumber)
+        {
+            StopMonitorOutput();
+            error = "Choose a monitor output that is different from the routed playback output.";
+            return false;
+        }
 
+        if (!TryCreateMonitorOutput(options.MonitorDeviceNumber, out var candidate, out error))
+        {
+            StopMonitorOutput();
+            return false;
+        }
+
+        ReplaceMonitorOutput(candidate!);
+        MonitorStarted?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    private static bool TryCreateMonitorOutput(int deviceNumber, out MonitorOutput? output, out string error)
+    {
+        BufferedWaveProvider? buffer = null;
+        WaveOutEvent? waveOut = null;
         try
         {
-            _monitorBuffer = new BufferedWaveProvider(new WaveFormat(AudioPipeline.SampleRate, 16, 1))
+            buffer = new BufferedWaveProvider(new WaveFormat(AudioPipeline.SampleRate, 16, 1))
             {
                 BufferDuration = TimeSpan.FromMilliseconds(300),
                 DiscardOnBufferOverflow = true,
                 ReadFully = true,
             };
-            _monitorOut = new WaveOutEvent
+            waveOut = new WaveOutEvent
             {
-                DeviceNumber = options.MonitorDeviceNumber,
+                DeviceNumber = deviceNumber,
                 DesiredLatency = 80,
                 NumberOfBuffers = 3,
             };
-            _monitorOut.Init(_monitorBuffer);
-            _monitorOut.Play();
-
-            MonitorStarted?.Invoke(this, EventArgs.Empty);
+            waveOut.Init(buffer);
+            waveOut.Play();
+            output = new MonitorOutput(buffer, waveOut);
+            error = string.Empty;
+            return true;
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            // Monitoring is a convenience. If the chosen device will not open, carry on routing
-            // without it rather than failing the whole receiver.
-            StopMonitorOutput();
+            try { waveOut?.Stop(); } catch (Exception) { }
+            try { waveOut?.Dispose(); } catch (Exception) { }
+            output = null;
+            error = $"Could not open the monitor output: {exception.Message}";
+            return false;
         }
+    }
+
+    private void ReplaceMonitorOutput(MonitorOutput replacement)
+    {
+        var previous = Interlocked.Exchange(ref _monitorOutput, replacement);
+        previous?.Dispose();
     }
 
     private void StopMonitorOutput()
     {
-        try { _monitorOut?.Stop(); } catch (Exception) { }
-        try { _monitorOut?.Dispose(); } catch (Exception) { }
-        _monitorOut = null;
-        _monitorBuffer = null;
+        Interlocked.Exchange(ref _monitorOutput, null)?.Dispose();
+    }
+
+    private sealed class MonitorOutput(BufferedWaveProvider buffer, WaveOutEvent device) : IDisposable
+    {
+        public BufferedWaveProvider Buffer { get; } = buffer;
+
+        public void Dispose()
+        {
+            try { device.Stop(); } catch (Exception) { }
+            try { device.Dispose(); } catch (Exception) { }
+        }
     }
 
     private async Task ReceiveLoopGuardedAsync(UdpClient udp, CancellationToken cancellationToken, long runId)
@@ -1186,7 +1309,7 @@ public sealed class PocketMicEngine
             _voice.Process(pcm);
             _recentRms = AudioPipeline.SmoothedRms(_recentRms, pcm);
             buffer?.AddSamples(pcm, 0, pcm.Length);
-            _monitorBuffer?.AddSamples(pcm, 0, pcm.Length);
+            Volatile.Read(ref _monitorOutput)?.Buffer.AddSamples(pcm, 0, pcm.Length);
             Buffer.BlockCopy(pcm, 0, lastGood, 0, AudioPipeline.PacketPcmBytes);
             haveLastGood = true;
             _packetCount++;

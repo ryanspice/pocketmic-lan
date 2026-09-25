@@ -226,6 +226,7 @@ internal sealed class MainForm : Form
 
     private Task? _stoppingTask;
     private bool _handlingFault;
+    private bool _restoringMonitorSelection;
     private bool _closing;
     private long _runId;
 
@@ -577,14 +578,43 @@ internal sealed class MainForm : Form
         AutoSelectMonitorDevice();
         _monitorCheck.CheckedChanged += (_, _) =>
         {
-            _settings.MonitorEnabled = _monitorCheck.Checked;
-            _monitorCombo.Enabled = _monitorCheck.Checked;
+            var requested = _monitorCheck.Checked;
             // Apply live rather than only at the next start: the speakers must go quiet the
             // moment the box is unticked, not whenever the receiver happens to restart.
-            _engine.MonitorEnabled = _monitorCheck.Checked;
+            _engine.MonitorEnabled = requested;
+            if (requested && !_engine.MonitorEnabled)
+            {
+                _restoringMonitorSelection = true;
+                _monitorCheck.Checked = false;
+                _restoringMonitorSelection = false;
+                AutoSelectMonitorDevice();
+                MessageBox.Show(this, _engine.LastMonitorError ?? "The monitor output could not be opened.", "Monitor output unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            _monitorCombo.Enabled = _monitorCheck.Checked;
+            _settings.MonitorEnabled = _engine.MonitorEnabled;
             _settings.Save();
         };
         _monitorCombo.Enabled = _monitorCheck.Checked;
+        _monitorCombo.SelectedIndexChanged += (_, _) =>
+        {
+            if (_restoringMonitorSelection || !_engine.IsRunning) return;
+            if (_monitorCombo.SelectedItem is not DeviceItem selected) return;
+
+            if (!_engine.TrySetMonitorDevice(selected.DeviceNumber, out var error))
+            {
+                RestoreMonitorDeviceSelection(_engine.MonitorDeviceNumber);
+                MessageBox.Show(this, error, "Monitor output unchanged", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Save only after a live monitor opened on this device. When monitoring is off,
+            // leave the last working device saved until the next successful open.
+            if (_monitorCheck.Checked && _engine.MonitorEnabled)
+            {
+                _settings.MonitorDevice = selected.ToString();
+                _settings.Save();
+            }
+        };
 
         _autoListenCheck.CheckedChanged += (_, _) =>
         {
@@ -702,6 +732,23 @@ internal sealed class MainForm : Form
         {
             _settings.MonitorDevice = (_monitorCombo.SelectedItem as DeviceItem)?.ToString() ?? string.Empty;
             _settings.Save();
+        };
+
+        _engine.MonitorFailed += (_, message) =>
+        {
+            var runId = _runId;
+            PostUi(() =>
+            {
+                if (runId != _runId || !_engine.IsRunning) return;
+                _restoringMonitorSelection = true;
+                _monitorCheck.Checked = false;
+                _restoringMonitorSelection = false;
+                _monitorCombo.Enabled = false;
+                _settings.MonitorEnabled = false;
+                _settings.Save();
+                AutoSelectMonitorDevice();
+                MessageBox.Show(this, message, "Monitor output unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            });
         };
     }
 
@@ -939,6 +986,31 @@ internal sealed class MainForm : Form
         }
 
         _monitorCombo.SelectedIndex = 0;
+    }
+
+    private void RestoreMonitorDeviceSelection(int? deviceNumber)
+    {
+        _restoringMonitorSelection = true;
+        try
+        {
+            if (deviceNumber is { } number)
+            {
+                foreach (var item in _monitorCombo.Items)
+                {
+                    if (item is DeviceItem device && device.DeviceNumber == number)
+                    {
+                        _monitorCombo.SelectedItem = item;
+                        return;
+                    }
+                }
+            }
+
+            AutoSelectMonitorDevice();
+        }
+        finally
+        {
+            _restoringMonitorSelection = false;
+        }
     }
 
     private void RefreshLocalAddresses()
