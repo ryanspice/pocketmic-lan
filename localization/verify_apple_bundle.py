@@ -5,11 +5,47 @@ from __future__ import annotations
 
 import argparse
 import plistlib
+import re
 import sys
+from xml.parsers.expat import ExpatError
 from pathlib import Path
 
 EXPECTED_LOCALIZATIONS = {"en-US", "ckb", "ku-Latn"}
 EXPECTED_STRING_COUNT = 38
+
+
+def read_strings(path: Path) -> dict[str, object]:
+    data = path.read_bytes()
+    try:
+        strings = plistlib.loads(data)
+        if isinstance(strings, dict):
+            return strings
+    except (plistlib.InvalidFileException, ExpatError, ValueError):
+        pass
+
+    try:
+        text = data.decode("utf-8-sig")
+    except UnicodeDecodeError:
+        text = data.decode("utf-16")
+
+    if text.lstrip().startswith("<?xml"):
+        normalized = re.sub(
+            r'(?i)(<\?xml[^>]*encoding\s*=\s*["\'])[^"\']+(["\'])',
+            r"\1UTF-8\2",
+            text,
+            count=1,
+        )
+        try:
+            strings = plistlib.loads(normalized.encode("utf-8"))
+            if isinstance(strings, dict):
+                return strings
+        except (plistlib.InvalidFileException, ExpatError, ValueError):
+            pass
+
+    entries = re.findall(r'^\s*("(?:\\.|[^"\\])*")\s*=\s*("(?:\\.|[^"\\])*")\s*;\s*$', text, re.MULTILINE)
+    if entries:
+        return {key: value for key, value in entries}
+    raise ValueError("file is not a binary/XML property list or a strings key/value catalog")
 
 
 def main() -> int:
@@ -38,8 +74,8 @@ def main() -> int:
     for locale in sorted(EXPECTED_LOCALIZATIONS):
         strings_path = resources / f"{locale}.lproj" / "Localizable.strings"
         try:
-            strings = plistlib.loads(strings_path.read_bytes())
-        except (OSError, plistlib.InvalidFileException) as error:
+            strings = read_strings(strings_path)
+        except (OSError, UnicodeDecodeError, ValueError, plistlib.InvalidFileException) as error:
             errors.append(f"Cannot read {locale} resources: {error}")
             continue
         if not isinstance(strings, dict) or len(strings) != EXPECTED_STRING_COUNT:
