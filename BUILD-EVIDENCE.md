@@ -41,6 +41,12 @@ Working-tree implementation on top of commit `5a98afdd31a6063173c909094be6bed5f4
 - Pull-request iOS [run 36081849320](https://github.com/ryanspice/pocketmic-lan/actions/runs/36081849320), macOS [run 36081849215](https://github.com/ryanspice/pocketmic-lan/actions/runs/36081849215), and Lighthouse [run 36081849268](https://github.com/ryanspice/pocketmic-lan/actions/runs/36081849268) also passed on that commit.
 - Artifacts are tied to the development branch commit above. They are previews for testing, not v0.1.6 release assets; no tag, publication, or website deployment occurred.
 
+## macOS codec-mismatch feedback (2026-09-25)
+
+- Commit `c20696413510ef2b32e028f043198323ae6e9a31` adds a one-time visible warning when the Mac preview receives a structurally valid Opus v2 datagram. The warning directs the user to select PCM on the sender; the receiver continues to authenticate PCM v1 before forwarding it to the virtual-mic bridge. This is header-level compatibility detection, not Opus decoding or proof that the sender is trusted.
+- Hosted push CI [run 36082802007](https://github.com/ryanspice/pocketmic-lan/actions/runs/36082802007), macOS [run 36082801975](https://github.com/ryanspice/pocketmic-lan/actions/runs/36082801975), iOS [run 36082802002](https://github.com/ryanspice/pocketmic-lan/actions/runs/36082802002), and associated PR CI [run 36082805512](https://github.com/ryanspice/pocketmic-lan/actions/runs/36082805512), macOS [run 36082805596](https://github.com/ryanspice/pocketmic-lan/actions/runs/36082805596), iOS [run 36082805520](https://github.com/ryanspice/pocketmic-lan/actions/runs/36082805520), and Lighthouse [run 36082805485](https://github.com/ryanspice/pocketmic-lan/actions/runs/36082805485) all passed.
+- Updated Mac tester artifact: `pocketmic-macos-preview-c20696413510ef2b32e028f043198323ae6e9a31` (473,080 bytes; SHA-256 `2a0c9dc0ceb4cb127127d5e93d8a1da48ac61148cce8e8e6551c54bc3bc3e4d5`; expires 2026-10-25). It is available under the artifacts section of [push macOS run 36082801975](https://github.com/ryanspice/pocketmic-lan/actions/runs/36082801975). Physical codec-warning behavior and Android PCM-to-Mac audio remain unverified.
+
 ### D5 hosted CI on commit `5a98afdd31a6063173c909094be6bed5f4425c77`
 
 All push-triggered and associated pull-request workflows completed successfully:
