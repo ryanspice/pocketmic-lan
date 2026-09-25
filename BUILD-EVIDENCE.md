@@ -295,3 +295,23 @@ libopus 1.5.2 is pinned at SHA-256 `65c1d2f78b9f2fb20082c38cbe47c951ad5839345876
 - Downloaded artifacts were independently inspected. The iOS simulator app contains both purpose keys in each `en-US`, `ckb`, and `ku-Latn` `InfoPlist.strings` file. The macOS app contains the localized local-network purpose key and also builds/packages successfully.
 - Push artifacts: iOS simulator `pocketmic-ios-simulator-a30ae156084a051182f44c465365838030b13028` (220,714 bytes; SHA-256 `26b049d3048cbc3f6e26bcc3165caded47ed3cf925a93b41d8a13c9742495653`; expires 2026-10-09); macOS tester preview `pocketmic-macos-preview-a30ae156084a051182f44c465365838030b13028` (488,380 bytes; SHA-256 `7209aa155dec99355149c204cf68ffa6a84ca9ea5f2f355b241db9671ba1a13a`; expires 2026-10-25).
 - These artifacts remain development previews: no iPhone or Mac driver installation/audio route has been accepted, and Kurdish purpose strings need fluent review. They are not signed device distributions or v0.1.6 release assets.
+
+## Windows self-contained package and v0.1.6 hosted verification (2026-09-25)
+
+- Commit `fda953e2006f38cc25791e0f9fdcfa19af861b4d` adds a Windows CI build of pinned Xiph Opus 1.5.2 from its checksum-verified source archive, runs the full Windows test suite with the native DLL present, and packages the receiver as a self-contained single-file ZIP. The ZIP verifier checks the executable payload and packaged Opus DLL; single-file publishing intentionally omits a separate `.deps.json`.
+- Push and pull-request workflows passed on this commit:
+
+| Event | Workflow | Result | Evidence |
+|---|---|---|---|
+| Push | Primary CI: Android build/lint/JVM tests; Windows build, 173 tests and package; web validation | PASS | [run 36096799338](https://github.com/ryanspice/pocketmic-lan/actions/runs/36096799338) |
+| Push | iOS simulator build and bundle validation | PASS | [run 36096799434](https://github.com/ryanspice/pocketmic-lan/actions/runs/36096799434) |
+| Push | macOS protocol tests, universal driver/package validation | PASS | [run 36096799388](https://github.com/ryanspice/pocketmic-lan/actions/runs/36096799388) |
+| Pull request | Primary CI | PASS | [run 36096803249](https://github.com/ryanspice/pocketmic-lan/actions/runs/36096803249) |
+| Pull request | iOS simulator build and bundle validation | PASS | [run 36096803264](https://github.com/ryanspice/pocketmic-lan/actions/runs/36096803264) |
+| Pull request | macOS protocol tests, universal driver/package validation | PASS | [run 36096803272](https://github.com/ryanspice/pocketmic-lan/actions/runs/36096803272) |
+| Pull request | Lighthouse validation | PASS | [run 36096803280](https://github.com/ryanspice/pocketmic-lan/actions/runs/36096803280) |
+
+- The Windows suite passed **173/173**, including native Opus create/decode/PLC/reset/dispose smoke tests. The publisher produced a 155.6 MB extracted payload (single-file receiver plus `opus.dll`) and a 65.2 MB ZIP with SHA-256 `e0d272b8fd439a8952f66c08615f687943cce409baa92a00f23c0921542cd363`.
+- Push artifact `pocketmic-receiver-win-x64` is 68,186,426 bytes (artifact ZIP digest `b3b33e3ae20e94566be4a0156b9ed6a09b52b5da31af6d6a5d8618c4a092e59c`; expires 2026-10-25). Download it from the Artifacts section of [push CI run 36096799338](https://github.com/ryanspice/pocketmic-lan/actions/runs/36096799338). This is a branch preview, not a release asset or physical Windows acceptance.
+- Push macOS preview `pocketmic-macos-preview-fda953e2006f38cc25791e0f9fdcfa19af861b4d` is 488,385 bytes (digest `86024ab9118021a4c57a1b1732ad06b2af244894e09e02524d7dfa413015718a`; expires 2026-10-25). Push iOS simulator artifact `pocketmic-ios-simulator-fda953e2006f38cc25791e0f9fdcfa19af861b4d` is 220,714 bytes (digest `5f9d07f87a540da34e988dff4e544581eb7a0b4e2b41104677dd547b09adf8bd`; expires 2026-10-09). Push Android debug APK `pocketmic-debug-apk` is 23,495,841 bytes (digest `e51d3ea50b761ac0642c1108cfde98500a87f40c61c4326eb2e54e68867f2033`; expires 2026-10-09).
+- These outputs are development previews, not tagged v0.1.6 assets. Physical Android/iOS audio, Mac driver install and app routing, Windows control/audio acceptance, fluent locale review, live site verification, and release signing remain separate gates.
