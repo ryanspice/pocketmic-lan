@@ -4,6 +4,32 @@
 > Evidence refreshed: 2026-09-23 (artifact integrity and distribution metadata)
 > Runtime/build evidence below remains from 2026-09-11 unless explicitly noted.
 
+## Android Opus selection and gain implementation (Packet C, 2026-09-24)
+
+Working-tree implementation on top of commit `5a98afdd31a6063173c909094be6bed5f4425c77`; not yet committed or pushed at the time of these local checks.
+
+- `testDebugUnitTest` — PASS. The Android JVM suite includes codec preference/default checks, PCM gain/clipping coverage, and Kotlin Opus input-bound cases.
+- `assembleDebug lintDebug` — PASS. CMake built the JNI/libopus native targets for the configured `arm64-v8a`, `armeabi-v7a`, and `x86_64` ABIs. Lint completed successfully. Build output includes existing SDK XML/deprecation warnings, the bundled libopus non-optimized message, and existing x86_64 SIMD alignment warnings.
+- Opus preference now persists through the Android UI/service path. The UI reports the codec actually used and shows PCM fallback when optional native initialization is unavailable. Opus encode failures remain explicit stream errors.
+- Input gain is applied once to the captured samples before either PCM packetization or Opus encoding; JNI validates channel/frame/output bounds before encoding.
+- Hosted CI, physical-device Opus initialization/encoding, Android-to-Windows Opus audio, and Android-to-Mac PCM/codec acceptance remain unverified.
+
+### D5 hosted CI on commit `5a98afdd31a6063173c909094be6bed5f4425c77`
+
+All push-triggered and associated pull-request workflows completed successfully:
+
+| Event | Workflow | Result | Evidence |
+|---|---|---|---|
+| Push | Primary CI | PASS | [run 36078154783](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078154783) |
+| Push | iOS | PASS | [run 36078154772](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078154772) |
+| Push | macOS | PASS | [run 36078154757](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078154757) |
+| Pull request | Primary CI | PASS | [run 36078157639](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078157639) |
+| Pull request | iOS | PASS | [run 36078157634](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078157634) |
+| Pull request | macOS | PASS | [run 36078157758](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078157758) |
+| Pull request | Lighthouse | PASS | [run 36078157638](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078157638) |
+
+CI confirms D5 builds and tests on the hosted matrix. Live Save-dialog export while phone traffic is active remains unverified.
+
 ## v0.1.6 development verification (2026-09-24)
 
 These are working-tree checks, not release-candidate or published-artifact evidence. They were run on branch `codex/ios-initial-client` before the current changes were committed or pushed.
@@ -94,7 +120,8 @@ Working-tree implementation on top of D4 commit `1d7f5c0`:
 
 - Session report reads now open the live JSONL file with read/write sharing, snapshot its contents, and parse only complete lines. The recorder's existing write sharing remains read-only to other processes; export does not stop or mutate the recording session.
 - Regression coverage exports a Markdown report while a `SessionRecorder` is still open and appending. Windows receiver core tests: **173 passed, 0 failed, 0 skipped**. Windows desktop build: **0 warnings, 0 errors**. `git diff --check` passed.
-- Hosted CI and a live Save dialog export during phone traffic remain pending for this working-tree change.
+- Hosted push and pull-request CI passed: primary CI [run 36078154783](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078154783) and [run 36078157639](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078157639), iOS [run 36078154772](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078154772) and [run 36078157634](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078157634), macOS [run 36078154757](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078154757) and [run 36078157758](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078157758), Lighthouse [run 36078157638](https://github.com/ryanspice/pocketmic-lan/actions/runs/36078157638).
+- A live Save dialog export during phone traffic remains unverified.
 
 ## Published artifact verification (2026-09-23)
 

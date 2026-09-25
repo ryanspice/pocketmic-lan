@@ -45,7 +45,6 @@ import java.net.Inet4Address
 import java.net.InetAddress
 import java.security.SecureRandom
 import kotlin.math.max
-import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 class MicStreamingService : Service() {
@@ -230,8 +229,8 @@ class MicStreamingService : Service() {
 
             val streamSessionId = secureRandom.nextLong()
 
-            // When Opus is selected, create the encoder. If the native library fails
-            // to load, fall back to PCM silently rather than crashing the stream.
+            // Opus is optional on devices/ABIs without the native library. Surface the
+            // actual codec so a fallback cannot be mistaken for a compressed session.
             opusEncoder = if (config.codec == AudioCodec.OPUS) {
                 OpusEncoder.create(
                     sampleRate = SAMPLE_RATE,
@@ -242,6 +241,12 @@ class MicStreamingService : Service() {
                 null
             }
             val activeCodec = if (opusEncoder != null) AudioCodec.OPUS else AudioCodec.PCM
+            val codecNotice = if (config.codec == AudioCodec.OPUS && activeCodec == AudioCodec.PCM) {
+                "Opus could not be initialized on this device; this session is using PCM16."
+            } else {
+                null
+            }
+            StreamingState.update { it.copy(activeCodec = activeCodec, codecNotice = codecNotice) }
 
             val encryptor = PacketCrypto.Encryptor(
                 key = PacketCrypto.deriveKey(config.pairingKey),
@@ -359,16 +364,10 @@ class MicStreamingService : Service() {
                 uiTick += 1
                 val updateUi = uiTick >= UI_UPDATE_EVERY_PACKETS
                 var sumSquares = 0.0
-                val unityGain = config.gain == 1.0f
+                PcmInputGain.applyInPlace(samples, samplesRead, config.gain)
 
                 for (index in samples.indices) {
-                    val scaled = if (unityGain) {
-                        samples[index].toInt()
-                    } else {
-                        (samples[index] * config.gain)
-                            .roundToInt()
-                            .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
-                    }
+                    val scaled = samples[index].toInt()
 
                     pcmBytes[index * 2] = (scaled and 0xff).toByte()
                     pcmBytes[index * 2 + 1] = ((scaled ushr 8) and 0xff).toByte()
@@ -384,7 +383,7 @@ class MicStreamingService : Service() {
                 // Encode with Opus if the encoder is active; otherwise send raw PCM.
                 val payloadBytes: ByteArray = if (activeCodec == AudioCodec.OPUS && opusEncoder != null) {
                     opusEncoder.encode(samples, samplesRead)
-                        ?: error("Opus encoding failed; encoder may have been destroyed.")
+                        ?: error("Opus encoding failed; stop and retry, or select PCM16.")
                 } else {
                     pcmBytes
                 }

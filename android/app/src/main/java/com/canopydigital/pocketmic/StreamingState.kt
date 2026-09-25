@@ -34,6 +34,9 @@ enum class WifiLockMode {
 data class StreamingSnapshot(
     val status: StreamStatus = StreamStatus.IDLE,
     val destination: String = "",
+    /** Codec actually used for this run after optional native-library initialization. */
+    val activeCodec: AudioCodec? = null,
+    val codecNotice: String? = null,
     val level: Float = 0f,
     val packetsSent: Long = 0L,
 

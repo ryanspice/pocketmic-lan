@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import java.security.SecureRandom
+import kotlin.math.roundToInt
 
 /** The default audio port. One source of truth for every default on the phone. */
 const val DEFAULT_PORT = 49_500
@@ -30,6 +31,32 @@ enum class AudioCodec(val wireValue: String) {
         fun fromWireValue(value: String?): AudioCodec =
             entries.firstOrNull { it.wireValue == value } ?: PCM
     }
+}
+
+/** Applies the configured capture gain once, before either PCM packetization or Opus encoding. */
+object PcmInputGain {
+    fun applyInPlace(samples: ShortArray, sampleCount: Int, gain: Float) {
+        require(sampleCount in 0..samples.size) { "Sample count is outside the input buffer." }
+        require(gain.isFinite() && gain in 0.5f..3.0f) { "Input gain must be between 0.5× and 3.0×." }
+        if (gain == 1.0f) return
+
+        for (index in 0 until sampleCount) {
+            samples[index] = (samples[index] * gain)
+                .roundToInt()
+                .coerceIn(Short.MIN_VALUE.toInt(), Short.MAX_VALUE.toInt())
+                .toShort()
+        }
+    }
+}
+
+/** Shared bounds for the Kotlin and JNI sides of Opus frame submission. */
+object OpusInputContract {
+    const val MAX_OUTPUT_BYTES = 512
+
+    fun isValid(pcmSize: Int, sampleCountPerChannel: Int, channels: Int, maxOutputBytes: Int): Boolean =
+        channels in 1..2 && sampleCountPerChannel > 0 &&
+            sampleCountPerChannel <= pcmSize / channels &&
+            maxOutputBytes in 1..MAX_OUTPUT_BYTES
 }
 
 enum class CaptureMode(val wireValue: String) {
@@ -182,6 +209,10 @@ object AppPrefs {
             .putInt("dsp_makeup", dsp.makeup)
             .putInt("dsp_nr", dsp.noiseReduction)
             .apply()
+    }
+
+    fun saveCodec(context: Context, codec: AudioCodec) {
+        plainPrefs(context).edit().putString(CODEC, codec.wireValue).apply()
     }
 
     fun saveFabCorner(context: Context, corner: FabCorner) {

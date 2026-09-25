@@ -137,6 +137,7 @@ private fun PocketMicScreen() {
     var pairingKey by rememberSaveable { mutableStateOf(initial.pairingKey) }
     var captureModeWire by rememberSaveable { mutableStateOf(initial.captureMode.wireValue) }
     var gain by rememberSaveable { mutableStateOf(initial.gain) }
+    var codecWire by rememberSaveable { mutableStateOf(initial.codec.wireValue) }
     var autoConnect by rememberSaveable { mutableStateOf(initialUi.autoConnect) }
     var fabCorner by rememberSaveable { mutableStateOf(initialUi.fabCorner) }
     var validationError by rememberSaveable { mutableStateOf<String?>(null) }
@@ -149,6 +150,7 @@ private fun PocketMicScreen() {
     var dsp by remember { mutableStateOf(AppPrefs.loadDsp(context)) }
 
     val captureMode = CaptureMode.fromWireValue(captureModeWire)
+    val codec = AudioCodec.fromWireValue(codecWire)
     val isActive = snapshot.status == StreamStatus.CONNECTING ||
         snapshot.status == StreamStatus.STREAMING ||
         snapshot.status == StreamStatus.RECONNECTING
@@ -184,7 +186,7 @@ private fun PocketMicScreen() {
             portText = found.audioPort.toString()
             AppPrefs.save(
                 context,
-                MicConfig(found.address, found.audioPort, pairingKey, captureMode, gain),
+                MicConfig(found.address, found.audioPort, pairingKey, captureMode, gain, codec),
             )
         }
     }
@@ -243,7 +245,7 @@ private fun PocketMicScreen() {
                     validationError = "Pairing key must be at least $MIN_PAIRING_KEY_LENGTH characters."
                 }
 
-            else -> MicConfig(host.trim(), parsedPort, pairingKey, captureMode, gain)
+            else -> MicConfig(host.trim(), parsedPort, pairingKey, captureMode, gain, codec)
         } ?: return
 
         // Catch the unreachable-network case before opening the microphone, rather than
@@ -358,13 +360,18 @@ private fun PocketMicScreen() {
                         portText = data.port.toString()
                         pairingKey = data.pairingKey
                         showQrScanner = false
-                        AppPrefs.save(context, MicConfig(data.host, data.port, data.pairingKey, captureMode, gain))
+                        AppPrefs.save(context, MicConfig(data.host, data.port, data.pairingKey, captureMode, gain, codec))
                     },
                 )
 
                 CaptureCard(
                     captureMode = captureMode,
                     onModeChange = { captureModeWire = it.wireValue },
+                    codec = codec,
+                    onCodecChange = {
+                        codecWire = it.wireValue
+                        AppPrefs.saveCodec(context, it)
+                    },
                     gain = gain,
                     onGainChange = { gain = it },
                     enabled = !isActive,
@@ -562,6 +569,17 @@ private fun StatusCard(
                 if (snapshot.packetsSent > 0) {
                     Text("${snapshot.packetsSent}", color = TextMuted, style = MaterialTheme.typography.bodySmall)
                 }
+            }
+
+            snapshot.activeCodec?.let { activeCodec ->
+                Text(
+                    "Using ${if (activeCodec == AudioCodec.OPUS) "Opus v2" else "PCM16 v1"}",
+                    color = TextMuted,
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            snapshot.codecNotice?.let {
+                Text(it, color = Caution, style = MaterialTheme.typography.bodySmall)
             }
 
             Box(
@@ -831,6 +849,8 @@ private fun DspSlider(
 private fun CaptureCard(
     captureMode: CaptureMode,
     onModeChange: (CaptureMode) -> Unit,
+    codec: AudioCodec,
+    onCodecChange: (AudioCodec) -> Unit,
     gain: Float,
     onGainChange: (Float) -> Unit,
     enabled: Boolean,
@@ -863,6 +883,21 @@ private fun CaptureCard(
                     selected = captureMode == CaptureMode.CUSTOM,
                     onClick = { onModeChange(CaptureMode.CUSTOM) },
                     label = { Text("Custom") },
+                    enabled = enabled,
+                )
+            }
+            Text("Audio codec", style = MaterialTheme.typography.bodyMedium)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                FilterChip(
+                    selected = codec == AudioCodec.PCM,
+                    onClick = { onCodecChange(AudioCodec.PCM) },
+                    label = { Text("PCM · compatible") },
+                    enabled = enabled,
+                )
+                FilterChip(
+                    selected = codec == AudioCodec.OPUS,
+                    onClick = { onCodecChange(AudioCodec.OPUS) },
+                    label = { Text("Opus · lower bandwidth") },
                     enabled = enabled,
                 )
             }
@@ -982,6 +1017,7 @@ private fun startService(context: Context, config: MicConfig, peerName: String =
         .putExtra(MicStreamingService.EXTRA_KEY, config.pairingKey)
         .putExtra(MicStreamingService.EXTRA_MODE, config.captureMode.wireValue)
         .putExtra(MicStreamingService.EXTRA_GAIN, config.gain)
+        .putExtra(MicStreamingService.EXTRA_CODEC, config.codec.wireValue)
         .putExtra(MicStreamingService.EXTRA_PEER_NAME, peerName)
     ContextCompat.startForegroundService(context, intent)
 }

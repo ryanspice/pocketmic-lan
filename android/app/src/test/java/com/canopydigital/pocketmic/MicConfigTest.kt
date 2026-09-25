@@ -58,4 +58,41 @@ class MicConfigTest {
 
         assertNull(config.validateConnection())
     }
+
+    @Test
+    fun pcmRemainsTheDefaultAndOpusPreferenceIsPartOfTheSessionConfig() {
+        val compatibleDefault = MicConfig("192.168.1.25", 49_500, "POCKETMIC-TEST", CaptureMode.VOICE, 1.0f)
+        val opus = compatibleDefault.copy(codec = AudioCodec.OPUS)
+
+        assertEquals(AudioCodec.PCM, compatibleDefault.codec)
+        assertEquals(AudioCodec.OPUS, opus.codec)
+        assertEquals(AudioCodec.OPUS, AudioCodec.fromWireValue(opus.codec.wireValue))
+        assertEquals(AudioCodec.PCM, AudioCodec.fromWireValue("unknown"))
+    }
+
+    @Test
+    fun inputGainChangesTheSamplesUsedByBothPacketCodecsAndClipsAtPcmLimits() {
+        val halfGain = shortArrayOf(-20_000, 10_000, Short.MIN_VALUE, Short.MAX_VALUE)
+        PcmInputGain.applyInPlace(halfGain, halfGain.size, 0.5f)
+        assertEquals(listOf(-10_000, 5_000, -16_384, 16_384), halfGain.map { it.toInt() })
+
+        val boosted = shortArrayOf(-20_000, 10_000, Short.MIN_VALUE, Short.MAX_VALUE)
+        PcmInputGain.applyInPlace(boosted, boosted.size, 3.0f)
+        assertEquals(listOf(-32_768, 30_000, -32_768, 32_767), boosted.map { it.toInt() })
+
+        val unity = shortArrayOf(-12_345, 0, 23_456)
+        val original = unity.copyOf()
+        PcmInputGain.applyInPlace(unity, unity.size, 1.0f)
+        assertEquals(original.toList(), unity.toList())
+    }
+
+    @Test
+    fun opusInputContractBoundsFrameChannelsAndOutputBuffer() {
+        assertTrue(OpusInputContract.isValid(pcmSize = 480, sampleCountPerChannel = 480, channels = 1, maxOutputBytes = 512))
+        assertTrue(OpusInputContract.isValid(pcmSize = 960, sampleCountPerChannel = 480, channels = 2, maxOutputBytes = 512))
+        assertTrue(!OpusInputContract.isValid(pcmSize = 479, sampleCountPerChannel = 480, channels = 1, maxOutputBytes = 512))
+        assertTrue(!OpusInputContract.isValid(pcmSize = 480, sampleCountPerChannel = 480, channels = 2, maxOutputBytes = 512))
+        assertTrue(!OpusInputContract.isValid(pcmSize = 480, sampleCountPerChannel = 480, channels = 1, maxOutputBytes = 513))
+        assertTrue(!OpusInputContract.isValid(pcmSize = 480, sampleCountPerChannel = 0, channels = 1, maxOutputBytes = 512))
+    }
 }
