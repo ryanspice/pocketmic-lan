@@ -4,6 +4,13 @@
 > Evidence refreshed: 2026-09-25 (current release metadata and v0.1.6 hosted previews)
 > Older runtime/build evidence remains dated 2026-09-11 unless explicitly noted.
 
+## Windows jitter drift regression correction (2026-09-25)
+
+- `AdaptiveJitterBuffer` now samples buffer depth at most once per 100 ms and retains each sample's monotonic timestamp. Drift regression reads the ring in chronological order and uses elapsed seconds, rather than assuming array order and a fixed packet cadence.
+- Added deterministic Windows regressions for positive and negative trends after ring wrap and for irregular packet cadence.
+- Focused drift tests: **5/5 passed**. Full Windows test suite: **176/176 passed** using the installed .NET 8 SDK.
+- These synthetic regressions verify the calculation only. Physical clock-drift convergence on a real phone/PC network remains a separate blocked measurement and must not be inferred from these tests.
+
 ## Android Opus selection and gain implementation (Packet C, 2026-09-24)
 
 Working-tree implementation on top of commit `5a98afdd31a6063173c909094be6bed5f4425c77`; not yet committed or pushed at the time of these local checks.

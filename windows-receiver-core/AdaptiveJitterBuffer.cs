@@ -55,10 +55,12 @@ public sealed class AdaptiveJitterBuffer
     /// once per cycle, not per packet, so the percentile sort runs ≤10 times/second.</summary>
     private const int AdjustmentCycleMs = 100;
 
-    /// <summary>Samples in the drift regression window. At one sample per 100 ms cycle,
-    /// 50 samples = 5 seconds of buffer-depth history — long enough to distinguish a real
-    /// trend from transient bursts.</summary>
+    /// <summary>Samples in the drift regression window. Buffer depth is sampled at most
+    /// once per 100 ms, so 50 samples cover about five seconds of history.</summary>
     private const int DriftWindowSize = 50;
+
+    private static readonly long DriftSampleIntervalTicks =
+        Stopwatch.Frequency * AdjustmentCycleMs / 1000;
 
     /// <summary>Minimum drift rate (ms/s) to trigger compensation. Below this the
     /// adjustment would chase noise rather than a real clock-frequency offset.</summary>
@@ -84,8 +86,9 @@ public sealed class AdaptiveJitterBuffer
 
     // --- Drift detection ---
     private readonly double[] _bufferDepths = new double[DriftWindowSize];
+    private readonly long[] _bufferDepthTicks = new long[DriftWindowSize];
     private int _depthCount;
-    private long _driftWindowStartTick;
+    private long _lastDepthSampleTick;
 
     // --- Pre-allocated sort buffer to avoid per-call allocation on the hot path ---
     private readonly double[] _sortBuffer = new double[InterarrivalWindowSize];
@@ -111,7 +114,6 @@ public sealed class AdaptiveJitterBuffer
     {
         _currentTargetMs = AudioPipeline.DefaultPrebufferMilliseconds;
         _lastAdjustmentTick = Stopwatch.GetTimestamp();
-        _driftWindowStartTick = Stopwatch.GetTimestamp();
     }
 
     /// <summary>Resets all state. Called on session resync or at the start of a new run.</summary>
@@ -125,8 +127,9 @@ public sealed class AdaptiveJitterBuffer
         _lastAdjustmentTick = Stopwatch.GetTimestamp();
 
         Array.Clear(_bufferDepths);
+        Array.Clear(_bufferDepthTicks);
         _depthCount = 0;
-        _driftWindowStartTick = Stopwatch.GetTimestamp();
+        _lastDepthSampleTick = 0;
 
         RawP95Ms = 0;
         DriftRateMsPerSec = 0;
@@ -160,11 +163,19 @@ public sealed class AdaptiveJitterBuffer
         }
         _lastArrivalTick = arrivalTick;
 
-        // --- Buffer depth for drift regression (skip warmup to avoid garbage) ---
-        if (_interarrivalCount > DriftWarmupPackets)
+        // --- Buffer depth for drift regression ---
+        // RecordPacket runs for every received packet. Sampling on each call made the
+        // nominal 5-second window contain only about 500 ms at 100 packets/s, and the
+        // physical ring order stopped being chronological after wrap. Sample on a fixed
+        // cadence and retain the monotonic timestamp for the regression instead.
+        if (_interarrivalCount > DriftWarmupPackets &&
+            (_lastDepthSampleTick == 0 || arrivalTick - _lastDepthSampleTick >= DriftSampleIntervalTicks))
         {
-            _bufferDepths[_depthCount % DriftWindowSize] = bufferedMs;
+            var index = _depthCount % DriftWindowSize;
+            _bufferDepths[index] = bufferedMs;
+            _bufferDepthTicks[index] = arrivalTick;
             _depthCount++;
+            _lastDepthSampleTick = arrivalTick;
         }
 
         // --- Update target (rate-limited internally to once per AdjustmentCycleMs) ---
@@ -254,16 +265,21 @@ public sealed class AdaptiveJitterBuffer
         var count = Math.Min(_depthCount, DriftWindowSize);
         if (count < 10) return 0;
 
-        // Require at least 2 seconds of data for a meaningful trend — a shorter
+        var oldestIndex = _depthCount >= DriftWindowSize ? _depthCount % DriftWindowSize : 0;
+        var firstTick = _bufferDepthTicks[oldestIndex];
+        var lastIndex = (_depthCount - 1) % DriftWindowSize;
+        var elapsedSeconds = (double)(_bufferDepthTicks[lastIndex] - firstTick) / Stopwatch.Frequency;
+
+        // Require at least 2 seconds of sampled data for a meaningful trend — a shorter
         // window would be dominated by normal jitter fluctuation.
-        var elapsedMs = (Stopwatch.GetTimestamp() - _driftWindowStartTick) * 1000.0 / Stopwatch.Frequency;
-        if (elapsedMs < 2000) return 0;
+        if (elapsedSeconds < 2.0) return 0;
 
         double sumX = 0, sumY = 0, sumXY = 0, sumXX = 0;
         for (var i = 0; i < count; i++)
         {
-            var x = (double)i;
-            var y = _bufferDepths[i];
+            var index = (oldestIndex + i) % DriftWindowSize;
+            var x = (double)(_bufferDepthTicks[index] - firstTick) / Stopwatch.Frequency;
+            var y = _bufferDepths[index];
             sumX += x;
             sumY += y;
             sumXY += x * y;
@@ -274,11 +290,7 @@ public sealed class AdaptiveJitterBuffer
         var denominator = (n * sumXX) - (sumX * sumX);
         if (Math.Abs(denominator) < 1e-10) return 0;
 
-        var slopePerSample = ((n * sumXY) - (sumX * sumY)) / denominator;
-
-        // Each sample is recorded roughly once per AdjustmentCycleMs (100 ms).
-        // Convert slope from ms/sample to ms/s.
-        var samplesPerSecond = 1000.0 / AdjustmentCycleMs;
-        return slopePerSample * samplesPerSecond;
+        // x is in seconds and y is in milliseconds, so the regression slope is ms/s.
+        return ((n * sumXY) - (sumX * sumY)) / denominator;
     }
 }
