@@ -82,8 +82,8 @@ Deliver a testable macOS receiver preview and validated current mobile-publisher
 #### Gate 1 — Freeze scope and candidate identity
 
 - Reconcile `ROADMAP.md`, `CHANGELOG.md`, README, site, app version/build numbers, package IDs, and artifact naming against v0.1.6 scope.
-- Record the Android package migration notice and confirm it is clear that v0.1.5 app data will not move automatically.
-- Decide the Mac codec contract: support Opus v2, or expose/document and test PCM mode for Mac pairing. Make protocol capability visible enough that incompatible combinations cannot be mistaken for a successful session.
+- The Android package migration is now stated in both the unreleased changelog and README: `com.canopydigital.pocketmic` installs separately from v0.1.5, and app data/pairing keys do not move automatically. Gate 6 still requires a clean-install/separate-install check on a device.
+- **Mac codec decision for v0.1.6: PCM v1 only.** The Mac preview does not decode Opus v2 and surfaces an incompatibility warning; keep that limitation in setup and release copy. Gate 2 must verify Android-to-Mac PCM audio and the warning when Android remains set to Opus.
 - Mark each of the 21 locale targets as `target`, `translated`, `reviewed`, or `supported` (or equivalent truthful states); do not use one status to mean all four.
 
 #### Gate 2 — Protocol and platform behavior

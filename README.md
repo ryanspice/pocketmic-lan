@@ -87,6 +87,8 @@ release\PocketMicReceiver-win-x64.zip
 
 Install or update the Android app:
 
+The v0.1.6 candidate uses the new application ID `com.canopydigital.pocketmic`. It installs separately from the published v0.1.5 app (`com.ryanspice.pocketmic`); Android does not automatically move the old app's settings or pairing key. Keep v0.1.5 installed until the new app is working, then pair the v0.1.6 app again. `adb install -r` updates only an app with the same application ID.
+
 ```powershell
 adb install -r .\release\app-debug.apk
 ```
@@ -125,7 +127,7 @@ Allow the selected UDP port on **Private networks** only. Default: `49500`.
 
 ## Verification
 
-The Android build runs Kotlin/JVM tests and lint by default. The Windows receiver suite currently has 173 xUnit tests, including native Opus smoke coverage. Hosted CI runs the Windows build and full test suite. Standalone protocol checks:
+The Android build runs Kotlin/JVM tests and lint by default. The Windows receiver suite includes native Opus smoke coverage, and hosted CI runs the Windows build and full test suite. Standalone protocol checks:
 
 ```powershell
 python .\tools\verify_protocol.py
