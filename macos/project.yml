@@ -1,6 +1,7 @@
 name: PocketMicMac
 options:
   bundleIdPrefix: com.canopydigital
+  developmentLanguage: en-CA
   deploymentTarget:
     macOS: "13.0"
 settings:

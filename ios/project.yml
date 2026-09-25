@@ -1,6 +1,7 @@
 name: PocketMic
 options:
   bundleIdPrefix: com.canopydigital
+  developmentLanguage: en-CA
   deploymentTarget:
     iOS: "17.0"
 settings:

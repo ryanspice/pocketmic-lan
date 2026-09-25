@@ -15,7 +15,7 @@
             "value": "دەربارەی ئەم پێشبینینەی iOS"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Derbarê vê pêşdîtina iOS de"
@@ -37,7 +37,7 @@
             "value": "لە ڕێکخستنەکاندا ڕێگە بە مایکرۆفۆن بدە بۆ ناردنی دەنگ."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Ji bo şandina dengê, di Mîhengên Sîstemê de destûrê bide mîkrofonê."
@@ -59,7 +59,7 @@
             "value": "دەریچەی دەنگ"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Porta dengê"
@@ -81,7 +81,7 @@
             "value": "پاکێتە پشتڕاستکراوەکان:"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Pakêtên hatine piştrastkirin:"
@@ -103,7 +103,7 @@
             "value": "داواکاریی مایکرۆفۆن هەڵبوەشێنەوە"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Daxwaza mîkrofonê betal bike"
@@ -125,7 +125,7 @@
             "value": "نەتوانرا گۆڕینی مایکرۆفۆن بۆ 48 kHz ڕێکبخرێت."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Veguhertina mîkrofonê bo 48 kHz nehat mîhengkirin."
@@ -147,7 +147,7 @@
             "value": "نەتوانرا لە UDP گوێ بگیرێت"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Nekarî li ser UDP guhdarî bike"
@@ -169,7 +169,7 @@
             "value": "ژمارەیەکی دروستی دەریچەی UDP لە نێوان 1 و 65535 بنووسە."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Ji kerema xwe hejmareke porta UDP ya derbasdar di navbera 1 û 65535 de binivîse."
@@ -191,7 +191,7 @@
             "value": "کلیلی هاوتاکردنی نێرەری مۆبایل بنووسە."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Mifteya cotkirinê ya şandera mobîl binivîse."
@@ -213,7 +213,7 @@
             "value": "ناونیشانی وەرگر و کلیلی هاوتاکردن بنووسە."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Navnîşana wergir û mifteya cotkirinê binivîse."
@@ -235,7 +235,7 @@
             "value": "ناونیشانی IP یان ناوی میوان"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Navnîşana IP an navê hostê"
@@ -257,7 +257,7 @@
             "value": "لە کاتی ناردنی دەنگدا PocketMic لە پێشەوە بهێڵەوە. هاوتاکردنی QR، دۆزینەوەی وەرگر و Opus لەم وەشانی سەرەتایی iOSدا نییە."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Dema deng dişînî PocketMic di pêşiyê de bihêle. Cotkirina QR, dîtina wergir û Opus di vê guhertoya destpêkê ya iOS de tune ne."
@@ -279,7 +279,7 @@
             "value": "گوێگرتن لە UDP"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Li ser UDP guhdarî dike"
@@ -301,7 +301,7 @@
             "value": "باشە"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Temam"
@@ -323,7 +323,7 @@
             "value": "پاکێتی Opus v2 دیاریکرا، بەڵام پێشبینینی Mac تەنها PCM v1 وەردەگرێت. PCM لە نێرەر هەڵبژێرە و دووبارە دەست بە ناردن بکە."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Trafîka Opus v2 hat dîtin, lê vê pêşdîtina Mac tenê PCM v1 qebûl dike. Li şanderê PCM hilbijêre û dîsa dest bi şandinê bike."
@@ -345,7 +345,7 @@
             "value": "PCM v1 · 48 kHz · مۆنۆ"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "PCM v1 · 48 kHz · mono"
@@ -367,7 +367,7 @@
             "value": "هاوتاکردن"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Cotkirin"
@@ -389,7 +389,7 @@
             "value": "کلیلی هاوتاکردن"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Mifteya cotkirinê"
@@ -411,7 +411,7 @@
             "value": "PocketMic"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "PocketMic"
@@ -433,7 +433,7 @@
             "value": "دوای دامەزراندنی درایڤەر، PocketMic Virtual Mic لە ئامێرەکانی چوونەژوورەوەی دەنگی macOS دەردەکەوێت. لە ئەپی وەرگری دەنگدا هەڵیبژێرە."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Piştî sazkirina driverê, PocketMic Virtual Mic di cîhazên têketina dengê macOS de xuya dibe. Di sepana ku divê dengê bistîne de wê hilbijêre."
@@ -455,7 +455,7 @@
             "value": "کێشەی PocketMic"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Pirsgirêka PocketMic"
@@ -477,7 +477,7 @@
             "value": "وەرگری PocketMic"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Wergira PocketMic"
@@ -499,7 +499,7 @@
             "value": "ئەم پێشبینینە لە هەمان کاتدا تەنها یەک ئەپی وەرگری دەنگ پشتگیری دەکات. لە کاتی ناردندا PocketMic کراوە بهێڵەوە. پێشبینینی Mac تەنها PCM v1 وەردەگرێت؛ PCM لە نێرەر هەڵبژێرە. Opus، دۆزینەوە، خزمەتگوزاریی دواوە و دابەشکردنی واژۆکراو هێشتا لەم وەشانەدا نییە."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Ev pêşdîtin di heman demê de tenê piştgiriyê dide yek sepana wergirtina dengê. Dema şandinê PocketMic vekirî bihêle. Pêşdîtina Mac tenê PCM v1 qebûl dike; li şanderê PCM hilbijêre. Opus, dîtin, xizmeta paşperdeyê û belavkirina îmzekirî hîn di vê guhertoyê de tune ne."
@@ -521,7 +521,7 @@
             "value": "ئامادە"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Amade"
@@ -543,7 +543,7 @@
             "value": "پەیوەندی بە وەرگر سەرکەوتوو نەبوو:"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Girêdana bi wergir re bi ser neket:"
@@ -565,7 +565,7 @@
             "value": "وەرگر سەرکەوتوو نەبوو:"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Wergir bi ser neket:"
@@ -587,7 +587,7 @@
             "value": "دانیشتنێکی دووبارە نێردراو یان زۆرەڕۆیی لە جەریانی PocketMic ڕەتکرایەوە. بۆ دەستپێکردنی دانیشتنێکی نوێ و پشتڕاستکراو، وەرگر دووبارە دەستپێبکەرەوە."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Danîşîneke dubare şandî an zêde ya streama PocketMic hate redkirin. Ji bo destpêkirina danîşîneke nû ya pejirandinê, wergirê ji nû ve bide destpêkirin."
@@ -609,7 +609,7 @@
             "value": "مایکرۆفۆن دەستپێبکە"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Mîkrofonê bide destpêkirin"
@@ -631,7 +631,7 @@
             "value": "وەرگر دەستپێبکە"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Wergirê bide destpêkirin"
@@ -653,7 +653,7 @@
             "value": "مایکرۆفۆن بوەستێنە"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Mîkrofonê rawestîne"
@@ -675,7 +675,7 @@
             "value": "وەرگر بوەستێنە"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Wergirê rawestîne"
@@ -697,7 +697,7 @@
             "value": "دەنگ دەنێرێت بۆ وەرگر لە"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Deng ji bo wergirê li vir tê şandin:"
@@ -719,7 +719,7 @@
             "value": "دەنگی PCM مۆنۆی 48 kHz بۆ وەرگری PocketMic لەسەر هەمان تۆڕی تایبەتی Wi-Fi دەنێرێت. ناونیشانی IP و کلیلی هاوتاکردنی نیشاندراو لە ئەپی وەرگر بنووسە."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Dengê PCM mono ya 48 kHz ji bo wergirekî PocketMic li ser heman tora taybet a Wi-Fi dişîne. Navnîşana IP û mifteya cotkirinê ya di sepana wergir de xuya dibe binivîse."
@@ -741,7 +741,7 @@
             "value": "ئەم دانیشتنە گەیشتە سنووری پاکێتەکان. دانیشتنێکی نوێ دەستپێبکە بۆ پاراستنی تایبەتی nonceی نهێنیکردن."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Ev danîştina dengê gihîşt sînorê pakêtan. Ji bo ku nonceyên şîfrekirinê yekta bimînin, danîştineke nû bide destpêkirin."
@@ -763,7 +763,7 @@
             "value": "هەمان کلیلی هاوتاکردن لە نێرەری Android یان iOS بەکاربهێنە. ناونیشانی تۆڕی ناوخۆیی ئەم Macە لە نێرەر بنووسە."
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Di şandera Android an iOS de heman mifteya cotkirinê bi kar bîne. Navnîşana tora herêmî ya vê Macê di şanderê de binivîse."
@@ -785,7 +785,7 @@
             "value": "مایکرۆفۆنی خەیاڵی"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Mîkrofona xayalî"
@@ -807,7 +807,7 @@
             "value": "چاوەڕێی مۆڵەتی مایکرۆفۆنە"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Li benda destûra mîkrofonê ye"
@@ -829,7 +829,7 @@
             "value": "پێشبینینی وەرگری macOS"
           }
         },
-        "kmr": {
+        "ku-Latn": {
           "stringUnit": {
             "state": "needs_review",
             "value": "Pêşdîtina wergira macOS"

@@ -49,6 +49,9 @@ def main() -> int:
         if locales.get(tag, {}).get("status") != "draft" or locales.get(tag, {}).get("reviewed"):
             print(f"{tag} must remain an unreviewed draft until Apple translations are reviewed.", file=sys.stderr)
             return 1
+    if locales.get("kmr", {}).get("appleCatalogLocale") != "ku-Latn":
+        print("Apple's Kurmanji catalog locale must remain ku-Latn to retain the Latin-script variant.", file=sys.stderr)
+        return 1
     strings = catalog.get("strings")
     if not isinstance(strings, dict):
         print("Apple String Catalog must contain a strings object.", file=sys.stderr)
@@ -60,15 +63,17 @@ def main() -> int:
         unit = localizations.get("en-US", {}).get("stringUnit", {})
         if unit.get("state") != "translated" or not isinstance(unit.get("value"), str):
             errors.append(f"Missing en-US catalog value for {key!r}.")
-        for tag in ("ckb", "kmr"):
-            draft = localizations.get(tag, {}).get("stringUnit", {})
+        for tag, apple_tag in (("ckb", "ckb"), ("kmr", "ku-Latn")):
+            draft = localizations.get(apple_tag, {}).get("stringUnit", {})
             if draft.get("state") != "needs_review" or not isinstance(draft.get("value"), str):
-                errors.append(f"Missing {tag} review-needed draft for {key!r}.")
+                errors.append(f"Missing {tag} ({apple_tag}) review-needed draft for {key!r}.")
 
     for project in PROJECTS:
         content = project.read_text(encoding="utf-8")
         if "../localization/apple/Localizable.xcstrings" not in content:
             errors.append(f"{project.relative_to(ROOT)} does not include the shared catalog.")
+        if "developmentLanguage: en-CA" not in content:
+            errors.append(f"{project.relative_to(ROOT)} must set XcodeGen developmentLanguage to en-CA.")
         if "INFOPLIST_KEY_CFBundleDevelopmentRegion: en-CA" not in content:
             errors.append(f"{project.relative_to(ROOT)} must use en-CA as its development region.")
 
@@ -85,7 +90,7 @@ def main() -> int:
             print(f"- {error}", file=sys.stderr)
         return 1
 
-    print(f"Apple localization validation passed: {len(strings)} strings, en-CA source, en-US target coverage, and ckb/kmr review-needed drafts.")
+    print(f"Apple localization validation passed: {len(strings)} strings, en-CA development/source locale, en-US target coverage, ckb drafts, and kmr drafts mapped to ku-Latn.")
     return 0
 
 

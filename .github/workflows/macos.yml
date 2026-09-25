@@ -51,6 +51,9 @@ jobs:
           -derivedDataPath build/macOS CODE_SIGNING_ALLOWED=NO
           'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO build
 
+      - name: Verify macOS app localization bundle
+        run: python3 localization/verify_apple_bundle.py build/macOS/Build/Products/Release/PocketMic.app
+
       - name: Build universal virtual audio driver
         run: |
           cmake -S macos/driver -B build/macos-driver -DCMAKE_BUILD_TYPE=Release \
