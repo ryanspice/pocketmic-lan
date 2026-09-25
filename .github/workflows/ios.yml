@@ -55,6 +55,18 @@ jobs:
           -sdk iphonesimulator -configuration Debug
           -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO build
 
+      - name: Test shared protocol vectors on iOS Simulator
+        if: github.event_name != 'release' && !startsWith(github.ref, 'refs/tags/')
+        run: |
+          device_id="$(xcrun simctl list devices available -j | python3 -c 'import json,sys; data=json.load(sys.stdin); print(next((device["udid"] for devices in data["devices"].values() for device in devices if device["isAvailable"] and device["name"].startswith("iPhone")), ""))')"
+          if [[ -z "$device_id" ]]; then
+            echo "No available iPhone Simulator device was found."
+            exit 1
+          fi
+          xcodebuild test -project ios/PocketMic.xcodeproj -scheme PocketMic \
+            -destination "platform=iOS Simulator,id=${device_id}" \
+            -derivedDataPath build/DerivedData CODE_SIGNING_ALLOWED=NO
+
       - name: Verify simulator app localization bundle
         if: github.event_name != 'release' && !startsWith(github.ref, 'refs/tags/')
         run: python3 localization/verify_apple_bundle.py --platform ios build/DerivedData/Build/Products/Debug-iphonesimulator/PocketMic.app

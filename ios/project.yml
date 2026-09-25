@@ -33,3 +33,19 @@ targets:
         CFBundleDevelopmentRegion: en-CA
         NSMicrophoneUsageDescription: PocketMic captures your voice and streams it to a PocketMic receiver over your local network.
         NSLocalNetworkUsageDescription: PocketMic uses your local network to send or receive encrypted microphone audio with a paired PocketMic device.
+    scheme:
+      testTargets:
+        - PocketMicTests
+  PocketMicTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: Tests/PocketMicTests
+      - path: ../tests/fixtures/vectors.json
+        buildPhase: resources
+    dependencies:
+      - target: PocketMic
+    settings:
+      base:
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO

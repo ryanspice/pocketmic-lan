@@ -150,7 +150,7 @@ final class AudioStreamer: ObservableObject {
 }
 
 /// Owns all conversion, framing, and sequence state on AudioStreamer.processingQueue.
-private final class AudioPacketProcessor {
+final class AudioPacketProcessor {
     private var converter: AVAudioConverter?
     private var streamKey: SymmetricKey?
     private var sessionID: UInt64 = 0
@@ -230,7 +230,7 @@ private final class AudioPacketProcessor {
         return false
     }
 
-    private static func makePacket(pcm: Data, key: SymmetricKey, sessionID: UInt64, sequence: UInt32) -> Data? {
+    static func makePacket(pcm: Data, key: SymmetricKey, sessionID: UInt64, sequence: UInt32) -> Data? {
         var header = Data([0x50, 0x4d, 0x49, 0x43, 1, 1])
         header.appendUInt16BE(24)
         header.appendUInt64BE(sessionID)
