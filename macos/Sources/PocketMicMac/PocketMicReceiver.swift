@@ -3,7 +3,7 @@ import CryptoKit
 import Foundation
 import Network
 
-private struct PocketMicDecodedFrame: Sendable {
+struct PocketMicDecodedFrame: Sendable {
     let sessionID: UInt64
     let sequence: UInt32
     let pcm: Data
@@ -178,7 +178,7 @@ final class PocketMicReceiver: ObservableObject {
     }
 
     /// Opens PocketMic protocol v1 and rejects malformed or unauthenticated datagrams.
-    nonisolated private static func decryptPCMv1(_ packet: Data, using key: SymmetricKey) -> PocketMicDecodedFrame? {
+    nonisolated static func decryptPCMv1(_ packet: Data, using key: SymmetricKey) -> PocketMicDecodedFrame? {
         guard packet.count == 1_000,
               packet[packet.startIndex] == 0x50,
               packet[packet.startIndex + 1] == 0x4d,

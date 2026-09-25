@@ -32,6 +32,8 @@ targets:
     platform: macOS
     sources:
       - path: Tests/PocketMicMacTests
+    resources:
+      - path: ../tests/fixtures/vectors.json
     dependencies:
       - target: PocketMicMac
     settings:
