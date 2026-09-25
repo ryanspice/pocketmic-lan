@@ -80,8 +80,10 @@ The Android script uses the committed Gradle wrapper. Its default path runs the 
 
 Expected outputs:
 
+The Android helper derives the APK filename from Gradle's `versionName`; on this v0.1.6 candidate it is:
+
 ```text
-release\app-debug.apk
+release\PocketMic-v0.1.6-debug.apk
 release\PocketMicReceiver-win-x64.zip
 ```
 
@@ -90,7 +92,7 @@ Install or update the Android app:
 The v0.1.6 candidate uses the new application ID `com.canopydigital.pocketmic`. It installs separately from the published v0.1.5 app (`com.ryanspice.pocketmic`); Android does not automatically move the old app's settings or pairing key. Keep v0.1.5 installed until the new app is working, then pair the v0.1.6 app again. `adb install -r` updates only an app with the same application ID.
 
 ```powershell
-adb install -r .\release\app-debug.apk
+adb install -r .\release\PocketMic-v0.1.6-debug.apk
 ```
 
 ### Faster rebuilds
