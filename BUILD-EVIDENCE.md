@@ -12,7 +12,19 @@ Working-tree implementation on top of commit `5a98afdd31a6063173c909094be6bed5f4
 - `assembleDebug lintDebug` — PASS. CMake built the JNI/libopus native targets for the configured `arm64-v8a`, `armeabi-v7a`, and `x86_64` ABIs. Lint completed successfully. Build output includes existing SDK XML/deprecation warnings, the bundled libopus non-optimized message, and existing x86_64 SIMD alignment warnings.
 - Opus preference now persists through the Android UI/service path. The UI reports the codec actually used and shows PCM fallback when optional native initialization is unavailable. Opus encode failures remain explicit stream errors.
 - Input gain is applied once to the captured samples before either PCM packetization or Opus encoding; JNI validates channel/frame/output bounds before encoding.
-- Hosted CI, physical-device Opus initialization/encoding, Android-to-Windows Opus audio, and Android-to-Mac PCM/codec acceptance remain unverified.
+- Hosted CI passed on implementation commit `ff690fcdcc94fca57e1a41b076bd087e5d0654ae`:
+
+| Event | Workflow | Result | Evidence |
+|---|---|---|---|
+| Push | Primary CI (Android build/lint/unit tests, Windows build/tests, web checks) | PASS | [run 36079402684](https://github.com/ryanspice/pocketmic-lan/actions/runs/36079402684) |
+| Push | iOS simulator build | PASS | [run 36079402514](https://github.com/ryanspice/pocketmic-lan/actions/runs/36079402514) |
+| Push | macOS build/tests/package | PASS | [run 36079402704](https://github.com/ryanspice/pocketmic-lan/actions/runs/36079402704) |
+| Pull request | Primary CI | PASS | [run 36079406189](https://github.com/ryanspice/pocketmic-lan/actions/runs/36079406189) |
+| Pull request | iOS simulator build | PASS | [run 36079406487](https://github.com/ryanspice/pocketmic-lan/actions/runs/36079406487) |
+| Pull request | macOS build/tests/package | PASS | [run 36079406187](https://github.com/ryanspice/pocketmic-lan/actions/runs/36079406187) |
+| Pull request | Lighthouse validation | PASS | [run 36079406185](https://github.com/ryanspice/pocketmic-lan/actions/runs/36079406185) |
+
+- GitHub uploaded the debug APK artifact from push run 36079402684 (SHA-256 `eccc0abe4145b07fb5ea009f560fa67847ce5c4aea5504aa87567c750b91fc95`; expires 2026-10-09). Hosted Android CI and the APK artifact do not prove physical-device Opus initialization/encoding, Android-to-Windows Opus audio, or Android-to-Mac PCM/codec acceptance.
 
 ### D5 hosted CI on commit `5a98afdd31a6063173c909094be6bed5f4425c77`
 
