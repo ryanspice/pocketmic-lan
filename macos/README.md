@@ -24,3 +24,5 @@ Use one receiving audio app at a time and keep PocketMic open in the foreground.
 This is an unsigned development driver, not a release installer. The tester explicitly runs the install script with `sudo`; do not install it on a production/managed Mac. The driver binds its audio bridge only to `127.0.0.1:49501`. Mobile clients use the encrypted LAN receiver port. The Audio Server Plug-in read callback uses a preallocated single-producer/single-consumer ring buffer and returns silence on underrun.
 
 The physical-Mac tester owns the acceptance evidence for installation, device visibility, selected-app routing, audio quality/latency, reconnect, and uninstall. CI only establishes that Xcode/CMake can compile the unsigned artifacts.
+
+Use the bundled [`TESTER-REPORT.md`](TESTER-REPORT.md) template to record the Mac and OS versions, artifact commit, exact apps/codecs tested, outcomes, and any logs or screenshots. Do not include the pairing key in the report.

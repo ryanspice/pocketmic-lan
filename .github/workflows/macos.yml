@@ -66,6 +66,7 @@ jobs:
           cp macos/driver/install-driver.sh macos/driver/uninstall-driver.sh \
             macos/driver/THIRD-PARTY-NOTICES.md macos/driver/LICENSE.libASPL \
             build/artifact/
+          cp macos/README.md macos/TESTER-REPORT.md build/artifact/
 
       - uses: actions/upload-artifact@v4
         with:
