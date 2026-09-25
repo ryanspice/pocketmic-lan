@@ -50,6 +50,20 @@ public class LinkQualityPolicyTests
         var result = policy.Evaluate(stats, 40, 300);
         Assert.Equal(LinkAction.Hold, result.Action);
         Assert.Contains("Insufficient data", result.Reason);
+        Assert.Equal((60, 120), (result.TierPrebufferMin, result.TierPrebufferMax));
+    }
+
+    [Fact]
+    public void InsufficientDataPreservesBoundsForTheCurrentTier()
+    {
+        var policy = new LinkQualityPolicy();
+        var poor = MakeStats(lossPercent: 5.0, p99: 100, max: 300);
+        policy.Evaluate(poor, 40, 300);
+
+        var result = policy.Evaluate(MakeStats(packetsReceived: 10), 40, 300);
+
+        Assert.Equal(LinkTier.Poor, result.Tier);
+        Assert.Equal((200, 300), (result.TierPrebufferMin, result.TierPrebufferMax));
     }
 
     [Fact]

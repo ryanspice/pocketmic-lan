@@ -99,10 +99,10 @@ public sealed class PocketMicEngine
     private AesGcm? _aes;
     private WaveOutEvent? _waveOut;
     private BufferedWaveProvider? _audioBuffer;
-    private WaveOutEvent? _monitorOut;
+    private MonitorOutput? _monitorOutput;
     private EngineOptions? _currentOptions;
     private bool _monitorEnabled;
-    private BufferedWaveProvider? _monitorBuffer;
+    private string? _lastMonitorError;
     private Task? _receiveTask;
     private Task? _controlReceiveTask;
     private Task? _controlStatsTask;
@@ -115,8 +115,7 @@ public sealed class PocketMicEngine
     private long _latePackets;
     private long _rejectedPackets;
     private long _trimmedPackets;
-    private ulong? _sessionId;
-    private uint? _lastSequence;
+    private readonly AudioPacketOrder _packetOrder = new();
     private long _lastUpdateTick;
     private bool _playbackStarted;
     private long _runId;
@@ -132,7 +131,9 @@ public sealed class PocketMicEngine
     private long _lastPacketTick;
 
     private int _prebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
+    private int _manualPrebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
     private int _highWaterMilliseconds = AudioPipeline.DefaultHighWaterMilliseconds;
+    private volatile bool _automaticBuffering = true;
 
     private readonly LinkQualityPolicy _linkPolicy = new();
     private readonly AdaptiveJitterBuffer _adaptiveBuffer = new();
@@ -155,11 +156,36 @@ public sealed class PocketMicEngine
 
     private int _concealmentPackets = AudioPipeline.MaxConcealedGapPackets;
 
-    /// <summary>Set the policy bounds from the UI slider.</summary>
+    /// <summary>Set the minimum and maximum automatic-buffer targets from the UI.</summary>
     public void SetBufferBounds(int min, int max)
     {
-        _bufferSliderMin = min;
-        _bufferSliderMax = max;
+        if (min < 40 || max > 300 || min > max)
+            throw new ArgumentOutOfRangeException(nameof(min), "Buffer bounds must be within 40–300 ms and min must not exceed max.");
+
+        Volatile.Write(ref _bufferSliderMin, min);
+        Volatile.Write(ref _bufferSliderMax, max);
+        _tierPrebufferMin = min;
+        _tierPrebufferMax = max;
+    }
+
+    /// <summary>Whether the link policy may adjust the effective prebuffer.</summary>
+    public bool AutomaticBuffering => _automaticBuffering;
+
+    /// <summary>The exact target to hold while automatic buffering is disabled.</summary>
+    public int ManualPrebufferMilliseconds => Volatile.Read(ref _manualPrebufferMilliseconds);
+
+    /// <summary>Apply UI buffer settings before a run or while the receiver is running.</summary>
+    public void ConfigureBuffering(bool automatic, int sliderMilliseconds, int maximumMilliseconds = 300)
+    {
+        if (sliderMilliseconds < 40 || sliderMilliseconds > 300)
+            throw new ArgumentOutOfRangeException(nameof(sliderMilliseconds), "Buffer target must be within 40–300 ms.");
+        if (maximumMilliseconds < sliderMilliseconds || maximumMilliseconds > 300)
+            throw new ArgumentOutOfRangeException(nameof(maximumMilliseconds), "Buffer maximum must be between the selected target and 300 ms.");
+
+        Volatile.Write(ref _manualPrebufferMilliseconds, sliderMilliseconds);
+        SetBufferBounds(sliderMilliseconds, maximumMilliseconds);
+        _automaticBuffering = automatic;
+        SetEffectivePrebuffer(sliderMilliseconds);
     }
 
     // Last values published, so a status or address that has not actually changed is not
@@ -199,6 +225,9 @@ public sealed class PocketMicEngine
     /// the chosen monitor device should only do so once it is known to work.
     /// </summary>
     public event EventHandler? MonitorStarted;
+
+    /// <summary>Monitoring could not be opened; the routed receiver stream remains active.</summary>
+    public event EventHandler<string>? MonitorFailed;
 
     /// <summary>
     /// A diagnostics window closed: every 10 s, and every minute for the 1 min and cumulative
@@ -243,12 +272,19 @@ public sealed class PocketMicEngine
     /// </summary>
     public int PrebufferMilliseconds
     {
-        get => _prebufferMilliseconds;
+        get => Volatile.Read(ref _prebufferMilliseconds);
         set
         {
-            _prebufferMilliseconds = value;
-            _highWaterMilliseconds = AudioPipeline.HighWaterFor(value);
+            var bounded = Math.Clamp(value, 40, 300);
+            Volatile.Write(ref _manualPrebufferMilliseconds, bounded);
+            SetEffectivePrebuffer(bounded);
         }
+    }
+
+    private void SetEffectivePrebuffer(int milliseconds)
+    {
+        Volatile.Write(ref _prebufferMilliseconds, milliseconds);
+        Volatile.Write(ref _highWaterMilliseconds, AudioPipeline.HighWaterFor(milliseconds));
     }
 
     /// <summary>
@@ -282,6 +318,9 @@ public sealed class PocketMicEngine
         get => _voice.Strength;
         set => _voice.Strength = value;
     }
+
+    /// <summary>Leaves phone Custom DSP and selects the desktop preset at the given strength.</summary>
+    public void SelectVoicePreset(float strength) => _voice.SelectPresetStrength(strength);
 
     /// <summary>
     /// Counters as they stand right now. Deliberately survives a stop so a host can show the
@@ -328,7 +367,13 @@ public sealed class PocketMicEngine
 
         _currentOptions = options;
         _monitorEnabled = options.MonitorEnabled;
-        StartMonitorOutput(options);
+        if (!StartMonitorOutput(options, out var monitorError))
+        {
+            _monitorEnabled = false;
+            _lastMonitorError = monitorError;
+            _currentOptions = options with { MonitorEnabled = false };
+            MonitorFailed?.Invoke(this, monitorError);
+        }
 
         // Lazily created: the decoder is cheap but we want it ready before the
         // receive loop starts so the first v2 packet does not block.
@@ -336,7 +381,10 @@ public sealed class PocketMicEngine
         {
             _opusDecoder = new OpusDecoder();
         }
-        catch (InvalidOperationException)
+        catch (Exception exception) when (exception is InvalidOperationException or
+                                          DllNotFoundException or
+                                          EntryPointNotFoundException or
+                                          BadImageFormatException)
         {
             // opus.dll not found — v2 packets will be rejected at the TryDecrypt
             // level, but v1 PCM packets still work. The receiver degrades gracefully.
@@ -373,8 +421,7 @@ public sealed class PocketMicEngine
         _latePackets = 0;
         _rejectedPackets = 0;
         _trimmedPackets = 0;
-        _sessionId = null;
-        _lastSequence = null;
+        _packetOrder.Reset();
         _lastUpdateTick = 0;
         _lastPacketTick = 0;
         _playbackStarted = false;
@@ -384,8 +431,8 @@ public sealed class PocketMicEngine
         _adaptiveBuffer.Reset();
         _lastAssessment = null;
         _concealmentPackets = AudioPipeline.MaxConcealedGapPackets;
-        _tierPrebufferMin = 40;
-        _tierPrebufferMax = 300;
+        _tierPrebufferMin = Volatile.Read(ref _bufferSliderMin);
+        _tierPrebufferMax = Volatile.Read(ref _bufferSliderMax);
         _lastReportedEndpoint = null;
 
         StartAnalytics(options);
@@ -449,9 +496,6 @@ public sealed class PocketMicEngine
         control?.Close();
         StopMonitorOutput();
 
-        _opusDecoder?.Dispose();
-        _opusDecoder = null;
-
         foreach (var task in new[] { controlReceive, controlStats })
         {
             if (task is null) continue;
@@ -467,6 +511,13 @@ public sealed class PocketMicEngine
             catch (ObjectDisposedException) { }
             catch (SocketException) { }
         }
+
+        // The receive loop owns the native decoder while it can be inside Decode/PLC/Reset.
+        // Cancellation and closing the socket do not wait for a synchronous P/Invoke to finish.
+        // Release the handle only after the loop has exited, or stop can race opus_decoder_destroy
+        // against opus_decode on the receive thread.
+        _opusDecoder?.Dispose();
+        _opusDecoder = null;
 
         // Only once every loop that can enqueue a sample has left, so the final flush sees the
         // whole run rather than racing a packet that is still being counted.
@@ -529,16 +580,20 @@ public sealed class PocketMicEngine
             {
                 var assessment = _linkPolicy.Evaluate(
                     window,
-                    _bufferSliderMin,
-                    _bufferSliderMax);
+                    Volatile.Read(ref _bufferSliderMin),
+                    Volatile.Read(ref _bufferSliderMax));
 
                 _lastAssessment = assessment;
 
                 // Store tier bounds so the adaptive jitter buffer can clamp its
                 // target within the policy's range.  The adaptive buffer — not
                 // the policy — now controls _prebufferMilliseconds on each packet.
-                _tierPrebufferMin = assessment.TierPrebufferMin;
-                _tierPrebufferMax = assessment.TierPrebufferMax;
+                var userMin = Volatile.Read(ref _bufferSliderMin);
+                var userMax = Volatile.Read(ref _bufferSliderMax);
+                _tierPrebufferMin = Math.Max(userMin, assessment.TierPrebufferMin);
+                _tierPrebufferMax = Math.Max(
+                    _tierPrebufferMin,
+                    Math.Min(userMax, assessment.TierPrebufferMax));
                 _concealmentPackets = assessment.ConcealmentPackets;
 
                 LinkQualityChanged?.Invoke(this, assessment);
@@ -656,63 +711,177 @@ public sealed class PocketMicEngine
         set
         {
             if (_monitorEnabled == value) return;
-            _monitorEnabled = value;
 
             var options = _currentOptions;
-            if (!IsRunning || options is null) return;
-
-            if (value)
+            if (!IsRunning || options is null)
             {
-                StartMonitorOutput(options with { MonitorEnabled = true });
+                _monitorEnabled = value;
+                return;
+            }
+
+            if (!value)
+            {
+                _monitorEnabled = false;
+                _currentOptions = options with { MonitorEnabled = false };
+                StopMonitorOutput();
+            }
+            else if (StartMonitorOutput(options with { MonitorEnabled = true }, out var error))
+            {
+                _monitorEnabled = true;
+                _lastMonitorError = null;
+                _currentOptions = options with { MonitorEnabled = true };
             }
             else
             {
-                StopMonitorOutput();
+                _monitorEnabled = false;
+                _lastMonitorError = error;
+                _currentOptions = options with { MonitorEnabled = false };
             }
         }
     }
 
-    private void StartMonitorOutput(EngineOptions options)
+    /// <summary>The monitor device selected for the current run, or null before a run.</summary>
+    public int? MonitorDeviceNumber => _currentOptions?.MonitorDeviceNumber;
+
+    /// <summary>The last monitor output failure, if enabling or switching could not open it.</summary>
+    public string? LastMonitorError => _lastMonitorError;
+
+    /// <summary>
+    /// Changes the monitor device for the current run. A candidate output is opened before the
+    /// current one is replaced; on failure the old device and selection remain active.
+    /// </summary>
+    public bool TrySetMonitorDevice(int deviceNumber, out string error)
     {
-        StopMonitorOutput();
-        if (!options.MonitorEnabled) return;
+        var options = _currentOptions;
+        if (!IsRunning || options is null)
+        {
+            error = "The receiver must be running to change its monitor output.";
+            return false;
+        }
+
+        if (deviceNumber < -1)
+        {
+            error = "That monitor output is no longer available.";
+            _lastMonitorError = error;
+            return false;
+        }
+
+        if (deviceNumber == options.MonitorDeviceNumber)
+        {
+            error = string.Empty;
+            return true;
+        }
+
+        if (_monitorEnabled && deviceNumber == options.OutputDeviceNumber)
+        {
+            error = "Choose a monitor output that is different from the routed playback output.";
+            _lastMonitorError = error;
+            return false;
+        }
+
+        if (!_monitorEnabled)
+        {
+            _currentOptions = options with { MonitorDeviceNumber = deviceNumber };
+            error = string.Empty;
+            _lastMonitorError = null;
+            return true;
+        }
+
+        if (!TryCreateMonitorOutput(deviceNumber, out var candidate, out error))
+        {
+            _lastMonitorError = error;
+            return false;
+        }
+
+        _currentOptions = options with { MonitorDeviceNumber = deviceNumber };
+        ReplaceMonitorOutput(candidate!);
+        _lastMonitorError = null;
+        MonitorStarted?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    private bool StartMonitorOutput(EngineOptions options, out string error)
+    {
+        if (!options.MonitorEnabled)
+        {
+            StopMonitorOutput();
+            error = string.Empty;
+            return true;
+        }
 
         // Monitoring into the same endpoint we route to would be pointless and confusing.
-        if (options.MonitorDeviceNumber == options.OutputDeviceNumber) return;
+        if (options.MonitorDeviceNumber == options.OutputDeviceNumber)
+        {
+            StopMonitorOutput();
+            error = "Choose a monitor output that is different from the routed playback output.";
+            return false;
+        }
 
+        if (!TryCreateMonitorOutput(options.MonitorDeviceNumber, out var candidate, out error))
+        {
+            StopMonitorOutput();
+            return false;
+        }
+
+        ReplaceMonitorOutput(candidate!);
+        MonitorStarted?.Invoke(this, EventArgs.Empty);
+        return true;
+    }
+
+    private static bool TryCreateMonitorOutput(int deviceNumber, out MonitorOutput? output, out string error)
+    {
+        BufferedWaveProvider? buffer = null;
+        WaveOutEvent? waveOut = null;
         try
         {
-            _monitorBuffer = new BufferedWaveProvider(new WaveFormat(AudioPipeline.SampleRate, 16, 1))
+            buffer = new BufferedWaveProvider(new WaveFormat(AudioPipeline.SampleRate, 16, 1))
             {
                 BufferDuration = TimeSpan.FromMilliseconds(300),
                 DiscardOnBufferOverflow = true,
                 ReadFully = true,
             };
-            _monitorOut = new WaveOutEvent
+            waveOut = new WaveOutEvent
             {
-                DeviceNumber = options.MonitorDeviceNumber,
+                DeviceNumber = deviceNumber,
                 DesiredLatency = 80,
                 NumberOfBuffers = 3,
             };
-            _monitorOut.Init(_monitorBuffer);
-            _monitorOut.Play();
-
-            MonitorStarted?.Invoke(this, EventArgs.Empty);
+            waveOut.Init(buffer);
+            waveOut.Play();
+            output = new MonitorOutput(buffer, waveOut);
+            error = string.Empty;
+            return true;
         }
-        catch (Exception)
+        catch (Exception exception)
         {
-            // Monitoring is a convenience. If the chosen device will not open, carry on routing
-            // without it rather than failing the whole receiver.
-            StopMonitorOutput();
+            try { waveOut?.Stop(); } catch (Exception) { }
+            try { waveOut?.Dispose(); } catch (Exception) { }
+            output = null;
+            error = $"Could not open the monitor output: {exception.Message}";
+            return false;
         }
+    }
+
+    private void ReplaceMonitorOutput(MonitorOutput replacement)
+    {
+        var previous = Interlocked.Exchange(ref _monitorOutput, replacement);
+        previous?.Dispose();
     }
 
     private void StopMonitorOutput()
     {
-        try { _monitorOut?.Stop(); } catch (Exception) { }
-        try { _monitorOut?.Dispose(); } catch (Exception) { }
-        _monitorOut = null;
-        _monitorBuffer = null;
+        Interlocked.Exchange(ref _monitorOutput, null)?.Dispose();
+    }
+
+    private sealed class MonitorOutput(BufferedWaveProvider buffer, WaveOutEvent device) : IDisposable
+    {
+        public BufferedWaveProvider Buffer { get; } = buffer;
+
+        public void Dispose()
+        {
+            try { device.Stop(); } catch (Exception) { }
+            try { device.Dispose(); } catch (Exception) { }
+        }
     }
 
     private async Task ReceiveLoopGuardedAsync(UdpClient udp, CancellationToken cancellationToken, long runId)
@@ -1007,11 +1176,11 @@ public sealed class PocketMicEngine
     private async Task ReceiveLoopAsync(UdpClient udp, CancellationToken cancellationToken, long runId)
     {
         var pcm = new byte[AudioPipeline.PacketPcmBytes];
+        var packetPayload = new byte[AudioPipeline.PacketPcmBytes];
         var nonce = new byte[12];
         var discard = new byte[AudioPipeline.PacketPcmBytes];
         var conceal = new byte[AudioPipeline.PacketPcmBytes];
         var lastGood = new byte[AudioPipeline.PacketPcmBytes];
-        var opusBuffer = new byte[AudioPipeline.MaxOpusPayloadBytes];
         var haveLastGood = false;
 
         // Captured once: the collector exists for the whole run, and every call below is a
@@ -1032,8 +1201,8 @@ public sealed class PocketMicEngine
             }
 
             var data = result.Buffer;
-            if (!TryDecryptPacket(data, nonce, pcm, out var sessionId, out var sequence, out var sampleRate, opusBuffer) ||
-                sampleRate != AudioPipeline.SampleRate)
+            if (!TryAuthenticatePacket(data, nonce, packetPayload, out var packet) ||
+                packet.SampleRate != AudioPipeline.SampleRate)
             {
                 _rejectedPackets++;
                 analytics?.RecordRejected();
@@ -1067,60 +1236,75 @@ public sealed class PocketMicEngine
                 continue;
             }
 
+            // Authenticate first, then enforce session/sequence policy before touching the
+            // stateful codec. Commit occurs only after decoding succeeds.
+            var order = _packetOrder.Inspect(packet);
+            if (order.Status == AudioPacketOrderStatus.CodecChangedWithinSession)
+            {
+                _rejectedPackets++;
+                analytics?.RecordRejected();
+                continue;
+            }
+
+            if (order.Status == AudioPacketOrderStatus.Late)
+            {
+                _latePackets++;
+                if (order.SequenceDelta == -1) analytics?.RecordDuplicate();
+                else analytics?.RecordReordered();
+                continue;
+            }
+
+            if (order.NewSession)
+            {
+                Array.Clear(lastGood);
+                haveLastGood = false;
+                ResetPlaybackForResync();
+            }
+
+            if (order.MissingPackets > 0)
+            {
+                var delta = order.MissingPackets;
+                _lostPackets += delta;
+                analytics?.RecordLost(delta);
+                if (delta <= _concealmentPackets)
+                {
+                    for (var index = 0; index < delta; index++)
+                    {
+                        var usedPlc = packet.Codec == AudioPipeline.Codec.Opus &&
+                            _opusDecoder?.TryGeneratePlc(conceal) == true;
+                        if (!usedPlc)
+                        {
+                            AudioPipeline.BuildConcealmentFrame(conceal, lastGood, haveLastGood, index);
+                        }
+                        _audioBuffer?.AddSamples(conceal, 0, conceal.Length);
+                    }
+                }
+                else
+                {
+                    ResetPlaybackForResync();
+                    Array.Clear(lastGood);
+                    haveLastGood = false;
+                }
+            }
+
+            // Only an in-order, authenticated packet is allowed to advance codec state.
+            if (packet.Codec == AudioPipeline.Codec.Pcm)
+            {
+                Buffer.BlockCopy(packetPayload, 0, pcm, 0, AudioPipeline.PacketPcmBytes);
+            }
+            else if (_opusDecoder?.TryDecode(packetPayload, packet.PayloadLength, pcm) != true)
+            {
+                _rejectedPackets++;
+                analytics?.RecordRejected();
+                continue;
+            }
+
+            _packetOrder.Commit(packet);
+
             // Remember where authenticated audio came from so statistics can be sent back.
             _phoneAddress = result.RemoteEndPoint.Address;
             _lastPacketTick = Environment.TickCount64;
             analytics?.Connection.MarkAuthenticatedPacket();
-
-            if (_sessionId != sessionId)
-            {
-                _sessionId = sessionId;
-                _lastSequence = null;
-                ResetPlaybackForResync();
-            }
-
-            if (_lastSequence.HasValue)
-            {
-                var expected = _lastSequence.Value + 1;
-                var delta = unchecked((int)(sequence - expected));
-                if (delta < 0)
-                {
-                    _latePackets++;
-
-                    // The single "late" counter hides the two failures it can mean. A delta of
-                    // exactly -1 is the sequence already accepted arriving a second time — a
-                    // duplicate, which is harmless. Anything older is a genuine reorder, which
-                    // means the network delivered out of order and the jitter buffer was too
-                    // shallow to absorb it. Splitting them costs one comparison here.
-                    if (delta == -1) analytics?.RecordDuplicate();
-                    else analytics?.RecordReordered();
-                    continue;
-                }
-
-                if (delta > 0)
-                {
-                    _lostPackets += delta;
-                    analytics?.RecordLost(delta);
-                    if (delta <= _concealmentPackets)
-                    {
-                        for (var index = 0; index < delta; index++)
-                        {
-                            // Opus PLC produces a smoother spectral continuation than
-                            // PCM16 waveform repetition; fall back to the legacy
-                            // concealment when no decoder is attached or PLC fails.
-                            if (_opusDecoder?.TryGeneratePlc(conceal) != true)
-                            {
-                                AudioPipeline.BuildConcealmentFrame(conceal, lastGood, haveLastGood, index);
-                            }
-                            _audioBuffer?.AddSamples(conceal, 0, conceal.Length);
-                        }
-                    }
-                    else
-                    {
-                        ResetPlaybackForResync();
-                    }
-                }
-            }
 
             var buffer = _audioBuffer;
             // Condition before buffering, and measure the level after conditioning so the trim
@@ -1128,10 +1312,9 @@ public sealed class PocketMicEngine
             _voice.Process(pcm);
             _recentRms = AudioPipeline.SmoothedRms(_recentRms, pcm);
             buffer?.AddSamples(pcm, 0, pcm.Length);
-            _monitorBuffer?.AddSamples(pcm, 0, pcm.Length);
+            Volatile.Read(ref _monitorOutput)?.Buffer.AddSamples(pcm, 0, pcm.Length);
             Buffer.BlockCopy(pcm, 0, lastGood, 0, AudioPipeline.PacketPcmBytes);
             haveLastGood = true;
-            _lastSequence = sequence;
             _packetCount++;
             analytics?.RecordDelivered(
                 (int)(buffer?.BufferedDuration.TotalMilliseconds ?? 0),
@@ -1144,12 +1327,12 @@ public sealed class PocketMicEngine
             _adaptiveBuffer.RecordPacket(
                 Stopwatch.GetTimestamp(),
                 buffer?.BufferedDuration.TotalMilliseconds ?? 0);
-            var effectivePrebuffer = _adaptiveBuffer.ComputeEffectivePrebuffer(
-                _tierPrebufferMin, _tierPrebufferMax);
-            if (effectivePrebuffer != _prebufferMilliseconds)
+            if (_automaticBuffering)
             {
-                _prebufferMilliseconds = effectivePrebuffer;
-                _highWaterMilliseconds = AudioPipeline.HighWaterFor(effectivePrebuffer);
+                var effectivePrebuffer = _adaptiveBuffer.ComputeEffectivePrebuffer(
+                    _tierPrebufferMin, _tierPrebufferMax);
+                if (effectivePrebuffer != Volatile.Read(ref _prebufferMilliseconds))
+                    SetEffectivePrebuffer(effectivePrebuffer);
             }
 
             if (buffer is not null)
@@ -1209,21 +1392,14 @@ public sealed class PocketMicEngine
         _opusDecoder?.Reset();
     }
 
-    private bool TryDecryptPacket(
+    private bool TryAuthenticatePacket(
         byte[] data,
         byte[] nonce,
-        byte[] pcm,
-        out ulong sessionId,
-        out uint sequence,
-        out int sampleRate,
-        byte[]? opusBuffer = null)
+        byte[] payload,
+        out AudioPacketInfo packet)
     {
-        sessionId = 0;
-        sequence = 0;
-        sampleRate = 0;
-        if (_aes is null) return false;
-
-        return AudioPipeline.TryDecrypt(_aes, data, nonce, pcm, out sessionId, out sequence, out sampleRate, _opusDecoder, opusBuffer);
+        packet = default;
+        return _aes is not null && AudioPipeline.TryAuthenticate(_aes, data, nonce, payload, out packet);
     }
 
     /// <summary>

@@ -25,11 +25,22 @@
    is well under 200 bytes. 512 gives ample headroom. */
 #define MAX_ENCODED_BYTES 512
 
+typedef struct {
+    OpusEncoder *encoder;
+    int channels;
+} PocketMicOpusEncoder;
+
 JNIEXPORT jlong JNICALL
-Java_com_ryanspice_pocketmic_OpusEncoder_nativeCreate(
+Java_com_canopydigital_pocketmic_OpusEncoder_nativeCreate(
     JNIEnv *env, jobject thiz, jint sampleRate, jint channels, jint bitrate)
 {
     int err;
+    if ((sampleRate != 8000 && sampleRate != 12000 && sampleRate != 16000 &&
+         sampleRate != 24000 && sampleRate != 48000) ||
+        channels < 1 || channels > 2 || bitrate < 500 || bitrate > 512000) {
+        return 0;
+    }
+
     OpusEncoder *enc = opus_encoder_create(
         (opus_int32)sampleRate,
         channels,
@@ -61,37 +72,45 @@ Java_com_ryanspice_pocketmic_OpusEncoder_nativeCreate(
        pinning it prevents surprises from library updates. */
     opus_encoder_ctl(enc, OPUS_SET_EXPERT_FRAME_DURATION(OPUS_FRAMESIZE_10_MS));
 
-    return (jlong)(intptr_t)enc;
+    PocketMicOpusEncoder *handle = (PocketMicOpusEncoder *)malloc(sizeof(PocketMicOpusEncoder));
+    if (handle == NULL) {
+        opus_encoder_destroy(enc);
+        return 0;
+    }
+    handle->encoder = enc;
+    handle->channels = channels;
+    return (jlong)(intptr_t)handle;
 }
 
 JNIEXPORT jbyteArray JNICALL
-Java_com_ryanspice_pocketmic_OpusEncoder_nativeEncode(
+Java_com_canopydigital_pocketmic_OpusEncoder_nativeEncode(
     JNIEnv *env, jobject thiz, jlong handle, jshortArray pcm, jint pcmLength,
     jint maxOutputBytes)
 {
-    if (handle == 0) return NULL;
+    if (handle == 0 || pcm == NULL || pcmLength <= 0 ||
+        maxOutputBytes <= 0 || maxOutputBytes > MAX_ENCODED_BYTES) return NULL;
 
-    OpusEncoder *enc = (OpusEncoder *)(intptr_t)handle;
+    PocketMicOpusEncoder *owner = (PocketMicOpusEncoder *)(intptr_t)handle;
+    if (owner->encoder == NULL || owner->channels < 1 || owner->channels > 2) return NULL;
 
-    /* Pin the short array so the JNI GetShortArrayElements below can give
-       us a direct pointer without copying on most runtimes. */
+    jsize arrayLength = (*env)->GetArrayLength(env, pcm);
+    if (arrayLength <= 0 || pcmLength > arrayLength / owner->channels) return NULL;
+
     jshort *pcmBuf = (*env)->GetShortArrayElements(env, pcm, NULL);
     if (pcmBuf == NULL) return NULL;
 
-    unsigned char *outBuf = (unsigned char *)malloc(maxOutputBytes > 0
-        ? (size_t)maxOutputBytes
-        : MAX_ENCODED_BYTES);
+    unsigned char *outBuf = (unsigned char *)malloc((size_t)maxOutputBytes);
     if (outBuf == NULL) {
         (*env)->ReleaseShortArrayElements(env, pcm, pcmBuf, JNI_ABORT);
         return NULL;
     }
 
     int encodedBytes = opus_encode(
-        enc,
+        owner->encoder,
         pcmBuf,
         (int)pcmLength,
         outBuf,
-        maxOutputBytes > 0 ? (int)maxOutputBytes : MAX_ENCODED_BYTES);
+        (int)maxOutputBytes);
 
     (*env)->ReleaseShortArrayElements(env, pcm, pcmBuf, JNI_ABORT);
 
@@ -111,10 +130,15 @@ Java_com_ryanspice_pocketmic_OpusEncoder_nativeEncode(
 }
 
 JNIEXPORT void JNICALL
-Java_com_ryanspice_pocketmic_OpusEncoder_nativeDestroy(
+Java_com_canopydigital_pocketmic_OpusEncoder_nativeDestroy(
     JNIEnv *env, jobject thiz, jlong handle)
 {
     if (handle != 0) {
-        opus_encoder_destroy((OpusEncoder *)(intptr_t)handle);
+        PocketMicOpusEncoder *owner = (PocketMicOpusEncoder *)(intptr_t)handle;
+        if (owner->encoder != NULL) {
+            opus_encoder_destroy(owner->encoder);
+            owner->encoder = NULL;
+        }
+        free(owner);
     }
 }

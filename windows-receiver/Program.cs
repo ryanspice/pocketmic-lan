@@ -100,6 +100,7 @@ internal sealed class MainForm : Form
     private const int DefaultPrebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
 
     private readonly PocketMicEngine _engine = new();
+    private readonly CaptureDefaultRouting _captureRouting = DefaultDeviceSwitcher.CreateRoutingController();
 
     private readonly TextBox _portText = new() { Text = "49500", Width = 110 };
     private readonly TextBox _keyText = new() { Width = 280, UseSystemPasswordChar = true };
@@ -122,7 +123,14 @@ internal sealed class MainForm : Form
         Value = DefaultPrebufferMilliseconds,
     };
 
+    private readonly CheckBox _automaticBufferingCheck = new()
+    {
+        Text = "Automatic buffer (slider is the minimum)",
+        AutoSize = true,
+        Checked = true,
+    };
     private readonly Label _bufferLabel = new() { AutoSize = true };
+    private readonly Label _effectiveBufferLabel = new() { AutoSize = true };
     private readonly CheckBox _minimizeToTrayCheck = new()
     {
         Text = "Close to tray instead of exiting",
@@ -158,8 +166,8 @@ internal sealed class MainForm : Form
         Enabled = false,
     };
 
-    private string? _previousDefaultCaptureId;
-    private bool _isDefaultMic;
+    private CaptureDefaultRoute? _activeCaptureRoute;
+    private string? _activeCaptureRouteName;
 
     // Routing the stream into a virtual cable makes it available to other applications but
     // silences it for the person running PocketMic, because a cable is not a speaker. The
@@ -219,6 +227,9 @@ internal sealed class MainForm : Form
 
     private Task? _stoppingTask;
     private bool _handlingFault;
+    private bool _restoringMonitorSelection;
+    private bool _applyingVoiceControls;
+    private bool _reflectingPhoneDsp;
     private bool _closing;
     private long _runId;
 
@@ -302,16 +313,20 @@ internal sealed class MainForm : Form
         root.Controls.Add(_routingLabel);
         root.Controls.Add(_makeDefaultMicButton);
         _makeDefaultMicButton.Click += (_, _) => MakeVirtualCableDefaultMicrophone();
+        _outputCombo.SelectedIndexChanged += (_, _) => DescribeRouting(_outputCombo.SelectedItem as DeviceItem);
         root.Controls.Add(_autoListenCheck);
         root.Controls.Add(_minimizeToTrayCheck);
         _advancedControls.AddRange(new Control[] { connectionGrid, _autoListenCheck, _minimizeToTrayCheck });
 
         var bufferSection = SectionLabel("Jitter buffer");
         root.Controls.Add(bufferSection);
+        root.Controls.Add(_automaticBufferingCheck);
         root.Controls.Add(_bufferLabel);
         root.Controls.Add(_bufferSlider);
+        root.Controls.Add(_effectiveBufferLabel);
         _bufferSlider.ValueChanged += (_, _) => ApplyBufferSetting();
-        _advancedControls.AddRange(new Control[] { bufferSection, _bufferLabel, _bufferSlider });
+        _automaticBufferingCheck.CheckedChanged += (_, _) => ApplyBufferSetting();
+        _advancedControls.AddRange(new Control[] { bufferSection, _automaticBufferingCheck, _bufferLabel, _bufferSlider, _effectiveBufferLabel });
 
         var voiceSection = SectionLabel("Voice processing");
         root.Controls.Add(voiceSection);
@@ -319,8 +334,15 @@ internal sealed class MainForm : Form
         root.Controls.Add(_voiceStrengthLabel);
         root.Controls.Add(_voiceStrength);
         _advancedControls.AddRange(new Control[] { voiceSection, _voiceEnhanceCheck, _voiceStrengthLabel, _voiceStrength });
-        _voiceEnhanceCheck.CheckedChanged += (_, _) => ApplyVoiceSetting();
-        _voiceStrength.ValueChanged += (_, _) => ApplyVoiceSetting();
+        _voiceEnhanceCheck.CheckedChanged += (_, _) =>
+        {
+            if (!_applyingVoiceControls && !_reflectingPhoneDsp) ApplyVoiceSetting();
+        };
+        _voiceStrength.ValueChanged += (_, _) =>
+        {
+            if (!_applyingVoiceControls && !_reflectingPhoneDsp)
+                ApplyVoiceSetting(selectDesktopPreset: true);
+        };
 
         SubscribeToEngine();
         PopulateOutputs();
@@ -392,23 +414,46 @@ internal sealed class MainForm : Form
 
     private void DescribeRouting(DeviceItem? device)
     {
-        if (device is null) return;
-        var name = device.ToString();
-        var isCable = VirtualCableHints.Any(h => name.Contains(h, StringComparison.OrdinalIgnoreCase));
-
-        if (isCable)
+        if (_activeCaptureRoute is not null)
         {
-            _routingLabel.Text =
-                $"Routing through \"{name}\" — other apps can select PocketMic as a microphone.";
+            _routingLabel.Text = $"Windows default microphone remains \"{_activeCaptureRouteName ?? "the previously selected virtual endpoint"}\". If playback now goes somewhere else, destination apps will not receive PocketMic audio. Restore before routing a different cable.";
             _routingLabel.ForeColor = Color.DarkGreen;
-            _makeDefaultMicButton.Enabled = DefaultDeviceSwitcher.FindVirtualCaptureDevice() is not null;
+            _makeDefaultMicButton.Enabled = true;
+            _makeDefaultMicButton.Text = "Restore previous Windows microphone";
+            return;
         }
-        else
+
+        var renderName = device is null
+            ? null
+            : device.DeviceNumber < 0 ? DefaultDeviceSwitcher.DefaultRenderFriendlyName() : device.Name;
+        if (!string.IsNullOrWhiteSpace(renderName))
         {
-            _routingLabel.Text =
-                $"Playing to \"{name}\". This is audible here but not available to other apps as a microphone.";
+            var resolution = DefaultDeviceSwitcher.ResolveCaptureForRenderName(renderName);
+            if (resolution.Endpoint is { } endpoint)
+            {
+                _routingLabel.Text = $"\"{renderName}\" maps to the matching microphone endpoint \"{endpoint.FriendlyName}\". You can route Windows defaults to that microphone.";
+                _routingLabel.ForeColor = Color.DarkGreen;
+                _makeDefaultMicButton.Enabled = true;
+                _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
+                return;
+            }
+
+            var expected = CaptureEndpointMatcher.ExpectedCaptureName(renderName);
+            _routingLabel.Text = expected is null
+                ? $"Playing to \"{renderName}\". PocketMic cannot confirm a matching microphone endpoint for this output; select the microphone manually in the destination app."
+                : resolution.Matches.Count > 1
+                    ? $"More than one microphone endpoint is named \"{expected}\". Automatic routing is disabled; choose the correct microphone manually."
+                    : $"The matching microphone endpoint \"{expected}\" is not active. Automatic routing is disabled; select a microphone manually in Windows Sound settings.";
             _routingLabel.ForeColor = Color.DarkOrange;
+            _makeDefaultMicButton.Enabled = false;
+            _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
+            return;
         }
+
+        _routingLabel.Text = "No active playback output could be identified. Select a microphone manually in the destination app.";
+        _routingLabel.ForeColor = Color.DarkOrange;
+        _makeDefaultMicButton.Enabled = false;
+        _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
     }
 
     private void AutoSelectVirtualCable()
@@ -421,19 +466,13 @@ internal sealed class MainForm : Form
                 if (device.ToString().Contains(hint, StringComparison.OrdinalIgnoreCase))
                 {
                     _outputCombo.SelectedItem = item;
-                    _routingLabel.Text =
-                        $"Routing through \"{device}\" — select its matching Output device as your microphone in Discord, OBS, or Teams.";
-                    _routingLabel.ForeColor = Color.DarkGreen;
-                    _makeDefaultMicButton.Enabled = DefaultDeviceSwitcher.FindVirtualCaptureDevice() is not null;
+                    DescribeRouting(device);
                     return;
                 }
             }
         }
 
-        _routingLabel.Text =
-            "No virtual audio cable detected. Audio will play through speakers only. " +
-            "To use PocketMic as a microphone in other apps, install VB-CABLE (vb-audio.com/Cable) and restart this app.";
-        _routingLabel.ForeColor = Color.DarkOrange;
+        DescribeRouting(_outputCombo.SelectedItem as DeviceItem);
     }
 
     /// <summary>
@@ -447,57 +486,52 @@ internal sealed class MainForm : Form
     /// </summary>
     private void MakeVirtualCableDefaultMicrophone()
     {
-        var device = DefaultDeviceSwitcher.FindVirtualCaptureDevice();
-        if (device is null)
+        if (_activeCaptureRoute is { } activeRoute)
         {
-            MessageBox.Show(
-                this,
-                "No virtual audio cable recording device was found.\r\n\r\n" +
-                "Install VB-CABLE from vb-audio.com/Cable, reboot, then restart PocketMic.",
-                "PocketMic",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
-            return;
-        }
-
-        // Toggle back if we already redirected it.
-        if (_isDefaultMic)
-        {
-            var restoreError = "No previous microphone was recorded to restore.";
-            var restored = _previousDefaultCaptureId is not null &&
-                DefaultDeviceSwitcher.TrySetDefaultCapture(_previousDefaultCaptureId, out restoreError);
-
-            if (restored)
+            if (_captureRouting.TryRestore(activeRoute, onlyIfStillTarget: false, out var restoreError))
             {
-                _isDefaultMic = false;
+                _activeCaptureRoute = null;
+                _activeCaptureRouteName = null;
                 _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
-                _routingLabel.Text = "Previous Windows microphone restored.";
+                DescribeRouting(_outputCombo.SelectedItem as DeviceItem);
+                _routingLabel.Text = "The previous Windows microphone assignment has been restored for each role.";
                 _routingLabel.ForeColor = Color.DimGray;
             }
             else
             {
-                MessageBox.Show(this, restoreError, "PocketMic", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, restoreError, "Could not restore Windows microphone", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-
             return;
         }
 
-        _previousDefaultCaptureId ??= DefaultDeviceSwitcher.CurrentDefaultCaptureId();
-
-        if (DefaultDeviceSwitcher.TrySetDefaultCapture(device.ID, out var error))
+        var selected = _outputCombo.SelectedItem as DeviceItem;
+        var renderName = selected is null
+            ? null
+            : selected.DeviceNumber < 0 ? DefaultDeviceSwitcher.DefaultRenderFriendlyName() : selected.Name;
+        var resolution = string.IsNullOrWhiteSpace(renderName)
+            ? new CaptureEndpointResolution(string.Empty, Array.Empty<CaptureEndpointInfo>())
+            : DefaultDeviceSwitcher.ResolveCaptureForRenderName(renderName);
+        if (resolution.Endpoint is not { } endpoint)
         {
-            _isDefaultMic = true;
-            _routingLabel.Text =
-                $"\"{device.FriendlyName}\" is now the Windows default microphone. " +
-                "Apps set to System Default will hear your phone.";
+            DescribeRouting(selected);
+            MessageBox.Show(this, _routingLabel.Text, "No unambiguous matching microphone", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        if (_captureRouting.TryRouteTo(endpoint.Id, out var route, out var error) && route is not null)
+        {
+            _activeCaptureRoute = route;
+            _activeCaptureRouteName = endpoint.FriendlyName;
+            _routingLabel.Text = $"\"{endpoint.FriendlyName}\" is now the Windows default microphone for all three roles. Apps using System Default can receive PocketMic audio.";
             _routingLabel.ForeColor = Color.DarkGreen;
             _makeDefaultMicButton.Text = "Restore previous Windows microphone";
+            _makeDefaultMicButton.Enabled = true;
         }
         else
         {
             MessageBox.Show(
                 this,
-                $"Could not change the default recording device.\r\n\r\n{error}\r\n\r\n" +
+                $"Could not change the default recording device safely.\r\n\r\n{error}\r\n\r\n" +
                 "You can set it manually in Windows Sound settings instead.",
                 "PocketMic",
                 MessageBoxButtons.OK,
@@ -526,10 +560,21 @@ internal sealed class MainForm : Form
         _keyText.Text = _settings.PairingKey;
         _autoListenCheck.Checked = _settings.AutoListen;
         _minimizeToTrayCheck.Checked = _settings.MinimizeToTray;
-        _bufferSlider.Value = Math.Clamp(_settings.PrebufferMilliseconds, _bufferSlider.Minimum, _bufferSlider.Maximum);
+        var savedBuffer = Math.Clamp(_settings.PrebufferMilliseconds, _bufferSlider.Minimum, _bufferSlider.Maximum);
+        var savedAutomaticBuffering = _settings.AutomaticBuffering;
+        _automaticBufferingCheck.Checked = savedAutomaticBuffering;
+        _bufferSlider.Value = savedBuffer;
         ApplyBufferSetting();
-        _voiceEnhanceCheck.Checked = _settings.VoiceEnhance;
-        _voiceStrength.Value = Math.Clamp(_settings.VoiceStrength, _voiceStrength.Minimum, _voiceStrength.Maximum);
+        _applyingVoiceControls = true;
+        try
+        {
+            _voiceEnhanceCheck.Checked = _settings.VoiceEnhance;
+            _voiceStrength.Value = Math.Clamp(_settings.VoiceStrength, _voiceStrength.Minimum, _voiceStrength.Maximum);
+        }
+        finally
+        {
+            _applyingVoiceControls = false;
+        }
         ApplyVoiceSetting();
 
         var restored = false;
@@ -564,14 +609,43 @@ internal sealed class MainForm : Form
         AutoSelectMonitorDevice();
         _monitorCheck.CheckedChanged += (_, _) =>
         {
-            _settings.MonitorEnabled = _monitorCheck.Checked;
-            _monitorCombo.Enabled = _monitorCheck.Checked;
+            var requested = _monitorCheck.Checked;
             // Apply live rather than only at the next start: the speakers must go quiet the
             // moment the box is unticked, not whenever the receiver happens to restart.
-            _engine.MonitorEnabled = _monitorCheck.Checked;
+            _engine.MonitorEnabled = requested;
+            if (requested && !_engine.MonitorEnabled)
+            {
+                _restoringMonitorSelection = true;
+                _monitorCheck.Checked = false;
+                _restoringMonitorSelection = false;
+                AutoSelectMonitorDevice();
+                MessageBox.Show(this, _engine.LastMonitorError ?? "The monitor output could not be opened.", "Monitor output unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            _monitorCombo.Enabled = _monitorCheck.Checked;
+            _settings.MonitorEnabled = _engine.MonitorEnabled;
             _settings.Save();
         };
         _monitorCombo.Enabled = _monitorCheck.Checked;
+        _monitorCombo.SelectedIndexChanged += (_, _) =>
+        {
+            if (_restoringMonitorSelection || !_engine.IsRunning) return;
+            if (_monitorCombo.SelectedItem is not DeviceItem selected) return;
+
+            if (!_engine.TrySetMonitorDevice(selected.DeviceNumber, out var error))
+            {
+                RestoreMonitorDeviceSelection(_engine.MonitorDeviceNumber);
+                MessageBox.Show(this, error, "Monitor output unchanged", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Save only after a live monitor opened on this device. When monitoring is off,
+            // leave the last working device saved until the next successful open.
+            if (_monitorCheck.Checked && _engine.MonitorEnabled)
+            {
+                _settings.MonitorDevice = selected.ToString();
+                _settings.Save();
+            }
+        };
 
         _autoListenCheck.CheckedChanged += (_, _) =>
         {
@@ -616,6 +690,7 @@ internal sealed class MainForm : Form
             {
                 if (runId != _runId || !_engine.IsRunning) return;
                 _statsLabel.Text = text;
+                UpdateEffectiveBufferLabel();
             });
         };
 
@@ -636,11 +711,14 @@ internal sealed class MainForm : Form
             PostUi(() =>
             {
                 if (runId != _runId) return;
-                // Setting the checkbox re-runs ApplyVoiceSetting, which would overwrite the
-                // label with the strength descriptor, so the custom text is written after it.
-                _voiceEnhanceCheck.Checked = dsp.Enabled;
+                // The processor already applied the phone config. Reflecting its enabled state
+                // must not be interpreted as a desktop preset override.
+                _reflectingPhoneDsp = true;
+                try { _voiceEnhanceCheck.Checked = dsp.Enabled; }
+                finally { _reflectingPhoneDsp = false; }
+                ApplyVoiceSetting();
                 _voiceStrengthLabel.Text =
-                    $"Custom (from phone) — HPF {dsp.HighPassHz} Hz · gate {dsp.Gate * 100:F0}% · " +
+                    $"Custom (from phone; move Strength to use desktop preset) — HPF {dsp.HighPassHz} Hz · gate {dsp.Gate * 100:F0}% · " +
                     $"comp {dsp.Compressor * 100:F0}% · presence {dsp.PresenceDb:F1} dB";
             });
         };
@@ -666,7 +744,7 @@ internal sealed class MainForm : Form
         _engine.LinkQualityChanged += (_, assessment) =>
         {
             var runId = _runId;
-            var text = $"Link: {assessment.Tier} — {assessment.Action} — {assessment.Prebuffer}ms buffer, {assessment.ConcealmentPackets} pkt concealment";
+            var text = $"Link: {assessment.Tier} — {assessment.Action} — recommends {assessment.Prebuffer} ms, {assessment.ConcealmentPackets} pkt concealment";
             PostUi(() =>
             {
                 if (runId != _runId) return;
@@ -689,6 +767,23 @@ internal sealed class MainForm : Form
             _settings.MonitorDevice = (_monitorCombo.SelectedItem as DeviceItem)?.ToString() ?? string.Empty;
             _settings.Save();
         };
+
+        _engine.MonitorFailed += (_, message) =>
+        {
+            var runId = _runId;
+            PostUi(() =>
+            {
+                if (runId != _runId || !_engine.IsRunning) return;
+                _restoringMonitorSelection = true;
+                _monitorCheck.Checked = false;
+                _restoringMonitorSelection = false;
+                _monitorCombo.Enabled = false;
+                _settings.MonitorEnabled = false;
+                _settings.Save();
+                AutoSelectMonitorDevice();
+                MessageBox.Show(this, message, "Monitor output unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            });
+        };
     }
 
     private static Color StatusColor(EngineStatus status) => status switch
@@ -707,27 +802,36 @@ internal sealed class MainForm : Form
     };
 
     /// <summary>
-    /// The buffer is the direct latency/robustness trade: more of it absorbs jitter spikes that
-    /// would otherwise become dropouts, at the cost of delay. The measured worst-case gap on
-    /// this network is around 250 ms, so anything below that will still drop out occasionally.
+    /// In automatic mode the slider is the user's minimum target. In manual mode it is the exact
+    /// playback prebuffer target. The effective target is displayed independently below.
     /// </summary>
     private void ApplyBufferSetting()
     {
-        _engine.PrebufferMilliseconds = _bufferSlider.Value;
+        _engine.ConfigureBuffering(
+            _automaticBufferingCheck.Checked,
+            _bufferSlider.Value,
+            _bufferSlider.Maximum);
 
-        var prebuffer = _engine.PrebufferMilliseconds;
-        var descriptor = prebuffer switch
+        var selected = _bufferSlider.Value;
+        var descriptor = selected switch
         {
-            < 70 => "lowest latency, expect dropouts on Wi-Fi",
-            < 120 => "balanced",
-            < 200 => "stable",
-            _ => "most robust, noticeably delayed",
+            < 70 => "lower target",
+            < 120 => "moderate target",
+            < 200 => "higher target",
+            _ => "high target",
         };
-        _bufferLabel.Text = $"Buffer {prebuffer} ms — {descriptor}   (trim above {_engine.HighWaterMilliseconds} ms)";
+        _bufferLabel.Text = _automaticBufferingCheck.Checked
+            ? $"Minimum buffer {selected} ms — {descriptor}"
+            : $"Manual buffer {selected} ms — {descriptor}";
+        UpdateEffectiveBufferLabel();
 
-        _settings.PrebufferMilliseconds = prebuffer;
+        _settings.PrebufferMilliseconds = selected;
+        _settings.AutomaticBuffering = _automaticBufferingCheck.Checked;
         _settings.Save();
     }
+
+    private void UpdateEffectiveBufferLabel() =>
+        _effectiveBufferLabel.Text = $"Effective playback prebuffer: {_engine.PrebufferMilliseconds} ms (trim above {_engine.HighWaterMilliseconds} ms)";
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
@@ -742,8 +846,30 @@ internal sealed class MainForm : Form
             return;
         }
 
-        _trayIcon.Visible = false;
         base.OnFormClosing(e);
+        if (e.Cancel) return;
+
+        _trayIcon.Visible = false;
+        RestoreOwnedMicrophoneRouteOnExit();
+    }
+
+    private void RestoreOwnedMicrophoneRouteOnExit()
+    {
+        if (_activeCaptureRoute is not { } route) return;
+
+        if (_captureRouting.TryRestore(route, onlyIfStillTarget: true, out var error))
+        {
+            _activeCaptureRoute = null;
+            _activeCaptureRouteName = null;
+            return;
+        }
+
+        MessageBox.Show(
+            this,
+            $"PocketMic could not fully restore the Windows microphone assignments before exiting.\r\n\r\n{error}",
+            "Check Windows microphone settings",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Warning);
     }
 
     protected override void Dispose(bool disposing)
@@ -779,10 +905,13 @@ internal sealed class MainForm : Form
         if (!advanced && Height > 560) Height = 480;
     }
 
-    private void ApplyVoiceSetting()
+    private void ApplyVoiceSetting(bool selectDesktopPreset = false)
     {
         _engine.VoiceEnabled = _voiceEnhanceCheck.Checked;
-        _engine.VoiceStrength = _voiceStrength.Value / 100f;
+        if (selectDesktopPreset)
+            _engine.SelectVoicePreset(_voiceStrength.Value / 100f);
+        else
+            _engine.VoiceStrength = _voiceStrength.Value / 100f;
         _voiceStrength.Enabled = _voiceEnhanceCheck.Checked;
 
         var descriptor = _voiceStrength.Value switch
@@ -916,6 +1045,31 @@ internal sealed class MainForm : Form
         }
 
         _monitorCombo.SelectedIndex = 0;
+    }
+
+    private void RestoreMonitorDeviceSelection(int? deviceNumber)
+    {
+        _restoringMonitorSelection = true;
+        try
+        {
+            if (deviceNumber is { } number)
+            {
+                foreach (var item in _monitorCombo.Items)
+                {
+                    if (item is DeviceItem device && device.DeviceNumber == number)
+                    {
+                        _monitorCombo.SelectedItem = item;
+                        return;
+                    }
+                }
+            }
+
+            AutoSelectMonitorDevice();
+        }
+        finally
+        {
+            _restoringMonitorSelection = false;
+        }
     }
 
     private void RefreshLocalAddresses()
@@ -1195,7 +1349,7 @@ internal sealed class MainForm : Form
 
     private static string FormatStats(EngineStats stats) =>
         $"Packets: {stats.Packets:N0}   Lost: {stats.Lost:N0}   Late: {stats.Late:N0}   " +
-        $"Rejected: {stats.Rejected:N0}   Trimmed: {stats.Trimmed:N0}   Buffer: {stats.BufferedMilliseconds:0} ms";
+        $"Rejected: {stats.Rejected:N0}   Trimmed: {stats.Trimmed:N0}   Queued audio: {stats.BufferedMilliseconds:0} ms";
 
     private void PostUi(Action action)
     {

@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [master]
+    branches: [master, 'codex/**']
   pull_request:
     branches: [master]
 
@@ -15,6 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Validate Android locale resources
+        run: python localization/validate_android_locales.py
 
       - uses: actions/setup-java@v4
         with:
@@ -62,7 +69,6 @@ jobs:
       - name: Run unit tests
         working-directory: android
         run: ./gradlew testDebugUnitTest
-        continue-on-error: true
 
       - name: Upload APK
         if: success()
@@ -90,20 +96,61 @@ jobs:
         working-directory: windows-receiver
         run: dotnet build --no-restore -c Release
 
-      - name: Run tests (core only, no opus.dll)
-        working-directory: windows-receiver-tests
-        run: dotnet test --filter "FullyQualifiedName!~OpusSmoke" --logger "trx;LogFileName=test-results.trx"
+      - name: Build pinned Opus 1.5.2 x64 shared library
+        shell: pwsh
+        run: |
+          $version = '1.5.2'
+          $archive = Join-Path $env:RUNNER_TEMP "opus-$version.tar.gz"
+          $source = Join-Path $env:RUNNER_TEMP "opus-$version-source"
+          $build = Join-Path $env:RUNNER_TEMP "opus-$version-build"
+          Invoke-WebRequest -Uri "https://downloads.xiph.org/releases/opus/opus-$version.tar.gz" -OutFile $archive
+          $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne '65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1') {
+            throw "Opus source checksum mismatch: $actual"
+          }
+          New-Item -ItemType Directory -Path $source -Force | Out-Null
+          tar -xzf $archive -C $source --strip-components=1
+          cmake --version
+          cmake -S $source -B $build -A x64 -DOPUS_BUILD_SHARED_LIBRARY=ON -DOPUS_BUILD_PROGRAMS=OFF -DOPUS_BUILD_TESTING=OFF -DOPUS_STATIC_RUNTIME=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
+          cmake --build $build --config Release --target opus --parallel
+          $opusDll = Get-ChildItem -LiteralPath $build -Filter opus.dll -File -Recurse | Select-Object -First 1
+          if (-not $opusDll -or $opusDll.Length -lt 100000) {
+            throw 'The pinned Opus build did not produce a valid x64 opus.dll.'
+          }
+          "POCKETMIC_OPUS_DLL=$($opusDll.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build Windows tests and stage Opus library
+        shell: pwsh
+        run: |
+          dotnet build windows-receiver-tests/PocketMicReceiver.Tests.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw "Windows test build exited with code $LASTEXITCODE." }
+          $testOutput = Join-Path $env:GITHUB_WORKSPACE 'windows-receiver-tests/bin/Release/net8.0-windows'
+          if (-not (Test-Path -LiteralPath $testOutput -PathType Container)) {
+            throw "Windows test output directory was not created: $testOutput"
+          }
+          Copy-Item -LiteralPath $env:POCKETMIC_OPUS_DLL -Destination (Join-Path $testOutput 'opus.dll') -Force
+
+      - name: Run full Windows test suite, including Opus smoke tests
+        shell: pwsh
+        run: |
+          dotnet test windows-receiver-tests/PocketMicReceiver.Tests.csproj -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+          if ($LASTEXITCODE -ne 0) { throw "Windows tests exited with code $LASTEXITCODE." }
+
+      - name: Publish self-contained Windows receiver package
+        shell: pwsh
+        run: |
+          .\scripts\publish-windows.ps1 `
+            -OutputDirectory 'windows-receiver/bin/Release/net8.0-windows/package' `
+            -ArchivePath 'windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver-win-x64.zip' `
+            -OpusDllPath $env:POCKETMIC_OPUS_DLL
 
       - name: Upload receiver
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: pocketmic-receiver-win-x64
-          path: |
-            windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver.exe
-            windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver.dll
-            windows-receiver-core/bin/Release/net8.0-windows/PocketMicReceiver.Core.dll
-          retention-days: 14
+          path: windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver-win-x64.zip
+          retention-days: 30
 
   web:
     name: Web — validate
@@ -115,45 +162,19 @@ jobs:
         with:
           node-version: 20
 
-      - name: Validate JS syntax
-        run: node --check web/app.js
-
-      - name: Check for stale version references
+      - name: Validate homepage and shared JavaScript syntax
         run: |
-          if grep -q 'v0\\.1\\.[0-3][^0-9]' web/index.html; then
-            echo "ERROR: Found stale version references in index.html"
-            grep -n 'v0\\.1\\.[0-3][^0-9]' web/index.html
-            exit 1
-          fi
-          echo "Version strings clean"
+          node --check dev/v3/assets/marketing-home.js
+          node --check dev/v3/assets/subsite.js
+          node --check dev/v3/assets/site-locale.js
 
-      - name: Check HTML structure
-        run: |
-          # Must have exactly one h1
-          h1_count=$(grep -c '<h1' web/index.html || echo 0)
-          if [ "$h1_count" -ne 1 ]; then
-            echo "ERROR: Expected 1 h1, found $h1_count"
-            exit 1
-          fi
-          echo "h1 count: $h1_count ✓"
+      - name: Validate canonical marketing site, routes, hooks, and release metadata
+        run: node scripts/validate-site-release.mjs
 
-          # Must have canonical URL
-          if ! grep -q 'rel="canonical"' web/index.html; then
-            echo "ERROR: Missing canonical URL"
-            exit 1
-          fi
-          echo "canonical ✓"
-
-          # Must have OG tags
-          if ! grep -q 'og:title' web/index.html; then
-            echo "ERROR: Missing OG tags"
-            exit 1
-          fi
-          echo "OG tags ✓"
-
-          # Must have JSON-LD
-          if ! grep -q 'application/ld+json' web/index.html; then
-            echo "ERROR: Missing JSON-LD"
-            exit 1
-          fi
-          echo "JSON-LD ✓"
+      - name: Upload canonical marketing-site preview
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketmic-website-preview
+          path: dev/v3/
+          retention-days: 30

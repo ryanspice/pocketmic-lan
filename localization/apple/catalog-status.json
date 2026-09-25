@@ -1,0 +1,27 @@
+{
+  "platforms": ["ios", "macos"],
+  "defaultLocale": "en-CA",
+  "locales": {
+    "en-CA": {
+      "status": "source",
+      "reviewed": false,
+      "notes": "Canadian English source locale and development-region fallback."
+    },
+    "en-US": {
+      "status": "target",
+      "reviewed": false,
+      "notes": "Apple catalog has separate locale slots, but regional copy has not been adapted or reviewed; do not claim support yet."
+    },
+    "ckb": {
+      "status": "draft",
+      "reviewed": false,
+      "notes": "Central Kurdish (Sorani), RTL. Draft Apple strings use Android terminology for consistency and need fluent linguistic and device-layout review."
+    },
+    "kmr": {
+      "status": "draft",
+      "reviewed": false,
+      "appleCatalogLocale": "ku-Latn",
+      "notes": "Northern Kurdish (Kurmanji), LTR. Apple builds this catalog as ku-Latn to preserve the Latin-script distinction; draft strings use Android terminology for consistency and need fluent linguistic and device-layout review."
+    }
+  }
+}

@@ -120,4 +120,25 @@ public class VoiceProcessorTests
         // Should reach here without any exception.
         Assert.True(true);
     }
+
+    [Fact]
+    public void DeliberateDesktopPresetSelectionLeavesPhoneCustomMode()
+    {
+        var processor = new VoiceProcessor();
+        processor.Apply(new DspConfig(
+            Enabled: true,
+            HighPassHz: 220,
+            Gate: 0.2f,
+            Compressor: 0.3f,
+            PresenceDb: 9f,
+            Makeup: 0.4f,
+            NoiseReduction: 0.5f));
+
+        processor.SelectPresetStrength(0.8f);
+
+        Assert.False(processor.UseCustom);
+        Assert.Equal(0.8f, processor.Strength);
+        Assert.Equal(85f, processor.HighPassFrequencyHz);
+        Assert.Equal(3.5f, processor.PresenceGainDb);
+    }
 }

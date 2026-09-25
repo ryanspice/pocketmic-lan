@@ -7,15 +7,15 @@ plugins {
 }
 
 android {
-    namespace = "com.ryanspice.pocketmic"
+    namespace = "com.canopydigital.pocketmic"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "com.ryanspice.pocketmic"
+        applicationId = "com.canopydigital.pocketmic"
         minSdk = 26
         targetSdk = 36
-        versionCode = 5
-        versionName = "0.1.5"
+        versionCode = 6
+        versionName = "0.1.6"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")

@@ -296,6 +296,45 @@ public class AdaptiveJitterBufferTest
         Assert.Equal(0, buf.DriftRateMsPerSec);
     }
 
+    [Theory]
+    [InlineData(100.0)]
+    [InlineData(-100.0)]
+    public void Drift_Rate_Uses_Chronological_Timestamps_After_Ring_Wrap(double expectedRateMsPerSec)
+    {
+        var buf = new AdaptiveJitterBuffer();
+        const double packetIntervalMs = 10.0;
+        var start = Stopwatch.GetTimestamp();
+        var ticks = new long[1501];
+
+        for (var i = 0; i < ticks.Length; i++)
+        {
+            var elapsedMs = i * packetIntervalMs;
+            ticks[i] = start + MsToTicks(elapsedMs);
+            var depthMs = 1000.0 + expectedRateMsPerSec * elapsedMs / 1000.0;
+            buf.RecordPacket(ticks[i], depthMs);
+        }
+
+        Assert.InRange(buf.DriftRateMsPerSec, expectedRateMsPerSec - 0.5, expectedRateMsPerSec + 0.5);
+    }
+
+    [Fact]
+    public void Drift_Rate_Uses_Elapsed_Time_When_Packet_Sampling_Cadence_Varies()
+    {
+        var buf = new AdaptiveJitterBuffer();
+        var start = Stopwatch.GetTimestamp();
+        var elapsedMs = 0.0;
+
+        for (var i = 0; i < 1200; i++)
+        {
+            elapsedMs += i % 2 == 0 ? 8.0 : 12.0;
+            var tick = start + MsToTicks(elapsedMs);
+            var depthMs = 500.0 + 25.0 * elapsedMs / 1000.0;
+            buf.RecordPacket(tick, depthMs);
+        }
+
+        Assert.InRange(buf.DriftRateMsPerSec, 24.5, 25.5);
+    }
+
     // -- Default value test --------------------------------------------------
 
     [Fact]

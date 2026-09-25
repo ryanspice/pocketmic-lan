@@ -1,0 +1,52 @@
+{
+  "sourceLanguage" : "en-CA",
+  "strings" : {
+    "NSLocalNetworkUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ckb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "PocketMic تۆڕی ناوخۆییەکەت بەکاردەهێنێت بۆ ناردن یان وەرگرتنی دەنگی مایکرۆفۆنی بە نهێنی لەگەڵ ئامێرێکی هاوبەشکراوی PocketMic."
+          }
+        },
+        "en-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PocketMic uses your local network to send or receive encrypted microphone audio with a paired PocketMic device."
+          }
+        },
+        "ku-Latn" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "PocketMic tora xwe ya herêmî ji bo şandin an wergirtina dengê mîkrofonê yê şîfrekirî bi amûrekî PocketMic yê hevketî bi kar tîne."
+          }
+        }
+      }
+    },
+    "NSMicrophoneUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "ckb" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "PocketMic دەنگی تۆ دەگرێت و لەسەر تۆڕی ناوخۆیی بۆ وەرگری PocketMic دەنێرێت."
+          }
+        },
+        "en-US" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PocketMic captures your voice and streams it to a PocketMic receiver over your local network."
+          }
+        },
+        "ku-Latn" : {
+          "stringUnit" : {
+            "state" : "needs_review",
+            "value" : "PocketMic dengê te digire û bi riya tora xwe ya herêmî dişîne wergirekî PocketMic."
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

@@ -213,6 +213,43 @@ public class AnalyticsTests
     }
 
     [Fact]
+    public void SessionReportCanBeExportedWhileRecorderIsStillAppending()
+    {
+        var header = new SessionHeader(
+            DateTimeOffset.UtcNow,
+            "192.168.1.42:49500",
+            "TEST-PC",
+            "192.168.1.0/24",
+            "CABLE Input",
+            "Speakers",
+            100,
+            200,
+            VoiceEnhanceEnabled: true,
+            VoiceStrength: 60,
+            ProtocolVersion: "v1");
+        var recorder = new SessionRecorder(header);
+        var outputPath = Path.Combine(Path.GetTempPath(), $"pocketmic-session-{Guid.NewGuid():N}.md");
+
+        try
+        {
+            recorder.AppendEvent(new SessionEventRecord(DateTimeOffset.UtcNow, "test", "active recorder export"));
+
+            // The recorder is deliberately still open here, matching Export during a live run.
+            SessionReportWriter.WriteMarkdown(recorder.FilePath, outputPath);
+
+            var report = File.ReadAllText(outputPath);
+            Assert.Contains("TEST-PC", report);
+            Assert.Contains("active recorder export", report);
+        }
+        finally
+        {
+            recorder.Dispose();
+            if (File.Exists(recorder.FilePath)) File.Delete(recorder.FilePath);
+            if (File.Exists(outputPath)) File.Delete(outputPath);
+        }
+    }
+
+    [Fact]
     public void TheBuildVersionComesFromTheAssemblyRatherThanAConstant()
     {
         var version = ReceiverBuild.VersionOf(typeof(AnalyticsCollector).Assembly);

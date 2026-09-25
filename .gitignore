@@ -12,6 +12,10 @@ android/.gradle/
 android/app/build/
 android/build/
 
+# Generated iOS Xcode project and Info.plist
+ios/PocketMic.xcodeproj/
+ios/Generated/
+
 # OS
 .DS_Store
 Thumbs.db

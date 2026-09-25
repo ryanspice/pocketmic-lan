@@ -2,6 +2,8 @@
 
 [![Version](https://img.shields.io/badge/version-v0.1.5-b88a3b)](https://github.com/ryanspice/pocketmic-lan/releases)
 [![CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml)
+[![iOS CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ios.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ios.yml)
+[![macOS CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/macos.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/macos.yml)
 [![Lighthouse](https://github.com/ryanspice/pocketmic-lan/actions/workflows/lighthouse.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/lighthouse.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows-blue)]()
@@ -27,6 +29,7 @@ PocketMic turns an Android phone into an encrypted wireless microphone for a Win
 |-----------|-------|-------------|
 | Android transmitter | Kotlin, Jetpack Compose | Foreground microphone service with QR pairing |
 | Windows receiver | C#/.NET 8, WinForms, NAudio 2.3 | Audio playback with voice processing |
+| macOS receiver preview | SwiftUI, CoreAudio Audio Server Plug-in | Unsigned PCM v1 receiver and virtual microphone under physical-Mac testing; see [macOS preview setup](macos/README.md) |
 | Wire protocol | UDP, AES-256-GCM | v1: PCM16 (768 kbit/s), v2: Opus (~106 kbit/s), 10 ms packets |
 | Control channel | HMAC-SHA256 | Discovery, statistics, DSP config on `audioPort + 1` |
 
@@ -77,15 +80,19 @@ The Android script uses the committed Gradle wrapper. Its default path runs the 
 
 Expected outputs:
 
+The Android helper derives the APK filename from Gradle's `versionName`; on this v0.1.6 candidate it is:
+
 ```text
-release\app-debug.apk
+release\PocketMic-v0.1.6-debug.apk
 release\PocketMicReceiver-win-x64.zip
 ```
 
 Install or update the Android app:
 
+The v0.1.6 candidate uses the new application ID `com.canopydigital.pocketmic`. It installs separately from the published v0.1.5 app (`com.ryanspice.pocketmic`); Android does not automatically move the old app's settings or pairing key. Keep v0.1.5 installed until the new app is working, then pair the v0.1.6 app again. `adb install -r` updates only an app with the same application ID.
+
 ```powershell
-adb install -r .\release\app-debug.apk
+adb install -r .\release\PocketMic-v0.1.6-debug.apk
 ```
 
 ### Faster rebuilds
@@ -122,7 +129,7 @@ Allow the selected UDP port on **Private networks** only. Default: `49500`.
 
 ## Verification
 
-The Android build runs Kotlin/JVM tests and lint by default. The Windows build runs 146 xUnit tests (100 existing + 6 Opus smoke + 21 protocol fixtures + 19 jitter buffer). Standalone protocol checks:
+The Android build runs Kotlin/JVM tests and lint by default. The Windows receiver suite includes native Opus smoke coverage, and hosted CI runs the Windows build and full test suite. Standalone protocol checks:
 
 ```powershell
 python .\tools\verify_protocol.py
@@ -169,13 +176,26 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 
 ## Current limits
 
-- Windows receiver only — no macOS or Linux yet
-- LAN discovery with manual IPv4 fallback and QR pairing
-- PCM uses more bandwidth than Opus (~768 kbit/s)
-- v0.1.5 adds Opus and adaptive jitter handling; end-to-end device validation remains open
-- No production-signed Android release, Windows installer, or auto-updater
+- iOS has an initial PCM streaming client in `ios/`. It uses SwiftUI and XcodeGen, so Windows contributors can edit it and rely on the macOS GitHub Actions runner to generate the Xcode project and build it. Pull requests and `codex/**` pushes build an unsigned simulator app; version tags and published GitHub releases produce an unsigned `.xcarchive`.
+- Windows receiver plus an unsigned macOS receiver and CoreAudio virtual-microphone preview; see [macOS tester setup](macos/README.md). No Linux receiver is included yet; Linux is planned after v0.1.6.
+- Android provides LAN discovery, QR pairing, and manual IPv4 fallback for Windows. The current iOS and macOS previews use manual pairing; iOS QR pairing and Mac receiver discovery are not implemented.
+- Windows supports PCM v1 and Opus v2 when `opus.dll` is present. The Mac receiver and initial iOS client use PCM v1; Opus is optional on Android. Physical codec/interoperability checks remain open.
+- Android, iOS, and macOS builds are unsigned previews; there is no Windows installer or automatic updater.
 - No internet relay — both devices must be on the same LAN
 - Designed for voice, not real-time music monitoring
+
+### iOS signing and TestFlight
+
+The iOS workflow does not sign or upload builds. To prepare a future signed TestFlight/App Store workflow, add these as encrypted GitHub Actions repository secrets under **Settings → Secrets and variables → Actions**:
+
+- `IOS_CERTIFICATE_P12_BASE64` — base64-encoded Apple Distribution `.p12` certificate.
+- `IOS_CERTIFICATE_PASSWORD` — password used to export that certificate.
+- `IOS_PROVISIONING_PROFILE_BASE64` — base64-encoded App Store provisioning profile for the app's bundle identifier.
+- `APP_STORE_CONNECT_API_KEY_ID` — App Store Connect API key ID.
+- `APP_STORE_CONNECT_ISSUER_ID` — App Store Connect issuer ID.
+- `APP_STORE_CONNECT_API_PRIVATE_KEY` — contents of the API key `.p8` file.
+
+An active Apple Developer Program membership and an App Store Connect app record are also required for TestFlight/App Store distribution. These secrets are not needed for the current unsigned CI builds. Do not commit certificates, profiles, or API keys to the repository.
 
 ## Project layout
 
@@ -183,7 +203,7 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 android/                 Kotlin Android transmitter
 windows-receiver/        C# WinForms receiver UI
 windows-receiver-core/   C# shared engine, audio pipeline, protocol
-windows-receiver-tests/  C# xUnit tests (100 tests)
+windows-receiver-tests/  C# xUnit tests (173 tests)
 scripts/                 PowerShell build, publish, and firewall helpers
 tools/                   Python protocol, logic, source, and web verification
 web/                     Static marketing site (HTML/CSS/JS, zero deps)

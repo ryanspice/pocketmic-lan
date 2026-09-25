@@ -1,0 +1,43 @@
+{
+  "platform": "website",
+  "defaultLocale": "en-CA",
+  "locales": {
+    "en-CA": {
+      "status": "source",
+      "reviewed": false,
+      "notes": "The complete site copy is Canadian English and remains the fallback."
+    },
+    "en-US": {
+      "status": "draft",
+      "reviewed": false,
+      "notes": "A clearly labelled preview applies US spelling for licence/licences and behaviour/behaviours across core pages. It is not a complete US editorial adaptation or a supported locale."
+    },
+    "es": { "status": "target", "reviewed": false },
+    "fr": { "status": "target", "reviewed": false },
+    "pt-BR": { "status": "target", "reviewed": false },
+    "de": { "status": "target", "reviewed": false },
+    "it": { "status": "target", "reviewed": false },
+    "nl": { "status": "target", "reviewed": false },
+    "pl": { "status": "target", "reviewed": false },
+    "tr": { "status": "target", "reviewed": false },
+    "ru": { "status": "target", "reviewed": false },
+    "uk": { "status": "target", "reviewed": false },
+    "ar": { "status": "target", "reviewed": false },
+    "hi": { "status": "target", "reviewed": false },
+    "id": { "status": "target", "reviewed": false },
+    "ja": { "status": "target", "reviewed": false },
+    "ko": { "status": "target", "reviewed": false },
+    "zh-Hans": { "status": "target", "reviewed": false },
+    "zh-Hant": { "status": "target", "reviewed": false },
+    "ckb": {
+      "status": "target",
+      "reviewed": false,
+      "notes": "Central Kurdish/Sorani site translation is not present."
+    },
+    "kmr": {
+      "status": "target",
+      "reviewed": false,
+      "notes": "Northern Kurdish/Kurmanji site translation is not present."
+    }
+  }
+}

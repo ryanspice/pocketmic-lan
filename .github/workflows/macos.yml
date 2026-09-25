@@ -1,0 +1,86 @@
+name: macOS
+
+on:
+  push:
+    branches: [master, 'codex/**']
+    tags: ['v*']
+  pull_request:
+    branches: [master]
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  macos:
+    name: macOS — app and virtual mic
+    runs-on: macos-26
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate Apple localization catalog
+        run: python3 localization/validate_apple_catalog.py
+
+      - name: Verify Xcode 26 or newer
+        run: |
+          xcodebuild -version
+          version="$(xcodebuild -version | awk '/^Xcode / { print $2 }')"
+          major="${version%%.*}"
+          if [[ "$major" -lt 26 ]]; then
+            echo "Xcode 26 or newer is required; found $version"
+            exit 1
+          fi
+
+      - name: Install XcodeGen
+        run: brew install cmake xcodegen
+
+      - name: Generate macOS project
+        run: xcodegen generate --spec macos/project.yml --project macos
+
+      - name: Test macOS protocol behavior
+        run: >-
+          xcodebuild test -project macos/PocketMicMac.xcodeproj -scheme PocketMicMac
+          -destination 'platform=macOS' -derivedDataPath build/macOS-tests
+          CODE_SIGNING_ALLOWED=NO
+
+      - name: Build unsigned macOS app
+        run: >-
+          xcodebuild -project macos/PocketMicMac.xcodeproj -scheme PocketMicMac
+          -configuration Release -destination 'platform=macOS'
+          -derivedDataPath build/macOS CODE_SIGNING_ALLOWED=NO
+          'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO build
+
+      - name: Verify macOS app localization bundle
+        run: python3 localization/verify_apple_bundle.py --platform macos build/macOS/Build/Products/Release/PocketMic.app
+
+      - name: Build universal virtual audio driver
+        run: |
+          cmake -S macos/driver -B build/macos-driver -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
+          cmake --build build/macos-driver --config Release --parallel
+
+      - name: Package tester artifact
+        run: |
+          mkdir -p build/artifact
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/macOS/Build/Products/Release/PocketMic.app \
+            build/artifact/PocketMic-macOS-unsigned.zip
+          ditto -c -k --sequesterRsrc --keepParent \
+            build/macos-driver/PocketMicVirtualMic.driver \
+            build/artifact/PocketMicVirtualMic-driver-unsigned.zip
+          cp macos/driver/install-driver.sh macos/driver/uninstall-driver.sh \
+            macos/driver/THIRD-PARTY-NOTICES.md macos/driver/LICENSE.libASPL \
+            build/artifact/
+          cp macos/README.md macos/TESTER-REPORT.md build/artifact/
+          (cd build/artifact && shasum -a 256 PocketMic-macOS-unsigned.zip PocketMicVirtualMic-driver-unsigned.zip > SHA256SUMS.txt)
+
+      - name: Verify packaged macOS preview artifacts
+        run: python3 scripts/verify_macos_artifacts.py build/artifact
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pocketmic-macos-preview-${{ github.sha }}
+          path: build/artifact/*
+          if-no-files-found: error
+          retention-days: 30

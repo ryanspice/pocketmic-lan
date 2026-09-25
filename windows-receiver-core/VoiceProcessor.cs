@@ -24,6 +24,8 @@ namespace PocketMicReceiver;
 public sealed class VoiceProcessor
 {
     private const float SampleRate = 48_000f;
+    private const float PresetHighPassHz = 85f;
+    private const float PresetPresenceDb = 3.5f;
 
     private readonly float[] _scratch = new float[960];
 
@@ -99,8 +101,35 @@ public sealed class VoiceProcessor
         }
     }
 
+    /// <summary>
+    /// Selects the desktop preset after a deliberate Strength adjustment. Phone-provided
+    /// per-filter Custom values stop overriding Strength, and the filter frequencies/gain
+    /// return to the desktop preset defaults.
+    /// </summary>
+    public void SelectPresetStrength(float strength)
+    {
+        UseCustom = false;
+        Strength = Math.Clamp(strength, 0f, 1f);
+
+        if (Math.Abs(_highPassHz - PresetHighPassHz) > 0.5f)
+        {
+            _highPassHz = PresetHighPassHz;
+            DesignHighPass(PresetHighPassHz);
+        }
+
+        if (Math.Abs(_presenceDb - PresetPresenceDb) > 0.05f)
+        {
+            _presenceDb = PresetPresenceDb;
+            DesignPresence(3_000f, PresetPresenceDb, 1.0f);
+        }
+    }
+
     private float _highPassHz = 85f;
     private float _presenceDb = 3.5f;
+
+    public float HighPassFrequencyHz => _highPassHz;
+
+    public float PresenceGainDb => _presenceDb;
 
     /// <summary>
     /// Optional native denoiser (e.g. RNNoise) operating in place on a 480-sample float frame

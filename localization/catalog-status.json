@@ -1,0 +1,26 @@
+{
+  "defaultLocale": "en-CA",
+  "platform": "android",
+  "locales": {
+    "en-CA": {
+      "status": "source",
+      "reviewed": false,
+      "notes": "Canadian English source copy and fallback; this status does not record independent editorial review."
+    },
+    "en-US": {
+      "status": "translated",
+      "reviewed": false,
+      "notes": "Android exposes a distinct en-US app language and uses American spelling where the copy differs; review remaining copy before claiming support."
+    },
+    "ckb": {
+      "status": "translated",
+      "reviewed": false,
+      "notes": "Central Kurdish (Sorani), Arabic script and RTL. Fluent review required before claiming support."
+    },
+    "kmr": {
+      "status": "translated",
+      "reviewed": false,
+      "notes": "Northern Kurdish (Kurmanji), Latin script and LTR. Fluent review required before claiming support."
+    }
+  }
+}

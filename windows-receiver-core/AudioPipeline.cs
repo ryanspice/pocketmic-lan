@@ -4,6 +4,14 @@ using System.Security.Cryptography;
 
 namespace PocketMicReceiver;
 
+/// <summary>Authenticated packet metadata needed to order a stream before stateful decode.</summary>
+public readonly record struct AudioPacketInfo(
+    ulong SessionId,
+    uint Sequence,
+    int SampleRate,
+    AudioPipeline.Codec Codec,
+    int PayloadLength);
+
 /// <summary>
 /// The packet and audio mathematics of the receiver, with no UI, no sockets and no state that
 /// outlives a call. Everything here is deterministic and directly testable, which matters
@@ -101,109 +109,105 @@ public static class AudioPipeline
         sequence = 0;
         sampleRate = 0;
 
-        var span = data.AsSpan();
-        if (span.Length < 5 || !span[..4].SequenceEqual(Magic)) return false;
+        var isV2 = data.Length >= 5 && data[4] == ProtocolVersionV2;
+        var authenticatedPayload = isV2 ? (opusBuffer ?? new byte[MaxOpusPayloadBytes]) : pcm;
+        if (!TryAuthenticate(aes, data, nonce, authenticatedPayload, out var packet)) return false;
 
-        var version = span[4];
-
-        // Dispatch to version-specific handling.
-        if (version == ProtocolVersionV2)
-        {
-            return TryDecryptV2(aes, data, nonce, pcm, opusDecoder,
-                out sessionId, out sequence, out sampleRate,
-                opusBuffer ?? new byte[MaxOpusPayloadBytes]);
-        }
-
-        // v1 path (original logic, preserved exactly).
-        if (version != ProtocolVersion) return false;
-        if (data.Length != DatagramBytes) return false;
-        if ((span[5] & FlagEncrypted) == 0) return false;
-        if (BinaryPrimitives.ReadUInt16BigEndian(span.Slice(6, 2)) != HeaderSize) return false;
-
-        sessionId = BinaryPrimitives.ReadUInt64BigEndian(span.Slice(8, 8));
-        sequence = BinaryPrimitives.ReadUInt32BigEndian(span.Slice(16, 4));
-        sampleRate = BinaryPrimitives.ReadInt32BigEndian(span.Slice(20, 4));
-
-        BinaryPrimitives.WriteUInt64BigEndian(nonce.AsSpan(0, 8), sessionId);
-        BinaryPrimitives.WriteUInt32BigEndian(nonce.AsSpan(8, 4), sequence);
-
-        try
-        {
-            aes.Decrypt(
-                nonce,
-                span.Slice(HeaderSize, PacketPcmBytes),
-                span.Slice(HeaderSize + PacketPcmBytes, TagSize),
-                pcm,
-                span[..HeaderSize]);
-            return true;
-        }
-        catch (CryptographicException)
-        {
-            return false;
-        }
+        sessionId = packet.SessionId;
+        sequence = packet.Sequence;
+        sampleRate = packet.SampleRate;
+        if (packet.Codec == Codec.Pcm) return true;
+        return pcm.Length >= PacketPcmBytes && opusDecoder is not null &&
+            opusDecoder.TryDecode(authenticatedPayload, packet.PayloadLength, pcm);
     }
 
     /// <summary>
-    /// Protocol v2 decryption and Opus decode. The decrypted payload is Opus-encoded
-    /// data; it is decoded to PCM16 and written to the caller's <c>pcm</c> buffer.
+    /// Validates packet structure and authenticates/decrypts its payload without invoking a
+    /// stateful codec. The caller must apply session and sequence policy before Opus decode.
     /// </summary>
-    private static bool TryDecryptV2(
+    public static bool TryAuthenticate(
         AesGcm aes,
         byte[] data,
         byte[] nonce,
-        byte[] pcm,
-        IOpusDecoder? opusDecoder,
-        out ulong sessionId,
-        out uint sequence,
-        out int sampleRate,
-        byte[] opusBuffer)
+        byte[] payload,
+        out AudioPacketInfo packet)
     {
-        sessionId = 0;
-        sequence = 0;
-        sampleRate = 0;
+        packet = default;
 
         var span = data.AsSpan();
-        if (data.Length < HeaderSizeV2 + TagSize) return false;
+        if (span.Length < 5 || !span[..4].SequenceEqual(Magic) || nonce.Length < 12) return false;
 
-        // Header fields common to all v2 packets.
-        if ((span[5] & FlagEncrypted) == 0) return false;
+        var version = span[4];
+        if (version == ProtocolVersion)
+        {
+            if (data.Length != DatagramBytes || payload.Length < PacketPcmBytes) return false;
+            if (span[5] != FlagEncrypted ||
+                BinaryPrimitives.ReadUInt16BigEndian(span.Slice(6, 2)) != HeaderSize) return false;
+
+            var sessionId = BinaryPrimitives.ReadUInt64BigEndian(span.Slice(8, 8));
+            var sequence = BinaryPrimitives.ReadUInt32BigEndian(span.Slice(16, 4));
+            var sampleRate = BinaryPrimitives.ReadInt32BigEndian(span.Slice(20, 4));
+            WriteNonce(nonce, sessionId, sequence);
+
+            try
+            {
+                aes.Decrypt(
+                    nonce,
+                    span.Slice(HeaderSize, PacketPcmBytes),
+                    span.Slice(HeaderSize + PacketPcmBytes, TagSize),
+                    payload.AsSpan(0, PacketPcmBytes),
+                    span[..HeaderSize]);
+            }
+            catch (CryptographicException)
+            {
+                return false;
+            }
+
+            packet = new AudioPacketInfo(sessionId, sequence, sampleRate, Codec.Pcm, PacketPcmBytes);
+            return true;
+        }
+
+        if (version != ProtocolVersionV2 || data.Length < HeaderSizeV2 + TagSize) return false;
+
+        // Version 2 currently defines only encrypted Opus packets. Unknown flags are rejected.
+        var flags = span[5];
+        if (flags != (FlagEncrypted | FlagOpus)) return false;
         if (BinaryPrimitives.ReadUInt16BigEndian(span.Slice(6, 2)) != HeaderSizeV2) return false;
 
-        sessionId = BinaryPrimitives.ReadUInt64BigEndian(span.Slice(8, 8));
-        sequence = BinaryPrimitives.ReadUInt32BigEndian(span.Slice(16, 4));
-        sampleRate = BinaryPrimitives.ReadInt32BigEndian(span.Slice(20, 4));
+        var v2SessionId = BinaryPrimitives.ReadUInt64BigEndian(span.Slice(8, 8));
+        var v2Sequence = BinaryPrimitives.ReadUInt32BigEndian(span.Slice(16, 4));
+        var v2SampleRate = BinaryPrimitives.ReadInt32BigEndian(span.Slice(20, 4));
         var payloadLength = BinaryPrimitives.ReadInt32BigEndian(span.Slice(24, 4));
 
-        if (payloadLength <= 0 || payloadLength > 1024) return false;
-        if (data.Length != HeaderSizeV2 + payloadLength + TagSize) return false;
+        if (payloadLength <= 0 ||
+            payloadLength > MaxOpusPayloadBytes ||
+            payloadLength > payload.Length ||
+            data.Length != HeaderSizeV2 + payloadLength + TagSize) return false;
 
-        BinaryPrimitives.WriteUInt64BigEndian(nonce.AsSpan(0, 8), sessionId);
-        BinaryPrimitives.WriteUInt32BigEndian(nonce.AsSpan(8, 4), sequence);
+        WriteNonce(nonce, v2SessionId, v2Sequence);
 
         try
         {
-            // Decrypt the Opus-encoded payload into the pre-allocated buffer
-            // (avoids per-packet allocation in the hot path).
             aes.Decrypt(
                 nonce,
                 span.Slice(HeaderSizeV2, payloadLength),
                 span.Slice(HeaderSizeV2 + payloadLength, TagSize),
-                opusBuffer.AsSpan(0, payloadLength),
+                payload.AsSpan(0, payloadLength),
                 span[..HeaderSizeV2]);
-
-            // Decode Opus to PCM16. If no decoder is available, the packet is
-            // rejected — the caller must supply one for v2 streams.
-            if (opusDecoder is null) return false;
-
-            if (!opusDecoder.TryDecode(opusBuffer, payloadLength, pcm))
-                return false;
-
-            return true;
         }
         catch (CryptographicException)
         {
             return false;
         }
+
+        packet = new AudioPacketInfo(v2SessionId, v2Sequence, v2SampleRate, Codec.Opus, payloadLength);
+        return true;
+    }
+
+    private static void WriteNonce(byte[] nonce, ulong sessionId, uint sequence)
+    {
+        BinaryPrimitives.WriteUInt64BigEndian(nonce.AsSpan(0, 8), sessionId);
+        BinaryPrimitives.WriteUInt32BigEndian(nonce.AsSpan(8, 4), sequence);
     }
 
     /// <summary>

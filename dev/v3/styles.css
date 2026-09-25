@@ -96,6 +96,10 @@ li+li{ margin-top:.4rem }
 .nav-list a.is-active{ color:var(--ink) }
 .badge{ font-family:var(--mono); font-size:.72rem; color:var(--gold-ink); border:1px solid var(--gold-line); background:var(--gold-soft); padding:.28rem .6rem; border-radius:999px; white-space:nowrap; display:inline-flex; align-items:center; flex-shrink:0 }
 .badge-img{ height:16px; display:block }
+.site-locale{ display:inline-flex; align-items:center; flex:0 0 auto }
+.site-locale-caption{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0 }
+.site-locale select{ min-height:40px; max-width:13rem; border:1px solid var(--line-strong); border-radius:8px; padding:.4rem .55rem; background:var(--paper); color:var(--ink); font:600 .76rem var(--font) }
+@media (max-width:420px){ .site-locale select{ max-width:9.5rem; font-size:.7rem } }
 .header-bmc{ display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; color:var(--gold-ink); background:var(--gold-soft); border:1px solid var(--gold-line); transition:background .15s ease; text-decoration:none }
 .header-bmc:hover{ background:var(--gold); color:var(--ink) }
 @media (max-width:860px){

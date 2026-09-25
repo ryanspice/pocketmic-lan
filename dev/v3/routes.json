@@ -3,7 +3,7 @@
     "key": "home",
     "path": "index.html",
     "url": "https://canopydigital.ca/sites/pocketmic-lan/",
-    "title": "Your Android phone. Your next Windows mic.",
+    "title": "PocketMic LAN — Android microphone for Windows",
     "noindex": false
   },
   {
@@ -32,7 +32,7 @@
     "path": "get-started/index.html",
     "url": "https://canopydigital.ca/sites/pocketmic-lan/get-started/",
     "title": "Get started with PocketMic LAN",
-    "noindex": false
+    "noindex": true
   },
   {
     "key": "downloads",
@@ -84,24 +84,31 @@
     "noindex": false
   },
   {
+    "key": "roadmap",
+    "path": "roadmap/index.html",
+    "url": "https://canopydigital.ca/sites/pocketmic-lan/roadmap/",
+    "title": "PocketMic LAN roadmap",
+    "noindex": false
+  },
+  {
     "key": "release",
     "path": "release-notes/index.html",
     "url": "https://canopydigital.ca/sites/pocketmic-lan/release-notes/",
-    "title": "PocketMic v0.1.4 release details",
+    "title": "PocketMic v0.1.5 release details",
     "noindex": false
   },
   {
     "key": "privacy",
     "path": "privacy/index.html",
     "url": "https://canopydigital.ca/sites/pocketmic-lan/privacy/",
-    "title": "Privacy and terms \u2014 PocketMic LAN",
+    "title": "Privacy and terms — PocketMic LAN",
     "noindex": false
   },
   {
     "key": "policy",
     "path": "policy.html",
     "url": "https://canopydigital.ca/sites/pocketmic-lan/policy.html",
-    "title": "Privacy and terms \u2014 PocketMic LAN",
+    "title": "Privacy and terms — PocketMic LAN",
     "noindex": true
   }
 ]

@@ -1,0 +1,842 @@
+{
+  "sourceLanguage": "en-CA",
+  "strings": {
+    "About this iOS preview": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About this iOS preview"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "دەربارەی ئەم پێشبینینەی iOS"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Derbarê vê pêşdîtina iOS de"
+          }
+        }
+      }
+    },
+    "Allow microphone access in Settings to stream audio.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow microphone access in Settings to stream audio."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لە ڕێکخستنەکاندا ڕێگە بە مایکرۆفۆن بدە بۆ ناردنی دەنگ."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ji bo şandina dengê, di Mîhengên Sîstemê de destûrê bide mîkrofonê."
+          }
+        }
+      }
+    },
+    "Audio port": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio port"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "دەریچەی دەنگ"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Porta dengê"
+          }
+        }
+      }
+    },
+    "Authenticated packets:": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authenticated packets:"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پاکێتە پشتڕاستکراوەکان:"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pakêtên hatine piştrastkirin:"
+          }
+        }
+      }
+    },
+    "Cancel microphone request": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel microphone request"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "داواکاریی مایکرۆفۆن هەڵبوەشێنەوە"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Daxwaza mîkrofonê betal bike"
+          }
+        }
+      }
+    },
+    "Could not configure 48 kHz microphone conversion.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not configure 48 kHz microphone conversion."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "نەتوانرا گۆڕینی مایکرۆفۆن بۆ 48 kHz ڕێکبخرێت."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Veguhertina mîkrofonê bo 48 kHz nehat mîhengkirin."
+          }
+        }
+      }
+    },
+    "Could not listen on UDP": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not listen on UDP"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "نەتوانرا لە UDP گوێ بگیرێت"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Nekarî li ser UDP guhdarî bike"
+          }
+        }
+      }
+    },
+    "Enter a valid UDP port between 1 and 65535.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid UDP port between 1 and 65535."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ژمارەیەکی دروستی دەریچەی UDP لە نێوان 1 و 65535 بنووسە."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ji kerema xwe hejmareke porta UDP ya derbasdar di navbera 1 û 65535 de binivîse."
+          }
+        }
+      }
+    },
+    "Enter the pairing key used by the mobile sender.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the pairing key used by the mobile sender."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "کلیلی هاوتاکردنی نێرەری مۆبایل بنووسە."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mifteya cotkirinê ya şandera mobîl binivîse."
+          }
+        }
+      }
+    },
+    "Enter the receiver address and pairing key.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the receiver address and pairing key."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ناونیشانی وەرگر و کلیلی هاوتاکردن بنووسە."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Navnîşana wergir û mifteya cotkirinê binivîse."
+          }
+        }
+      }
+    },
+    "IP address or host name": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IP address or host name"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ناونیشانی IP یان ناوی میوان"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Navnîşana IP an navê hostê"
+          }
+        }
+      }
+    },
+    "Keep PocketMic in the foreground while streaming. QR pairing, receiver discovery, and Opus are not included in this initial iOS client.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep PocketMic in the foreground while streaming. QR pairing, receiver discovery, and Opus are not included in this initial iOS client."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "لە کاتی ناردنی دەنگدا PocketMic لە پێشەوە بهێڵەوە. هاوتاکردنی QR، دۆزینەوەی وەرگر و Opus لەم وەشانی سەرەتایی iOSدا نییە."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dema deng dişînî PocketMic di pêşiyê de bihêle. Cotkirina QR, dîtina wergir û Opus di vê guhertoya destpêkê ya iOS de tune ne."
+          }
+        }
+      }
+    },
+    "Listening on UDP": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening on UDP"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "گوێگرتن لە UDP"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Li ser UDP guhdarî dike"
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "باشە"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Temam"
+          }
+        }
+      }
+    },
+    "Opus v2 traffic was detected, but this Mac preview accepts PCM v1. Select PCM on the sender and restart the stream.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opus v2 traffic was detected, but this Mac preview accepts PCM v1. Select PCM on the sender and restart the stream."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پاکێتی Opus v2 دیاریکرا، بەڵام پێشبینینی Mac تەنها PCM v1 وەردەگرێت. PCM لە نێرەر هەڵبژێرە و دووبارە دەست بە ناردن بکە."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Trafîka Opus v2 hat dîtin, lê vê pêşdîtina Mac tenê PCM v1 qebûl dike. Li şanderê PCM hilbijêre û dîsa dest bi şandinê bike."
+          }
+        }
+      }
+    },
+    "PCM v1 · 48 kHz · mono": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PCM v1 · 48 kHz · mono"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "PCM v1 · 48 kHz · مۆنۆ"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "PCM v1 · 48 kHz · mono"
+          }
+        }
+      }
+    },
+    "Pairing": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "هاوتاکردن"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Cotkirin"
+          }
+        }
+      }
+    },
+    "Pairing key": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing key"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "کلیلی هاوتاکردن"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mifteya cotkirinê"
+          }
+        }
+      }
+    },
+    "PocketMic": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PocketMic"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "PocketMic"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "PocketMic"
+          }
+        }
+      }
+    },
+    "PocketMic Virtual Mic appears in macOS sound input devices after the driver is installed. Choose it in the app that should receive audio.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PocketMic Virtual Mic appears in macOS sound input devices after the driver is installed. Choose it in the app that should receive audio."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "دوای دامەزراندنی درایڤەر، PocketMic Virtual Mic لە ئامێرەکانی چوونەژوورەوەی دەنگی macOS دەردەکەوێت. لە ئەپی وەرگری دەنگدا هەڵیبژێرە."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Piştî sazkirina driverê, PocketMic Virtual Mic di cîhazên têketina dengê macOS de xuya dibe. Di sepana ku divê dengê bistîne de wê hilbijêre."
+          }
+        }
+      }
+    },
+    "PocketMic issue": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PocketMic issue"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "کێشەی PocketMic"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pirsgirêka PocketMic"
+          }
+        }
+      }
+    },
+    "PocketMic receiver": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PocketMic receiver"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "وەرگری PocketMic"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Wergira PocketMic"
+          }
+        }
+      }
+    },
+    "Preview limitation: one receiving audio client is supported at a time. Keep PocketMic open while streaming. The Mac preview accepts PCM v1 only; select PCM on the sender. Opus, discovery, background service, and signed distribution are not included yet.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview limitation: one receiving audio client is supported at a time. Keep PocketMic open while streaming. The Mac preview accepts PCM v1 only; select PCM on the sender. Opus, discovery, background service, and signed distribution are not included yet."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ئەم پێشبینینە لە هەمان کاتدا تەنها یەک ئەپی وەرگری دەنگ پشتگیری دەکات. لە کاتی ناردندا PocketMic کراوە بهێڵەوە. پێشبینینی Mac تەنها PCM v1 وەردەگرێت؛ PCM لە نێرەر هەڵبژێرە. Opus، دۆزینەوە، خزمەتگوزاریی دواوە و دابەشکردنی واژۆکراو هێشتا لەم وەشانەدا نییە."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ev pêşdîtin di heman demê de tenê piştgiriyê dide yek sepana wergirtina dengê. Dema şandinê PocketMic vekirî bihêle. Pêşdîtina Mac tenê PCM v1 qebûl dike; li şanderê PCM hilbijêre. Opus, dîtin, xizmeta paşperdeyê û belavkirina îmzekirî hîn di vê guhertoyê de tune ne."
+          }
+        }
+      }
+    },
+    "Ready": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ئامادە"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Amade"
+          }
+        }
+      }
+    },
+    "Receiver connection failed:": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receiver connection failed:"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پەیوەندی بە وەرگر سەرکەوتوو نەبوو:"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Girêdana bi wergir re bi ser neket:"
+          }
+        }
+      }
+    },
+    "Receiver failed:": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receiver failed:"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "وەرگر سەرکەوتوو نەبوو:"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Wergir bi ser neket:"
+          }
+        }
+      }
+    },
+    "Rejected a replayed or excessive PocketMic stream session. Restart the receiver to begin a fresh validation session.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected a replayed or excessive PocketMic stream session. Restart the receiver to begin a fresh validation session."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "دانیشتنێکی دووبارە نێردراو یان زۆرەڕۆیی لە جەریانی PocketMic ڕەتکرایەوە. بۆ دەستپێکردنی دانیشتنێکی نوێ و پشتڕاستکراو، وەرگر دووبارە دەستپێبکەرەوە."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Danîşîneke dubare şandî an zêde ya streama PocketMic hate redkirin. Ji bo destpêkirina danîşîneke nû ya pejirandinê, wergirê ji nû ve bide destpêkirin."
+          }
+        }
+      }
+    },
+    "Start microphone": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start microphone"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مایکرۆفۆن دەستپێبکە"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mîkrofonê bide destpêkirin"
+          }
+        }
+      }
+    },
+    "Start receiver": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start receiver"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "وەرگر دەستپێبکە"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Wergirê bide destpêkirin"
+          }
+        }
+      }
+    },
+    "Stop microphone": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop microphone"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مایکرۆفۆن بوەستێنە"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mîkrofonê rawestîne"
+          }
+        }
+      }
+    },
+    "Stop receiver": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop receiver"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "وەرگر بوەستێنە"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Wergirê rawestîne"
+          }
+        }
+      }
+    },
+    "Streaming to receiver at": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streaming to receiver at"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "دەنگ دەنێرێت بۆ وەرگر لە"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Deng ji bo wergirê li vir tê şandin:"
+          }
+        }
+      }
+    },
+    "Streams 48 kHz mono PCM audio to a PocketMic receiver on the same private Wi-Fi network. Enter the receiver IP address and pairing key shown in its app.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streams 48 kHz mono PCM audio to a PocketMic receiver on the same private Wi-Fi network. Enter the receiver IP address and pairing key shown in its app."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "دەنگی PCM مۆنۆی 48 kHz بۆ وەرگری PocketMic لەسەر هەمان تۆڕی تایبەتی Wi-Fi دەنێرێت. ناونیشانی IP و کلیلی هاوتاکردنی نیشاندراو لە ئەپی وەرگر بنووسە."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Dengê PCM mono ya 48 kHz ji bo wergirekî PocketMic li ser heman tora taybet a Wi-Fi dişîne. Navnîşana IP û mifteya cotkirinê ya di sepana wergir de xuya dibe binivîse."
+          }
+        }
+      }
+    },
+    "This audio session reached the packet limit. Start a new session to keep encryption nonces unique.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This audio session reached the packet limit. Start a new session to keep encryption nonces unique."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "ئەم دانیشتنە گەیشتە سنووری پاکێتەکان. دانیشتنێکی نوێ دەستپێبکە بۆ پاراستنی تایبەتی nonceی نهێنیکردن."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Ev danîştina dengê gihîşt sînorê pakêtan. Ji bo ku nonceyên şîfrekirinê yekta bimînin, danîştineke nû bide destpêkirin."
+          }
+        }
+      }
+    },
+    "Use the same pairing key in the Android or iOS sender. Enter this Mac’s local network address in the sender.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the same pairing key in the Android or iOS sender. Enter this Mac’s local network address in the sender."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "هەمان کلیلی هاوتاکردن لە نێرەری Android یان iOS بەکاربهێنە. ناونیشانی تۆڕی ناوخۆیی ئەم Macە لە نێرەر بنووسە."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Di şandera Android an iOS de heman mifteya cotkirinê bi kar bîne. Navnîşana tora herêmî ya vê Macê di şanderê de binivîse."
+          }
+        }
+      }
+    },
+    "Virtual microphone": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Virtual microphone"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "مایکرۆفۆنی خەیاڵی"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Mîkrofona xayalî"
+          }
+        }
+      }
+    },
+    "Waiting for microphone permission": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for microphone permission"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "چاوەڕێی مۆڵەتی مایکرۆفۆنە"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Li benda destûra mîkrofonê ye"
+          }
+        }
+      }
+    },
+    "macOS receiver preview": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS receiver preview"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "پێشبینینی وەرگری macOS"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Pêşdîtina wergira macOS"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

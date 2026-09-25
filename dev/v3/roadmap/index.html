@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" prefix="og: https://ogp.me/ns#">
+<html lang="en-CA" prefix="og: https://ogp.me/ns#">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -26,7 +26,7 @@
 }
 </script>
 <script src="../app.js" defer></script>
-</head>
+<script src="../assets/site-locale.js" defer></script></head>
 <body>
 <a class="skip" href="#main">Skip to content</a>
 
@@ -67,9 +67,9 @@
     <h1 style="max-width:14ch">Where we are.<br><em>Where we're going.</em></h1>
     <p class="tagline" style="max-width:55ch">PocketMic is early software with a clear direction. Here's the competitive landscape, what works today, and what's planned next.</p>
     <div class="roadmap-stats">
-      <div class="roadmap-stat"><strong>100%</strong><span>Tests passing</span></div>
-      <div class="roadmap-stat"><strong>100 ms</strong><span>Measured latency</span></div>
-      <div class="roadmap-stat"><strong>48 kHz</strong><span>Audio quality</span></div>
+      <div class="roadmap-stat"><strong>v0.1.5</strong><span>Current published release</span></div>
+      <div class="roadmap-stat"><strong>100 ms</strong><span>Default receiver prebuffer setting</span></div>
+      <div class="roadmap-stat"><strong>48 kHz</strong><span>PCM sample rate</span></div>
       <div class="roadmap-stat"><strong>AES-256</strong><span>Encryption</span></div>
     </div>
   </div>
@@ -80,7 +80,7 @@
   <div class="wrap">
     <p class="sec-eyebrow">Competitive landscape</p>
     <h2>How phone-as-mic solutions compare</h2>
-    <p class="lede">There are several ways to use your phone as a microphone. Each has tradeoffs. PocketMic's niche is encrypted, LAN-only, with honest documentation.</p>
+    <p class="lede">There are several ways to use your phone as a microphone. Each has tradeoffs. PocketMic's audio hop uses encrypted LAN transport; the destination app and other network traffic are outside that boundary.</p>
     <div class="compare-table-wrap">
       <table class="compare-table" aria-label="Competitive comparison">
         <thead>
@@ -100,7 +100,7 @@
           <tr><td>Adaptive quality</td><td class="yes">LinkQualityPolicy</td><td class="no">Fixed</td><td class="no">Fixed</td><td class="no">Fixed</td><td class="no">Fixed</td></tr>
           <tr><td>Open source</td><td class="yes">MIT</td><td class="no">Proprietary</td><td class="yes">MIT</td><td class="no">Freemium</td><td class="yes">MIT</td></tr>
           <tr><td>Sample rate</td><td>48 kHz PCM16</td><td>Up to 48 kHz</td><td>Configurable</td><td>Device-dependent</td><td>Browser-dependent</td></tr>
-          <tr><td>Virtual mic</td><td>VB-CABLE / PM-LAN</td><td>Built-in</td><td>VB-CABLE</td><td>Built-in</td><td>VB-CABLE</td></tr>
+          <tr><td>Virtual mic</td><td>VB-CABLE (installed separately)</td><td>Built-in</td><td>VB-CABLE</td><td>Built-in</td><td>VB-CABLE</td></tr>
           <tr><td>Diagnostics</td><td class="yes">Exportable reports</td><td class="no">Basic counter</td><td class="no">None</td><td class="no">Basic</td><td class="no">None</td></tr>
           <tr><td>iOS support</td><td class="no">No</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td><td class="yes">Any browser</td></tr>
           <tr><td>USB transport</td><td class="partial">Planned</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="na">N/A</td></tr>
@@ -116,44 +116,35 @@
   <div class="wrap">
     <p class="sec-eyebrow">Current state</p>
     <h2>What works today</h2>
-    <p class="lede">v0.1.5 is an early release with real-device validation and honest documentation.</p>
+    <p class="lede">v0.1.5 is the current published release. v0.1.6 is in development; hosted builds do not replace physical-device acceptance.</p>
     <div class="status-grid">
       <div class="status-card status-working">
         <h3>✅ Working</h3>
         <ul>
-          <li>48 kHz mono PCM16 over encrypted UDP</li>
-          <li>AES-256-GCM on every packet</li>
-          <li>QR code pairing (CameraX + ML Kit)</li>
-          <li>LAN receiver discovery</li>
-          <li>Auto-reconnect with discovery resume</li>
-          <li>Voice / Clean / Custom capture modes</li>
-          <li>Wi-Fi lock policy (LOW_LATENCY / HIGH_PERF)</li>
-          <li>EncryptedSharedPreferences for key at rest</li>
-          <li>Session diagnostics with exportable reports</li>
-          <li>Adaptive quality (LinkQualityPolicy)</li>
-          <li>Windows receiver with voice processing</li>
-          <li>One-click default microphone switching</li>
+          <li>Android publisher and Windows receiver in the published v0.1.5 release</li>
+          <li>Encrypted 48 kHz mono PCM16 audio over a private LAN</li>
+          <li>Pairing and receiver discovery</li>
+          <li>Use VB-CABLE, installed separately, to route receiver audio into another Windows app</li>
+          <li>Published release downloads and source: <a href="https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.5">v0.1.5 release</a></li>
         </ul>
       </div>
       <div class="status-card status-partial">
         <h3>⚠️ Partially working</h3>
         <ul>
-          <li>Reconnect state machine — code complete, needs physical testing</li>
-          <li>Version negotiation — UI complete, needs cross-version testing</li>
-          <li>Adaptive quality — wired in, needs real-device validation</li>
-          <li>Android unit tests — pass locally, crash on CI (PATH issue)</li>
+          <li>Real-device audio routing, reconnect behavior, long sessions, and timing depend on the device and still need broader field evidence</li>
+          <li>Adaptive buffering is implemented; real-device behavior still needs validation</li>
+          <li>Several Android-to-Windows hardware checks remain open; CI build and unit tests do not prove audible end-to-end audio</li>
+          <li>The Windows PM-LAN route name and third-party VB-CABLE must not be treated as interchangeable</li>
         </ul>
       </div>
       <div class="status-card status-planned">
         <h3>❌ Not yet working</h3>
         <ul>
-          <li>USB transport (adb reverse)</li>
-          <li>PM-LAN virtual audio cable</li>
-          <li>macOS / Linux receiver</li>
-          <li>iOS app</li>
-          <li>Google Play / production-signed APK</li>
-          <li>Opus codec</li>
-          <li>Adaptive jitter buffer</li>
+          <li>macOS receiver and CoreAudio virtual mic are v0.1.6 preview work, not part of published v0.1.5</li>
+          <li>iOS publisher is experimental and not part of the published v0.1.5 release</li>
+          <li>Android Opus selection is in development; physical codec interoperability is not yet accepted</li>
+          <li>Linux receiver and system-wide virtual audio route are planned after v0.1.6</li>
+          <li>Production signing, notarization, store distribution, and TestFlight are not configured as release paths</li>
         </ul>
       </div>
     </div>
@@ -174,15 +165,15 @@
         <div class="timeline-content">
           <div class="timeline-header">
             <span class="timeline-badge">v0.1.5</span>
-            <span class="timeline-status">In progress</span>
+            <span class="timeline-status">Released · 2026-09-14</span>
           </div>
-          <h3>Near-term improvements</h3>
+          <h3>Published Android-to-Windows release</h3>
           <ul>
             <li><strong>LinkQualityPolicy integration</strong> — adaptive prebuffer and concealment ✅</li>
             <li><strong>Version mismatch UI</strong> — clear message when versions don't match ✅</li>
             <li><strong>Reconnect tracking</strong> — elapsed time display during reconnecting ✅</li>
-            <li><strong>Test coverage</strong> — 100/100 Windows tests, 22 new quick-win tests ✅</li>
-            <li><strong>Marketing site v3</strong> — merged design, multi-page, social kit ✅</li>
+            <li><strong>Current release assets</strong> — Android debug-signed APK and Windows receiver archive</li>
+            <li><strong>Validation boundary</strong> — CI and unit tests are not evidence of physical audio routing or a measured latency result</li>
           </ul>
         </div>
       </div>
@@ -191,18 +182,17 @@
         <div class="timeline-marker"></div>
         <div class="timeline-content">
           <div class="timeline-header">
-            <span class="timeline-badge">v0.2</span>
-            <span class="timeline-status">Planned</span>
+            <span class="timeline-badge">v0.1.6</span>
+            <span class="timeline-status">In development · not released</span>
           </div>
-          <h3>Make it a real-time system</h3>
+          <h3>Mac receiver preview, mobile interoperability, and reviewed localization</h3>
           <ul>
-            <li><strong>PM-LAN virtual audio cable</strong> — replaces VB-CABLE. Kernel-mode driver with render→capture loopback.</li>
-            <li><strong>Opus codec</strong> — 48–64 kbit/s, drops bandwidth 12×. Needs libopus NDK + Concentus.</li>
-            <li><strong>USB transport</strong> — TCP over adb reverse, auto-established. ~10–20 ms latency.</li>
-            <li><strong>Adaptive jitter buffer</strong> — reorder window, depth 15–200ms, driven by measured jitter.</li>
-            <li><strong>Clock-drift resampler</strong> — continuously adjusted resampling ratio. Highest difficulty.</li>
-            <li><strong>Capture profiles</strong> — proper Voice/Clean/Custom with source detection.</li>
-            <li><strong>Lifecycle state machine</strong> — Idle / Armed / Streaming. No mic in standby.</li>
+            <li><strong>macOS receiver preview</strong> — encrypted LAN receive and CoreAudio virtual-microphone path; physical Mac installation and real-app routing must pass before the route is called ready.</li>
+            <li><strong>Mobile publisher interoperability</strong> — validate iOS PCM v1 and Android codec behavior against Windows and Mac; incompatible codec modes must be surfaced clearly.</li>
+            <li><strong>Desktop and discovery fixes</strong> — complete D1–D5 live acceptance and the authenticated pre-start discovery design.</li>
+            <li><strong>Localization</strong> — ship only translated and reviewed locales; default to Canadian English, keep American English distinct, and include Kurdish only when its locale copy passes review.</li>
+            <li><strong>Release evidence</strong> — rerun platform CI on one frozen candidate and publish exact artifact hashes and signing status.</li>
+            <li><strong>Release gate</strong> — v0.1.6 remains unreleased until physical Mac/mobile checks, product-truth review, and candidate CI pass.</li>
           </ul>
         </div>
       </div>
@@ -214,14 +204,12 @@
             <span class="timeline-badge">v0.3</span>
             <span class="timeline-status">Planned</span>
           </div>
-          <h3>Resilience and quality</h3>
+          <h3>After v0.1.6: Linux and device roles</h3>
           <ul>
-            <li><strong>Dual-path redundancy</strong> — first-arrival over USB + Wi-Fi simultaneously.</li>
-            <li><strong>Adaptive FEC and bitrate</strong> — driven by telemetry. Never pin FEC at maximum.</li>
-            <li><strong>Oboe/AAudio</strong> — MMAP exclusive capture. 2ms burst on supported devices.</li>
-            <li><strong>Quick Settings tile</strong> — one-tap mic toggle from notification shade.</li>
-            <li><strong>Companion Device Manager</strong> — BLE association for automatic pairing.</li>
-            <li><strong>WebRTC APM / RNNoise</strong> — only if measured data shows it's needed.</li>
+            <li><strong>Linux receiver</strong> — choose audio backend, distributions, packaging, and virtual-mic approach before implementation.</li>
+            <li><strong>Android and iOS consumer roles</strong> — allow phones and tablets to receive from supported publishers after a shared role and routing design is agreed.</li>
+            <li><strong>Expanded device matrix</strong> — validate supported Android, iPhone, iPad, Windows, Mac, and Linux combinations with dated evidence.</li>
+            <li><strong>Transport and audio quality</strong> — prioritize USB/ADB, capture changes, and DSP from measured user needs and controlled results.</li>
           </ul>
         </div>
       </div>
@@ -233,14 +221,12 @@
             <span class="timeline-badge">v1.0</span>
             <span class="timeline-status">Future</span>
           </div>
-          <h3>Product</h3>
+          <h3>Later distribution and scale</h3>
           <ul>
-            <li><strong>Production-signed Android APK</strong> — Google Play or signed release</li>
-            <li><strong>Windows installer</strong> — MSI/INF with auto-updater</li>
-            <li><strong>iOS app</strong> — if there's demand</li>
-            <li><strong>macOS / Linux receiver</strong> — protocol documented, implementation possible</li>
-            <li><strong>Device matrix testing</strong> — Pixel + Samsung + Motorola × Android 12–17</li>
-            <li><strong>EV code signing</strong> — for public driver distribution (~$290–500/yr)</li>
+            <li><strong>Signing and distribution</strong> — configure and verify platform-specific signing, notarization, store/TestFlight, and installer paths.</li>
+            <li><strong>Upgrade and rollback</strong> — define supported migrations and prove clean installation and recovery for each platform.</li>
+            <li><strong>Security and privacy</strong> — update disclosures and support materials to match verified runtime behavior.</li>
+            <li><strong>Promotion</strong> — widen outreach only after the pilot demonstrates repeatable setup and successful routes.</li>
           </ul>
         </div>
       </div>
@@ -258,15 +244,15 @@
     <div class="faq-grid">
       <details class="faq-item">
         <summary>iOS support</summary>
-        <p>The protocol is platform-agnostic. An iOS app is possible but requires Swift development. QuicMic's browser approach shows it's possible without a native app — PocketMic could add a WebTransport fallback.</p>
+        <p>The current unreleased source includes an experimental native iOS publisher that sends PCM v1. It has simulator-build evidence, but no physical iPhone-to-receiver acceptance and no published iOS download. Treat it as a v0.1.6 manual-test preview.</p>
       </details>
       <details class="faq-item">
         <summary>Lower latency</summary>
-        <p>Current latency is 100–250 ms. The bottleneck is Wi-Fi jitter. USB transport (v0.2) would bring this to ~10–20 ms. Real-time instrument monitoring needs &lt;10 ms — that requires USB.</p>
+        <p>No end-to-end latency result is established for a representative supported setup. The receiver's 100 ms prebuffer is a setting, not a total latency measurement. We will measure candidate routes before publishing performance targets.</p>
       </details>
       <details class="faq-item">
         <summary>Opus codec for lower bandwidth</summary>
-        <p>Planned for v0.2. Would drop bandwidth from 768 kbit/s to ~64 kbit/s. PCM stays as a lossless USB-only mode.</p>
+        <p>The Android source can send negotiated Opus v2, and the Windows receiver supports PCM v1 and Opus v2. Physical encode/decode and end-to-end acceptance are still open. The macOS preview supports PCM v1 only, so choose PCM when testing Android with the Mac receiver.</p>
       </details>
       <details class="faq-item">
         <summary>No-install browser mode</summary>
@@ -274,7 +260,7 @@
       </details>
       <details class="faq-item">
         <summary>macOS and Linux support</summary>
-        <p>The protocol is documented. A Python or Rust receiver is feasible. The main gap is the virtual audio cable — macOS needs CoreAudio, Linux needs PulseAudio/PipeWire.</p>
+        <p>A macOS receiver and CoreAudio virtual-microphone preview are in v0.1.6 development. Physical installation and routing acceptance remain open. Linux receiver support is planned after v0.1.6 and still needs audio-backend and packaging decisions.</p>
       </details>
       <details class="faq-item">
         <summary>Multiple phones at once</summary>

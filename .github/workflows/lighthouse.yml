@@ -2,7 +2,7 @@ name: Lighthouse
 
 on:
   push:
-    branches: [master]
+    branches: [master, 'codex/**']
   pull_request:
     branches: [master]
 
@@ -22,7 +22,7 @@ jobs:
 
       - name: Run Lighthouse
         run: |
-          lhci collect --staticDistDir=./web --numberOfRuns=1
+          lhci collect --staticDistDir=./dev/v3 --numberOfRuns=1
           lhci assert --assertions.categories:performance='["warn",{"minScore":0.9}]' --assertions.categories:accessibility='["warn",{"minScore":0.9}]' --assertions.categories:seo='["warn",{"minScore":0.9}]' --assertions.categories:best-practices='["warn",{"minScore":0.9}]'
         env:
           LHCI_BUILD_CONTEXT__CURRENT_HASH: ${{ github.sha }}
