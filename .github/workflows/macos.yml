@@ -73,6 +73,7 @@ jobs:
             macos/driver/THIRD-PARTY-NOTICES.md macos/driver/LICENSE.libASPL \
             build/artifact/
           cp macos/README.md macos/TESTER-REPORT.md build/artifact/
+          (cd build/artifact && shasum -a 256 PocketMic-macOS-unsigned.zip PocketMicVirtualMic-driver-unsigned.zip > SHA256SUMS.txt)
 
       - name: Verify packaged macOS preview artifacts
         run: python3 scripts/verify_macos_artifacts.py build/artifact

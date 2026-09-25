@@ -21,9 +21,11 @@ Use `PASS`, `FAIL`, `NOT TESTED`, or `BLOCKED`; include a short note for failure
 
 | Check | Result | Notes / evidence reference |
 |---|---|---|
+| Both app and driver ZIP checksums match `SHA256SUMS.txt` | | |
 | App archive unzipped and opened | | |
+| Gatekeeper warning or refusal recorded; no malware/damage alert was bypassed | | |
 | Driver installed using the documented script | | |
-| macOS approval completed; PocketMic Virtual Mic appears in Sound → Input | | |
+| PocketMic Virtual Mic appears in Sound → Input after driver installation | | |
 | PocketMic Virtual Mic selected in the receiving app | | |
 | Sender paired using the Mac's private-LAN address and matching key | | |
 | Sender microphone audio is visible/audible in the receiving app | | |
@@ -33,7 +35,7 @@ Use `PASS`, `FAIL`, `NOT TESTED`, or `BLOCKED`; include a short note for failure
 | Android Opus v2 produces the expected compatibility warning and no misleading success state | | |
 | Stop and start works repeatedly | | |
 | Wi-Fi interruption and reconnect behavior is understandable and recovers as documented | | |
-| Driver uninstall script removes PocketMic Virtual Mic | | |
+| Driver uninstall script confirms PocketMic bundle identity and removes it after explicit confirmation | | |
 | Any unexpected audio-app disconnect or system recovery issue | | |
 
 ## Summary

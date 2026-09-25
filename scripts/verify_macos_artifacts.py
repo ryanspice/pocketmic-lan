@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import plistlib
 import shutil
 import subprocess
@@ -25,6 +26,7 @@ REQUIRED_SUPPORT_FILES = {
     "uninstall-driver.sh",
     "THIRD-PARTY-NOTICES.md",
     "LICENSE.libASPL",
+    "SHA256SUMS.txt",
 }
 
 
@@ -111,6 +113,35 @@ def main() -> None:
     if missing_files:
         fail(f"tester support files are missing: {', '.join(missing_files)}")
 
+    checksum_manifest = artifact_dir / "SHA256SUMS.txt"
+    try:
+        checksum_lines = checksum_manifest.read_text(encoding="utf-8").splitlines()
+    except OSError as error:
+        fail(f"cannot read checksum manifest: {error}")
+
+    checksums: dict[str, str] = {}
+    for line in checksum_lines:
+        digest, separator, name = line.partition("  ")
+        if not separator or len(digest) != 64 or any(char not in "0123456789abcdef" for char in digest):
+            fail(f"invalid checksum line: {line!r}")
+        if name in checksums:
+            fail(f"duplicate checksum for {name}")
+        checksums[name] = digest
+
+    expected_archives = {app_zip.name, driver_zip.name}
+    if set(checksums) != expected_archives:
+        fail(f"checksum manifest must cover exactly {sorted(expected_archives)}")
+    for archive in (app_zip, driver_zip):
+        actual_digest = hashlib.sha256(archive.read_bytes()).hexdigest()
+        if checksums[archive.name] != actual_digest:
+            fail(f"SHA-256 mismatch for {archive.name}")
+
+    readme = (artifact_dir / "README.md").read_text(encoding="utf-8")
+    if "shasum -a 256 -c SHA256SUMS.txt" not in readme:
+        fail("tester guide does not include the archive checksum verification command")
+    if "do not disable Gatekeeper/System Integrity Protection" not in readme:
+        fail("tester guide does not preserve Gatekeeper/System Integrity Protection")
+
     for script_name in ("install-driver.sh", "uninstall-driver.sh"):
         result = subprocess.run(["bash", "-n", str(artifact_dir / script_name)], capture_output=True, text=True)
         if result.returncode != 0:
@@ -143,7 +174,7 @@ def main() -> None:
             build=EXPECTED_VERSION,
         )
 
-    print("macOS preview archives, bundle identity/version, en-CA fallback, universal binaries, and tester files verified.")
+    print("macOS preview checksums, archives, bundle identity/version, en-CA fallback, universal binaries, and tester files verified.")
 
 
 if __name__ == "__main__":

@@ -111,11 +111,12 @@ Deliver a testable macOS receiver preview and validated current mobile-publisher
 
 An external tester with a physical Mac must follow the preview instructions and return a dated receipt containing Mac model, macOS version, app/driver build, logs or screenshots, and outcomes for:
 
-- Installation and explicit system approval; CoreAudio registers **PocketMic Virtual Mic**.
+- Verify both ZIP checksums from the artifact's `SHA256SUMS.txt`; record any Gatekeeper warning. Open the app only through the documented, trust-based exception path if appropriate, and never bypass a malware/damage alert or weaken Gatekeeper/SIP.
+- Run the bundle-ID-guarded driver installer; CoreAudio registers **PocketMic Virtual Mic**. This is a legacy Audio Server Plug-in, so a DriverKit system-extension approval prompt is not an acceptance requirement. Record an OS refusal as blocked instead of changing system security settings.
 - Selection as the input in at least one real conferencing or recording application and audible/metered phone audio.
-- Wrong key and modified/replayed datagrams do not produce audio; repeated start/stop works.
+- A wrong pairing key produces no audio; rely on protocol fixtures for tamper/replay rejection unless the owner provides a dedicated safe test procedure. Repeated start/stop works.
 - Wi-Fi/network reconnect recovers as documented; underrun/disconnect behavior is understandable.
-- Uninstall removes the driver and the documented recovery procedure works.
+- The confirmed uninstall script removes only the expected PocketMic driver after explicit confirmation; CoreAudio refreshes and the documented recovery procedure works.
 
 Keep the preview unsigned and installer warnings explicit. CI success cannot pass this gate.
 

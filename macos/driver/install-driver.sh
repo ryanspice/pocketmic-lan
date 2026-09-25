@@ -11,6 +11,18 @@ if [[ ! -d "$SOURCE" ]]; then
   exit 1
 fi
 
+PLIST="$SOURCE/Contents/Info.plist"
+if [[ ! -f "$PLIST" ]]; then
+  echo "Driver bundle is missing Contents/Info.plist: $SOURCE" >&2
+  exit 1
+fi
+
+BUNDLE_ID="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$PLIST" 2>/dev/null || true)"
+if [[ "$BUNDLE_ID" != "com.canopydigital.pocketmic.virtual-mic" ]]; then
+  echo "Unexpected driver bundle identifier: ${BUNDLE_ID:-<missing>}" >&2
+  exit 1
+fi
+
 if [[ -e "$DESTINATION" ]]; then
   echo "A driver already exists at $DESTINATION." >&2
   echo "Uninstall the existing PocketMic preview driver first, then rerun this installer." >&2
