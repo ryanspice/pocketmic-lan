@@ -17,53 +17,19 @@
 
 ## ✅ v0.1.5 — Performance & Quality (RELEASED 2026-09-14)
 
-v0.1.5 is published. The checklist below preserves its original implementation scope; its unchecked hardware and measurement items are follow-up evidence, not a claim that the release is still in progress. See `BUILD-EVIDENCE.md` for the checks that remain blocked and `MASTER-PLAN.md` for the current release sequence.
+v0.1.5 is published; its implementation checklist is historical and is not an active release phase. Current source and development-branch CI verify Android Opus selection/native packaging, the Windows Opus receiver and adaptive jitter controls, and the Windows test suite. See [`BUILD-EVIDENCE.md`](BUILD-EVIDENCE.md) for the dated evidence and exact scope.
 
-### Phase 1: Release Consistency ✅ DONE
-- [x] Version bump to 0.1.5 across all projects
-- [x] MIT LICENSE file
-- [x] Static CI badge (no more red "failing" in hero)
-- [x] --faint contrast fix (#9a9283 → #6e6759, WCAG AA)
-- [x] CHANGELOG.md
-- [x] README test count correction
+### Post-release field validation
 
-### Phase 3: P0 Transport Fixes 🔄 IN PROGRESS
-- [ ] Packet pacing — even 10ms spacing between sends
-- [ ] Wi-Fi LOW_LATENCY lock lifecycle (acquire on start, release on stop)
-- [ ] Foreground service type `microphone` (Android 14+)
-- [ ] Battery optimization check
-- [ ] Power save warning dialog
-- [ ] AudioServer restart receiver
+These v0.1.5 follow-ups remain separate from the v0.1.6 release checklist. Do not advertise measurements or device behavior as verified until the listed receipt exists:
 
-### Phase 4: Opus Integration 🔄 IN PROGRESS
-- [ ] libopus NDK build (CMake, OPUS_BUILD)
-- [ ] OpusEncoder/OpusDecoder JNI wrapper
-- [ ] Windows P/Invoke for libopus.dll
-- [ ] Protocol v2 header (codec flags)
-- [ ] Variable-length Opus payload
-- [ ] PCM16 fallback negotiation
-- [ ] Opus FEC (forward error correction)
-- [ ] NetworkTester Opus round-trip test
+- [ ] Android Opus encoder smoke test on a physical device.
+- [ ] Android-to-Windows Opus end-to-end audio round trip.
+- [ ] 30-minute Android screen-locked session.
+- [ ] Phone-to-PC packet pacing capture.
+- [ ] Clock-drift convergence measurements on a real network.
 
-### Phase 5: Adaptive Jitter Buffer 🔄 IN PROGRESS
-- [ ] Percentile-based delay estimator (P95 × 1.2)
-- [ ] Rate-limited adjustment (±5ms per 100ms)
-- [ ] Opus PLC (packet loss concealment)
-- [ ] Clock drift compensation (LSF estimator)
-- [ ] Tuning dashboard (configurable percentiles and bounds)
-
-### Measurement Baseline
-- [ ] Wire-level timing instrumentation (Android)
-- [ ] Per-chunk latency traces
-- [ ] Jitter distribution histograms
-- [ ] NetworkTester timing breakdown
-
-**Target metrics (preliminary, pending device validation):**
-| Metric | v0.1.4 | v0.1.5 |
-|--------|--------|--------|
-| Bandwidth | 768 kbit/s | ~64 kbit/s (12× reduction) |
-| Latency | ~250-320ms | ~100-150ms (2× improvement) |
-| Loss tolerance | ~1-2% | ~5-10% (5× improvement) |
+The preliminary latency and loss figures from earlier drafts are not accepted measurement results. Use dated hardware/network receipts before making performance claims.
 
 ---
 
