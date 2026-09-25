@@ -1,7 +1,7 @@
 # PocketMic LAN 0.1.6 — Manual Pre-Tag Test Plan
 
-> Candidate code commit: `76d7ce72905b59be89045e3d98cb05b7cc7bf91e` (the app/source code is unchanged from the previous code candidate; later commits updated release documents).
-> State: CI passed; manual acceptance is pending. This is a test build, not a release.
+> Candidate code commit: `58366868b4fb6c511ef40caa385b084ea76483f2`.
+> State: CI and Lighthouse passed; manual acceptance is pending. This is a test build, not a release.
 
 Use this checklist to test the exact previews below before freezing a release candidate. Record `PASS`, `FAIL`, `BLOCKED`, or `NOT TESTED` for each row. Do not include pairing keys, public IP addresses, or private account details in notes.
 
@@ -9,10 +9,11 @@ Use this checklist to test the exact previews below before freezing a release ca
 
 | Platform | Preview | What it proves / limitation |
 |---|---|---|
-| Windows | [Receiver ZIP](https://github.com/ryanspice/pocketmic-lan/actions/runs/36112980901/artifacts/10853728561) | Self-contained Windows x64 receiver candidate. Install VB-CABLE separately for the documented virtual-cable route. |
-| Android | [Debug APK](https://github.com/ryanspice/pocketmic-lan/actions/runs/36112980901/artifacts/10853648970) | Version 0.1.6, package `com.canopydigital.pocketmic`, debug-signed. Installs separately from v0.1.5; app data and pairing keys do not migrate. |
-| macOS | [Unsigned preview package](https://github.com/ryanspice/pocketmic-lan/actions/runs/36112980945/artifacts/10853733480) | Universal app and virtual-mic driver with setup guide and report template. Unsigned and not notarized; use a Mac whose owner deliberately accepts this preview. |
-| iOS | [Simulator app](https://github.com/ryanspice/pocketmic-lan/actions/runs/36112980929/artifacts/10854252307) | Simulator build and protocol-vector test only. It is not an installable physical-iPhone app or an IPA for device testing. |
+| Windows | [Receiver ZIP](https://github.com/ryanspice/pocketmic-lan/actions/runs/36146161097/artifacts/10870335436) | Self-contained Windows x64 receiver candidate. Install VB-CABLE separately for the documented virtual-cable route. |
+| Android | [Debug APK](https://github.com/ryanspice/pocketmic-lan/actions/runs/36146161097/artifacts/10870031221) | Version 0.1.6, package `com.canopydigital.pocketmic`, debug-signed. Installs separately from v0.1.5; app data and pairing keys do not migrate. |
+| macOS | [Unsigned preview package](https://github.com/ryanspice/pocketmic-lan/actions/runs/36146161353/artifacts/10869750677) | Universal app and virtual-mic driver with setup guide and report template. Unsigned and not notarized; use a Mac whose owner deliberately accepts this preview. |
+| iOS | [Simulator app](https://github.com/ryanspice/pocketmic-lan/actions/runs/36146161174/artifacts/10869596500) | Simulator build and protocol-vector test only. It is not an installable physical-iPhone app or an IPA for device testing. |
+| Marketing site | [Canonical site preview](https://github.com/ryanspice/pocketmic-lan/actions/runs/36146161097/artifacts/10869835828) | Selected cream-and-green site candidate, 16 registered routes, release-copy/CTA/privacy checks and local-only Signal Lab. Preview artifact only; it is not deployed. |
 
 These GitHub artifacts expire on October 9 or 25, 2026. The Mac package contains `SHA256SUMS.txt` for its app and driver archives; verify it before opening either. Stop if macOS reports malware, damage, or revoked authorization. Do not bypass those alerts or weaken Gatekeeper/SIP. The published website manifest remains on v0.1.5 until a v0.1.6 release is actually published.
 
@@ -92,7 +93,7 @@ The site remains untranslated outside the limited `en-US` spelling preview. The 
 
 ## E. Selected marketing-site replacement
 
-The selected design and candidate history are in [Replace marketing site](codex://threads/01a0d5b9-83f5-7dc2-8fde-958d75ac661c). Test the integrated release candidate from the latest `pocketmic-website-preview` CI artifact built from the candidate commit, or a staged copy of that exact `dev/v3/` payload. The detached candidate does not prove the deploy payload is ready.
+The selected design and candidate history are in [Replace marketing site](codex://threads/01a0d5b9-83f5-7dc2-8fde-958d75ac661c). Test the integrated release candidate from the `pocketmic-website-preview` artifact built from commit `58366868b4fb6c511ef40caa385b084ea76483f2`, or a staged copy of that exact `dev/v3/` payload. The artifact is for manual review; it does not establish live deployment readiness.
 
 | Check | Result | Notes |
 |---|---|---|
