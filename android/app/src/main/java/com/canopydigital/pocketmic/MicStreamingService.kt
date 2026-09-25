@@ -174,7 +174,7 @@ class MicStreamingService : Service() {
 
         try {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-                error("Microphone permission is not granted.")
+                error(getString(R.string.error_microphone_permission))
             }
 
             val coroutineContext = currentCoroutineContext()
@@ -182,7 +182,7 @@ class MicStreamingService : Service() {
 
             val address = InetAddress.getAllByName(config.host)
                 .firstOrNull { it is Inet4Address }
-                ?: error("The Windows receiver address did not resolve to IPv4.")
+                ?: error(getString(R.string.error_receiver_ipv4))
             coroutineContext.ensureActive()
 
             // Keep the UDP socket unconnected. A connected DatagramSocket can surface an ICMP
@@ -201,7 +201,7 @@ class MicStreamingService : Service() {
                 AudioFormat.ENCODING_PCM_16BIT,
             )
             check(minBuffer > 0) {
-                "This phone does not support 48 kHz mono PCM microphone capture."
+                getString(R.string.error_pcm_not_supported)
             }
 
             // Four packets gives the recorder room to survive short scheduler stalls without
@@ -377,13 +377,13 @@ class MicStreamingService : Service() {
                 }
 
                 if (sequence == -1) {
-                    error("Packet sequence exhausted; restart the stream to create a new encryption session.")
+                    error(getString(R.string.error_sequence_exhausted))
                 }
 
                 // Encode with Opus if the encoder is active; otherwise send raw PCM.
                 val payloadBytes: ByteArray = if (activeCodec == AudioCodec.OPUS && opusEncoder != null) {
                     opusEncoder.encode(samples, samplesRead)
-                        ?: error("Opus encoding failed; stop and retry, or select PCM16.")
+                        ?: error(getString(R.string.error_opus_encoding))
                 } else {
                     pcmBytes
                 }
@@ -484,10 +484,7 @@ class MicStreamingService : Service() {
                         }
 
                         LinkAction.GIVE_UP -> error(
-                            "No reply from the receiver for " +
-                                "${ReconnectPolicy.GIVE_UP_AFTER_MS / 1_000} seconds. Check that " +
-                                "PocketMicReceiver is running on the PC and that both devices are " +
-                                "on the same Wi-Fi network.",
+                            getString(R.string.error_no_reply_seconds, ReconnectPolicy.GIVE_UP_AFTER_MS / 1_000),
                         )
                     }
 
@@ -566,7 +563,7 @@ class MicStreamingService : Service() {
                     .build()
 
                 if (candidate.state != AudioRecord.STATE_INITIALIZED) {
-                    lastFailure = IllegalStateException("Microphone source $source did not initialize.")
+                    lastFailure = IllegalStateException(getString(R.string.error_source_initialize, audioSourceName(source)))
                     continue
                 }
 
@@ -576,7 +573,7 @@ class MicStreamingService : Service() {
                     StreamingState.update { it.copy(captureSource = audioSourceName(source)) }
                     return candidate
                 }
-                lastFailure = IllegalStateException("Microphone source $source did not start recording.")
+                lastFailure = IllegalStateException(getString(R.string.error_source_start, audioSourceName(source)))
             } catch (error: Exception) {
                 lastFailure = error
             } finally {
@@ -588,17 +585,17 @@ class MicStreamingService : Service() {
         }
 
         throw IllegalStateException(
-            "Android could not start a 48 kHz mono microphone source.",
+            getString(R.string.error_capture_start),
             lastFailure,
         )
     }
 
     private fun audioSourceName(source: Int): String = when (source) {
-        MediaRecorder.AudioSource.UNPROCESSED -> "UNPROCESSED (raw)"
-        MediaRecorder.AudioSource.VOICE_COMMUNICATION -> "VOICE_COMMUNICATION (device processed)"
-        MediaRecorder.AudioSource.VOICE_RECOGNITION -> "VOICE_RECOGNITION (partly processed)"
-        MediaRecorder.AudioSource.MIC -> "MIC (default)"
-        else -> "source $source"
+        MediaRecorder.AudioSource.UNPROCESSED -> getString(R.string.audio_source_unprocessed)
+        MediaRecorder.AudioSource.VOICE_COMMUNICATION -> getString(R.string.audio_source_voice_communication)
+        MediaRecorder.AudioSource.VOICE_RECOGNITION -> getString(R.string.audio_source_voice_recognition)
+        MediaRecorder.AudioSource.MIC -> getString(R.string.audio_source_mic)
+        else -> getString(R.string.audio_source_other, source)
     }
 
     private fun audioSourceCandidates(mode: CaptureMode): List<Int> {
@@ -659,11 +656,11 @@ class MicStreamingService : Service() {
     }
 
     private fun audioReadError(code: Int): String = when (code) {
-        AudioRecord.ERROR_DEAD_OBJECT -> "The microphone device disconnected and must be restarted."
-        AudioRecord.ERROR_INVALID_OPERATION -> "Microphone capture is no longer in a valid recording state."
-        AudioRecord.ERROR_BAD_VALUE -> "Android rejected the microphone read buffer."
-        AudioRecord.ERROR -> "Android reported an unspecified microphone read failure."
-        else -> "Microphone read failed with code $code."
+        AudioRecord.ERROR_DEAD_OBJECT -> getString(R.string.error_audio_dead_object)
+        AudioRecord.ERROR_INVALID_OPERATION -> getString(R.string.error_audio_invalid_operation)
+        AudioRecord.ERROR_BAD_VALUE -> getString(R.string.error_audio_bad_value)
+        AudioRecord.ERROR -> getString(R.string.error_audio_unspecified)
+        else -> getString(R.string.error_audio_read_code, code)
     }
 
     private fun validate(config: MicConfig): String? = config.validateConnection()
@@ -687,11 +684,11 @@ class MicStreamingService : Service() {
         return NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_stat_mic)
             .setContentTitle("PocketMic → $destination")
-            .setContentText("Streaming microphone audio to $destination")
+            .setContentText(getString(R.string.notification_streaming, destination))
             .setContentIntent(openAppIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
-            .addAction(R.drawable.ic_stat_mic, "Stop", stopIntent)
+            .addAction(R.drawable.ic_stat_mic, getString(R.string.notification_stop), stopIntent)
             .build()
     }
 
@@ -701,10 +698,10 @@ class MicStreamingService : Service() {
         manager.createNotificationChannel(
             NotificationChannel(
                 CHANNEL_ID,
-                "Microphone streaming",
+                getString(R.string.notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW,
             ).apply {
-                description = "Shown while PocketMic captures and sends microphone audio."
+                description = getString(R.string.notification_channel_description)
             },
         )
     }

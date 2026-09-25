@@ -64,6 +64,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
@@ -327,8 +328,8 @@ private fun PocketMicScreen() {
                         fontWeight = FontWeight.Bold,
                     )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        TextButton(onClick = { showDiagnostics = true }) { Text("Diagnostics") }
-                        TextButton(onClick = { showInfo = true }) { Text("Info") }
+                        TextButton(onClick = { showDiagnostics = true }) { Text(stringResource(R.string.action_diagnostics)) }
+                        TextButton(onClick = { showInfo = true }) { Text(stringResource(R.string.action_info)) }
                     }
                 }
 
@@ -512,7 +513,7 @@ private fun androidx.compose.foundation.layout.BoxScope.DraggableActionButton(
             },
     ) {
         Text(
-            text = if (isActive) "Stop" else "Start",
+            text = stringResource(if (isActive) R.string.action_stop else R.string.action_start),
             fontWeight = FontWeight.Bold,
         )
     }
@@ -527,14 +528,15 @@ private fun StatusCard(
     nowMillis: Long,
 ) {
     val label = when (snapshot.status) {
-        StreamStatus.IDLE -> "Ready"
-        StreamStatus.CONNECTING -> "Connecting"
-        StreamStatus.STREAMING -> if (linkAlive) "Live — PC confirmed" else "Sending — no reply from PC"
+        StreamStatus.IDLE -> stringResource(R.string.status_ready)
+        StreamStatus.CONNECTING -> stringResource(R.string.status_connecting)
+        StreamStatus.STREAMING -> stringResource(if (linkAlive) R.string.status_live_confirmed else R.string.status_sending_waiting)
         StreamStatus.RECONNECTING -> {
             val seconds = ((nowMillis - snapshot.reconnectingSinceMillis) / 1000).toInt()
-            if (seconds > 0) "Reconnecting — still recording (${seconds}s)" else "Reconnecting — still recording"
+            if (seconds > 0) stringResource(R.string.status_reconnecting_seconds, seconds)
+            else stringResource(R.string.status_reconnecting)
         }
-        StreamStatus.ERROR -> "Stopped with error"
+        StreamStatus.ERROR -> stringResource(R.string.status_stopped_error)
     }
     val statusColor = when {
         snapshot.status == StreamStatus.ERROR -> Danger
@@ -573,7 +575,7 @@ private fun StatusCard(
 
             snapshot.activeCodec?.let { activeCodec ->
                 Text(
-                    "Using ${if (activeCodec == AudioCodec.OPUS) "Opus v2" else "PCM16 v1"}",
+                    stringResource(if (activeCodec == AudioCodec.OPUS) R.string.codec_using_opus else R.string.codec_using_pcm),
                     color = TextMuted,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -598,13 +600,13 @@ private fun StatusCard(
 
             stats?.let {
                 Text(
-                    "PC: ${it.packets} in · lost ${it.lost} · buffer ${it.bufferMillis} ms",
+                    stringResource(R.string.stats_pc_summary, it.packets, it.lost, it.bufferMillis),
                     color = TextMuted,
                     style = MaterialTheme.typography.bodySmall,
                 )
                 if (it.rejected > 0) {
                     Text(
-                        "PC rejected ${it.rejected} packets — pairing key mismatch.",
+                        stringResource(R.string.stats_pc_rejected_key, it.rejected),
                         color = Danger,
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -638,7 +640,7 @@ private fun StatusCard(
 
             if (snapshot.wifiLockMode == WifiLockMode.UNAVAILABLE) {
                 Text(
-                    "Wi-Fi low-latency lock unavailable; expect higher jitter.",
+                    stringResource(R.string.warning_wifi_lock),
                     color = Caution,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -681,7 +683,7 @@ private fun ConnectionCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Auto-connect", fontWeight = FontWeight.SemiBold)
+                Text(stringResource(R.string.connection_auto), fontWeight = FontWeight.SemiBold)
                 Switch(checked = autoConnect, onCheckedChange = onAutoConnectChange, enabled = enabled)
             }
 
@@ -693,12 +695,11 @@ private fun ConnectionCard(
                 // at whatever it read the moment capture began.
                 val (message, colour) = when {
                     snapshot.status == StreamStatus.RECONNECTING ->
-                        "Lost contact with ${snapshot.destination}. Searching for it again — " +
-                            "recording continues and nothing needs restarting." to Caution
+                        stringResource(R.string.connection_lost_searching, snapshot.destination) to Caution
 
-                    linkAlive -> "Connected to ${snapshot.destination}." to Accent
+                    linkAlive -> stringResource(R.string.connection_connected, snapshot.destination) to Accent
 
-                    else -> "Sending to ${snapshot.destination}, waiting for the first reply." to Caution
+                    else -> stringResource(R.string.connection_waiting_reply, snapshot.destination) to Caution
                 }
                 Text(message, color = colour, style = MaterialTheme.typography.bodyMedium)
 
@@ -708,16 +709,23 @@ private fun ConnectionCard(
                     val found = peer as? PeerState.Found
                     if (found != null && !found.keyMatches) {
                         Text(
-                            "Found ${found.hostName.ifBlank { "receiver" }} at ${found.address} " +
-                                "but the pairing key does not match.",
+                            stringResource(
+                                R.string.connection_receiver_key_mismatch,
+                                found.hostName.ifBlank { stringResource(R.string.diagnostics_receiver_fallback) },
+                                found.address,
+                            ),
                             color = Danger,
                             style = MaterialTheme.typography.bodySmall,
                         )
                     } else if (found != null && !found.audioProtocolMatches) {
                         Text(
-                            "Found ${found.hostName.ifBlank { "receiver" }} at ${found.address} " +
-                                "but audio protocol v${found.audioProtocolVersion} ≠ " +
-                                "v${PacketCrypto.VERSION}. Update both to the same release.",
+                            stringResource(
+                                R.string.connection_receiver_audio_mismatch,
+                                found.hostName.ifBlank { stringResource(R.string.diagnostics_receiver_fallback) },
+                                found.address,
+                                found.audioProtocolVersion,
+                                PacketCrypto.VERSION,
+                            ),
                             color = Danger,
                             style = MaterialTheme.typography.bodySmall,
                         )
@@ -725,9 +733,12 @@ private fun ConnectionCard(
                     val mismatch = peer as? PeerState.VersionMismatch
                     if (mismatch != null) {
                         Text(
-                            "Found receiver at ${mismatch.address} but control protocol " +
-                                "v${mismatch.receiverControlVersion} ≠ v${ControlProtocol.VERSION}. " +
-                                "Update both to the same release.",
+                            stringResource(
+                                R.string.connection_receiver_control_mismatch,
+                                mismatch.address,
+                                mismatch.receiverControlVersion,
+                                ControlProtocol.VERSION,
+                            ),
                             color = Danger,
                             style = MaterialTheme.typography.bodySmall,
                         )
@@ -736,42 +747,68 @@ private fun ConnectionCard(
 
                 if (snapshot.reconnects > 0) {
                     Text(
-                        "Recovered from ${snapshot.reconnects} dropout" +
-                            if (snapshot.reconnects == 1) "." else "s.",
+                        stringResource(
+                            if (snapshot.reconnects == 1) R.string.connection_recovered_one
+                            else R.string.connection_recovered_many,
+                            snapshot.reconnects,
+                        ),
                         color = TextMuted,
                         style = MaterialTheme.typography.bodySmall,
                     )
                 }
             } else if (autoConnect) {
                 val (message, colour) = when (val current = peer) {
-                    is PeerState.Searching -> "Searching for a PocketMic receiver…" to TextMuted
-                    is PeerState.NotFound ->
-                        "No receiver found. Start PocketMicReceiver on your PC, or turn this off to enter the address." to Caution
+                    is PeerState.Searching -> stringResource(R.string.connection_searching) to TextMuted
+                    is PeerState.NotFound -> stringResource(R.string.connection_not_found) to Caution
 
                     // Reported as a version disagreement rather than as an absent receiver,
                     // which is what it would otherwise look like: a frame this app cannot parse
                     // is dropped, and a dropped frame is indistinguishable from no reply at all.
                     is PeerState.VersionMismatch ->
-                        "A receiver at ${current.address} speaks control protocol " +
-                            "v${current.receiverControlVersion} and this app speaks " +
-                            "v${ControlProtocol.VERSION}. Update both to the same release." to Danger
+                        stringResource(
+                            R.string.connection_receiver_control_mismatch,
+                            current.address,
+                            current.receiverControlVersion,
+                            ControlProtocol.VERSION,
+                        ) to Danger
 
                     is PeerState.Found -> when {
                         !current.keyMatches ->
-                            "Receiver at ${current.address} — pairing key does not match." to Danger
+                            stringResource(
+                                R.string.connection_receiver_key_mismatch,
+                                current.hostName.ifBlank { stringResource(R.string.diagnostics_receiver_fallback) },
+                                current.address,
+                            ) to Danger
 
                         !current.audioProtocolMatches ->
-                            "${current.hostName.ifBlank { "Receiver" }} at ${current.address} sends " +
-                                "audio protocol v${current.audioProtocolVersion} and this app speaks " +
-                                "v${PacketCrypto.VERSION}. Update both to the same release." to Danger
+                            stringResource(
+                                R.string.connection_receiver_audio_mismatch,
+                                current.hostName.ifBlank { stringResource(R.string.diagnostics_receiver_fallback) },
+                                current.address,
+                                current.audioProtocolVersion,
+                                PacketCrypto.VERSION,
+                            ) to Danger
 
                         else -> {
-                            val build = if (current.versionsKnown && current.buildVersion.isNotBlank()) {
-                                " · ${current.frontEnd} ${current.buildVersion}"
-                            } else {
-                                ""
+                            val receiverName = current.hostName.ifBlank {
+                                stringResource(R.string.diagnostics_receiver_fallback)
                             }
-                            "${current.hostName.ifBlank { "Receiver" }} at ${current.address}$build" to Accent
+                            val identity = if (current.versionsKnown && current.buildVersion.isNotBlank()) {
+                                stringResource(
+                                    R.string.connection_receiver_identity_version,
+                                    receiverName,
+                                    current.address,
+                                    current.frontEnd,
+                                    current.buildVersion,
+                                )
+                            } else {
+                                stringResource(
+                                    R.string.connection_receiver_identity,
+                                    receiverName,
+                                    current.address,
+                                )
+                            }
+                            identity to Accent
                         }
                     }
                 }
@@ -780,7 +817,7 @@ private fun ConnectionCard(
                 OutlinedTextField(
                     value = host,
                     onValueChange = onHostChange,
-                    label = { Text("PC IP address") },
+                    label = { Text(stringResource(R.string.connection_pc_ip)) },
                     placeholder = { Text("192.168.1.25") },
                     singleLine = true,
                     enabled = enabled,
@@ -790,7 +827,7 @@ private fun ConnectionCard(
                     OutlinedTextField(
                         value = portText,
                         onValueChange = onPortChange,
-                        label = { Text("UDP port") },
+                        label = { Text(stringResource(R.string.connection_udp_port)) },
                         singleLine = true,
                         enabled = enabled,
                         modifier = Modifier.width(140.dp),
@@ -799,7 +836,7 @@ private fun ConnectionCard(
                 OutlinedTextField(
                     value = pairingKey,
                     onValueChange = onKeyChange,
-                    label = { Text("Pairing key") },
+                    label = { Text(stringResource(R.string.connection_pairing_key)) },
                     singleLine = true,
                     enabled = enabled,
                     visualTransformation = PasswordVisualTransformation(),
@@ -809,15 +846,15 @@ private fun ConnectionCard(
                     OutlinedButton(onClick = {
                         context.getSystemService(ClipboardManager::class.java)
                             ?.setPrimaryClip(ClipData.newPlainText("PocketMic pairing key", pairingKey))
-                    }) { Text("Copy key") }
+                    }) { Text(stringResource(R.string.action_copy_key)) }
                     OutlinedButton(
                         onClick = { onKeyChange(AppPrefs.generatePairingKey()) },
                         enabled = enabled,
-                    ) { Text("Generate") }
+                    ) { Text(stringResource(R.string.action_generate)) }
                     OutlinedButton(
                         onClick = { onShowQrScannerChange(!showQrScanner) },
                         enabled = enabled,
-                    ) { Text(if (showQrScanner) "Hide camera" else "Scan QR") }
+                    ) { Text(stringResource(if (showQrScanner) R.string.action_hide_camera else R.string.action_scan_qr)) }
                 }
                 if (showQrScanner) {
                     QrScannerView(onScanned = onQrScanned)
@@ -870,38 +907,38 @@ private fun CaptureCard(
                 FilterChip(
                     selected = captureMode == CaptureMode.CLEAN,
                     onClick = { onModeChange(CaptureMode.CLEAN) },
-                    label = { Text("Clean") },
+                    label = { Text(stringResource(R.string.capture_clean)) },
                     enabled = enabled,
                 )
                 FilterChip(
                     selected = captureMode == CaptureMode.VOICE,
                     onClick = { onModeChange(CaptureMode.VOICE) },
-                    label = { Text("Voice") },
+                    label = { Text(stringResource(R.string.capture_voice)) },
                     enabled = enabled,
                 )
                 FilterChip(
                     selected = captureMode == CaptureMode.CUSTOM,
                     onClick = { onModeChange(CaptureMode.CUSTOM) },
-                    label = { Text("Custom") },
+                    label = { Text(stringResource(R.string.capture_custom)) },
                     enabled = enabled,
                 )
             }
-            Text("Audio codec", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.codec_title), style = MaterialTheme.typography.bodyMedium)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 FilterChip(
                     selected = codec == AudioCodec.PCM,
                     onClick = { onCodecChange(AudioCodec.PCM) },
-                    label = { Text("PCM · compatible") },
+                    label = { Text(stringResource(R.string.codec_pcm)) },
                     enabled = enabled,
                 )
                 FilterChip(
                     selected = codec == AudioCodec.OPUS,
                     onClick = { onCodecChange(AudioCodec.OPUS) },
-                    label = { Text("Opus · lower bandwidth") },
+                    label = { Text(stringResource(R.string.codec_opus)) },
                     enabled = enabled,
                 )
             }
-            Text("Input gain ${"%.1f".format(gain)}×", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.gain_label, "%.1f".format(gain)), style = MaterialTheme.typography.bodyMedium)
             Slider(
                 value = gain,
                 onValueChange = { onGainChange((it * 10).roundToInt() / 10f) },
@@ -912,23 +949,23 @@ private fun CaptureCard(
             // Custom exposes the receiver's chain directly. These take effect live — the PC is
             // doing the processing, so there is no need to stop the stream to retune.
             if (captureMode == CaptureMode.CUSTOM) {
-                DspSlider("High-pass", "${dsp.highPassHz} Hz", dsp.highPassHz.toFloat(), 20f..300f) {
+                DspSlider(stringResource(R.string.dsp_high_pass), "${dsp.highPassHz} Hz", dsp.highPassHz.toFloat(), 20f..300f) {
                     onDspChange(dsp.copy(highPassHz = it.roundToInt()))
                 }
-                DspSlider("Noise gate", "${dsp.gate}%", dsp.gate.toFloat(), 0f..100f) {
+                DspSlider(stringResource(R.string.dsp_noise_gate), "${dsp.gate}%", dsp.gate.toFloat(), 0f..100f) {
                     onDspChange(dsp.copy(gate = it.roundToInt()))
                 }
-                DspSlider("Compressor", "${dsp.compressor}%", dsp.compressor.toFloat(), 0f..100f) {
+                DspSlider(stringResource(R.string.dsp_compressor), "${dsp.compressor}%", dsp.compressor.toFloat(), 0f..100f) {
                     onDspChange(dsp.copy(compressor = it.roundToInt()))
                 }
-                DspSlider("Presence", "${"%.1f".format(dsp.presenceDb)} dB", dsp.presenceDb, 0f..12f) {
+                DspSlider(stringResource(R.string.dsp_presence), "${"%.1f".format(dsp.presenceDb)} dB", dsp.presenceDb, 0f..12f) {
                     onDspChange(dsp.copy(presenceDb = (it * 10).roundToInt() / 10f))
                 }
-                DspSlider("Make-up", "${dsp.makeup}%", dsp.makeup.toFloat(), 0f..100f) {
+                DspSlider(stringResource(R.string.dsp_make_up), "${dsp.makeup}%", dsp.makeup.toFloat(), 0f..100f) {
                     onDspChange(dsp.copy(makeup = it.roundToInt()))
                 }
                 Text(
-                    "Processing runs on the PC, so changes apply instantly while streaming.",
+                    stringResource(R.string.dsp_pc_note),
                     color = TextMuted,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -936,7 +973,7 @@ private fun CaptureCard(
 
             if (snapshot.captureSource.isNotBlank()) {
                 Text(
-                    "Source in use: ${snapshot.captureSource}",
+                    stringResource(R.string.dsp_source_in_use, snapshot.captureSource),
                     color = TextMuted,
                     style = MaterialTheme.typography.bodySmall,
                 )
@@ -953,20 +990,18 @@ private fun BatteryOptimizationDialog(
     AlertDialog(
         onDismissRequest = onContinue,
         containerColor = Surface,
-        title = { Text("Battery optimization") },
+        title = { Text(stringResource(R.string.dialog_battery_title)) },
         text = {
             Text(
-                "PocketMic streams audio in the background. Disabling battery optimization " +
-                    "prevents the system from throttling network access while streaming. " +
-                    "You can still stop the stream at any time.",
+                stringResource(R.string.dialog_battery_message),
                 style = MaterialTheme.typography.bodyMedium,
             )
         },
         confirmButton = {
-            TextButton(onClick = onAllow) { Text("Allow") }
+            TextButton(onClick = onAllow) { Text(stringResource(R.string.action_allow)) }
         },
         dismissButton = {
-            TextButton(onClick = onContinue) { Text("Continue anyway") }
+            TextButton(onClick = onContinue) { Text(stringResource(R.string.action_continue_anyway)) }
         },
     )
 }
@@ -983,24 +1018,24 @@ private fun InfoSheet(onDismiss: () -> Unit) {
             modifier = Modifier.padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text("About PocketMic", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.dialog_about_title), fontWeight = FontWeight.Bold, style = MaterialTheme.typography.titleMedium)
             Text(
-                "Uses this phone as an encrypted low-latency microphone for a Windows PC on the same network.",
+                stringResource(R.string.dialog_about_message),
                 color = TextMuted,
             )
-            Text("Capture modes", fontWeight = FontWeight.SemiBold)
             Text(
-                "Voice uses the phone's voice-communication source — the vendor's own noise suppression, " +
-                    "echo handling and gain control, exactly one processing layer. Clean requests unprocessed " +
-                    "input where the phone supports it, otherwise voice-recognition input. Custom uses the " +
-                    "cleanest source and shapes it with the receiver's processing chain, which runs on the PC.",
+                stringResource(R.string.dialog_routing_note),
+                color = TextMuted,
+            )
+            Text(stringResource(R.string.dialog_capture_modes_title), fontWeight = FontWeight.SemiBold)
+            Text(
+                stringResource(R.string.dialog_capture_modes_message),
                 color = TextMuted,
                 style = MaterialTheme.typography.bodySmall,
             )
-            Text("Security", fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.dialog_security_title), fontWeight = FontWeight.SemiBold)
             Text(
-                "Audio is encrypted with AES-256-GCM using a key derived from the pairing key. " +
-                    "Intended for a trusted private network only — do not forward this UDP port to the internet.",
+                stringResource(R.string.dialog_security_message),
                 color = TextMuted,
                 style = MaterialTheme.typography.bodySmall,
             )

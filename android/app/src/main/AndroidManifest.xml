@@ -20,6 +20,7 @@
         android:fullBackupContent="false"
         android:icon="@drawable/ic_launcher_foreground"
         android:label="PocketMic"
+        android:localeConfig="@xml/locales_config"
         android:roundIcon="@drawable/ic_launcher_foreground"
         android:supportsRtl="true"
         android:theme="@style/Theme.PocketMic">

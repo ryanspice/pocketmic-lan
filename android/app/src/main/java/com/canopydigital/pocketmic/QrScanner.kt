@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
@@ -137,7 +138,7 @@ fun QrScannerView(
                 .height(240.dp),
         )
         Text(
-            "Point camera at QR code on PC receiver",
+            stringResource(R.string.qr_scanner_prompt),
             color = TextMuted,
             style = androidx.compose.material3.MaterialTheme.typography.bodySmall,
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 8.dp),
