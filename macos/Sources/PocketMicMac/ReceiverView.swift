@@ -33,8 +33,11 @@ struct ReceiverView: View {
                     Text("PocketMic Virtual Mic appears in macOS sound input devices after the driver is installed. Choose it in the app that should receive audio.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
-                    Text("Authenticated packets: \(receiver.authenticatedPackets)")
-                        .font(.system(.callout, design: .monospaced))
+                    HStack(spacing: 4) {
+                        Text("Authenticated packets:")
+                        Text(receiver.authenticatedPackets, format: .number)
+                    }
+                    .font(.system(.callout, design: .monospaced))
                     if let warning = receiver.codecWarning {
                         Label(warning, systemImage: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)

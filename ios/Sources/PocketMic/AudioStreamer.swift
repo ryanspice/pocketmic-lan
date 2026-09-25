@@ -9,7 +9,7 @@ import SwiftUI
 final class AudioStreamer: ObservableObject {
     @Published private(set) var isStreaming = false
     @Published private(set) var isStarting = false
-    @Published private(set) var status = "Ready"
+    @Published private(set) var status = String(localized: "Ready")
     @Published var errorMessage: String?
 
     private let engine = AVAudioEngine()
@@ -24,17 +24,17 @@ final class AudioStreamer: ObservableObject {
         guard !isStreaming, !isStarting else { return }
         guard let portValue = UInt16(portText), portValue > 0,
               let nwPort = NWEndpoint.Port(rawValue: portValue) else {
-            errorMessage = "Enter a valid UDP port between 1 and 65535."
+            errorMessage = String(localized: "Enter a valid UDP port between 1 and 65535.")
             return
         }
         let receiver = host.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !receiver.isEmpty, !pairingKey.isEmpty else {
-            errorMessage = "Enter the receiver address and pairing key."
+            errorMessage = String(localized: "Enter the receiver address and pairing key.")
             return
         }
 
         isStarting = true
-        status = "Waiting for microphone permission"
+        status = String(localized: "Waiting for microphone permission")
         let requestID = UUID()
         permissionRequestID = requestID
         AVAudioApplication.requestRecordPermission { [weak self] granted in
@@ -43,8 +43,8 @@ final class AudioStreamer: ObservableObject {
                 self.permissionRequestID = nil
                 self.isStarting = false
                 guard granted else {
-                    self.status = "Ready"
-                    self.errorMessage = "Allow microphone access in Settings to stream audio."
+                    self.status = String(localized: "Ready")
+                    self.errorMessage = String(localized: "Allow microphone access in Settings to stream audio.")
                     return
                 }
                 self.beginCapture(host: receiver, port: nwPort, pairingKey: pairingKey)
@@ -71,7 +71,7 @@ final class AudioStreamer: ObservableObject {
         try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
 
         isStreaming = false
-        status = "Ready"
+        status = String(localized: "Ready")
     }
 
     private func beginCapture(host: String, port: NWEndpoint.Port, pairingKey: String) {
@@ -89,7 +89,7 @@ final class AudioStreamer: ObservableObject {
                 channels: 1,
                 interleaved: false
             ), let audioConverter = AVAudioConverter(from: inputFormat, to: outputFormat) else {
-                throw StreamError.audioSetup("Could not configure 48 kHz microphone conversion.")
+                throw StreamError.audioSetup(String(localized: "Could not configure 48 kHz microphone conversion."))
             }
 
             streamGeneration &+= 1
@@ -111,7 +111,7 @@ final class AudioStreamer: ObservableObject {
                 guard case .failed(let error) = state else { return }
                 Task { @MainActor in
                     guard let self, let udp, self.connection === udp else { return }
-                    self.errorMessage = "Receiver connection failed: \(error.localizedDescription)"
+                    self.errorMessage = String(localized: "Receiver connection failed:") + " \(error.localizedDescription)"
                     self.stop()
                 }
             }
@@ -132,7 +132,7 @@ final class AudioStreamer: ObservableObject {
                     if exhaustedSequence {
                         Task { @MainActor [weak self, weak udp] in
                             guard let self, let udp, self.connection === udp else { return }
-                            self.errorMessage = "This audio session reached the packet limit. Start a new session to keep encryption nonces unique."
+                            self.errorMessage = String(localized: "This audio session reached the packet limit. Start a new session to keep encryption nonces unique.")
                             self.stop()
                         }
                     }
@@ -141,7 +141,7 @@ final class AudioStreamer: ObservableObject {
 
             try engine.start()
             isStreaming = true
-            status = "Streaming to \(host):\(port.rawValue)"
+            status = String(localized: "Streaming to receiver at") + " \(host):\(port.rawValue)"
         } catch {
             stop()
             errorMessage = error.localizedDescription

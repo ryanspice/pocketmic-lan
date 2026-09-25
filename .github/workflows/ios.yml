@@ -19,6 +19,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Validate Apple localization catalog
+        run: python3 localization/validate_apple_catalog.py
+
       - name: Install XcodeGen
         run: brew install xcodegen
 

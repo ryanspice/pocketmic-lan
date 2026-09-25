@@ -1,0 +1,386 @@
+{
+  "sourceLanguage": "en-CA",
+  "strings": {
+    "About this iOS preview": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "About this iOS preview"
+          }
+        }
+      }
+    },
+    "Allow microphone access in Settings to stream audio.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Allow microphone access in Settings to stream audio."
+          }
+        }
+      }
+    },
+    "Audio port": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Audio port"
+          }
+        }
+      }
+    },
+    "Authenticated packets:": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Authenticated packets:"
+          }
+        }
+      }
+    },
+    "Cancel microphone request": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel microphone request"
+          }
+        }
+      }
+    },
+    "Could not configure 48 kHz microphone conversion.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not configure 48 kHz microphone conversion."
+          }
+        }
+      }
+    },
+    "Could not listen on UDP": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Could not listen on UDP"
+          }
+        }
+      }
+    },
+    "Enter a valid UDP port between 1 and 65535.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a valid UDP port between 1 and 65535."
+          }
+        }
+      }
+    },
+    "Enter the pairing key used by the mobile sender.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the pairing key used by the mobile sender."
+          }
+        }
+      }
+    },
+    "Enter the receiver address and pairing key.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter the receiver address and pairing key."
+          }
+        }
+      }
+    },
+    "IP address or host name": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "IP address or host name"
+          }
+        }
+      }
+    },
+    "Keep PocketMic in the foreground while streaming. QR pairing, receiver discovery, and Opus are not included in this initial iOS client.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep PocketMic in the foreground while streaming. QR pairing, receiver discovery, and Opus are not included in this initial iOS client."
+          }
+        }
+      }
+    },
+    "Listening on UDP": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Listening on UDP"
+          }
+        }
+      }
+    },
+    "OK": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "OK"
+          }
+        }
+      }
+    },
+    "Opus v2 traffic was detected, but this Mac preview accepts PCM v1. Select PCM on the sender and restart the stream.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opus v2 traffic was detected, but this Mac preview accepts PCM v1. Select PCM on the sender and restart the stream."
+          }
+        }
+      }
+    },
+    "PCM v1 · 48 kHz · mono": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PCM v1 · 48 kHz · mono"
+          }
+        }
+      }
+    },
+    "Pairing": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing"
+          }
+        }
+      }
+    },
+    "Pairing key": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pairing key"
+          }
+        }
+      }
+    },
+    "PocketMic": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PocketMic"
+          }
+        }
+      }
+    },
+    "PocketMic Virtual Mic appears in macOS sound input devices after the driver is installed. Choose it in the app that should receive audio.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PocketMic Virtual Mic appears in macOS sound input devices after the driver is installed. Choose it in the app that should receive audio."
+          }
+        }
+      }
+    },
+    "PocketMic issue": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PocketMic issue"
+          }
+        }
+      }
+    },
+    "PocketMic receiver": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PocketMic receiver"
+          }
+        }
+      }
+    },
+    "Preview limitation: one receiving audio client is supported at a time. Keep PocketMic open while streaming. The Mac preview accepts PCM v1 only; select PCM on the sender. Opus, discovery, background service, and signed distribution are not included yet.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Preview limitation: one receiving audio client is supported at a time. Keep PocketMic open while streaming. The Mac preview accepts PCM v1 only; select PCM on the sender. Opus, discovery, background service, and signed distribution are not included yet."
+          }
+        }
+      }
+    },
+    "Ready": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ready"
+          }
+        }
+      }
+    },
+    "Receiver connection failed:": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receiver connection failed:"
+          }
+        }
+      }
+    },
+    "Receiver failed:": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Receiver failed:"
+          }
+        }
+      }
+    },
+    "Rejected a replayed or excessive PocketMic stream session. Restart the receiver to begin a fresh validation session.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rejected a replayed or excessive PocketMic stream session. Restart the receiver to begin a fresh validation session."
+          }
+        }
+      }
+    },
+    "Start microphone": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start microphone"
+          }
+        }
+      }
+    },
+    "Start receiver": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start receiver"
+          }
+        }
+      }
+    },
+    "Stop microphone": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop microphone"
+          }
+        }
+      }
+    },
+    "Stop receiver": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Stop receiver"
+          }
+        }
+      }
+    },
+    "Streaming to receiver at": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streaming to receiver at"
+          }
+        }
+      }
+    },
+    "Streams 48 kHz mono PCM audio to a PocketMic receiver on the same private Wi-Fi network. Enter the receiver IP address and pairing key shown in its app.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Streams 48 kHz mono PCM audio to a PocketMic receiver on the same private Wi-Fi network. Enter the receiver IP address and pairing key shown in its app."
+          }
+        }
+      }
+    },
+    "This audio session reached the packet limit. Start a new session to keep encryption nonces unique.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This audio session reached the packet limit. Start a new session to keep encryption nonces unique."
+          }
+        }
+      }
+    },
+    "Use the same pairing key in the Android or iOS sender. Enter this Mac’s local network address in the sender.": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Use the same pairing key in the Android or iOS sender. Enter this Mac’s local network address in the sender."
+          }
+        }
+      }
+    },
+    "Virtual microphone": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Virtual microphone"
+          }
+        }
+      }
+    },
+    "Waiting for microphone permission": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting for microphone permission"
+          }
+        }
+      }
+    },
+    "macOS receiver preview": {
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS receiver preview"
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0"
+}

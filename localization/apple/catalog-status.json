@@ -1,0 +1,26 @@
+{
+  "platforms": ["ios", "macos"],
+  "defaultLocale": "en-CA",
+  "locales": {
+    "en-CA": {
+      "status": "source",
+      "reviewed": false,
+      "notes": "Canadian English source locale and development-region fallback."
+    },
+    "en-US": {
+      "status": "target",
+      "reviewed": false,
+      "notes": "Apple catalog has separate locale slots, but regional copy has not been adapted or reviewed; do not claim support yet."
+    },
+    "ckb": {
+      "status": "target",
+      "reviewed": false,
+      "notes": "Central Kurdish (Sorani), RTL; not yet localized in the Apple apps."
+    },
+    "kmr": {
+      "status": "target",
+      "reviewed": false,
+      "notes": "Northern Kurdish (Kurmanji), LTR; not yet localized in the Apple apps."
+    }
+  }
+}

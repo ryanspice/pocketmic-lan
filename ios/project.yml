@@ -14,6 +14,7 @@ targets:
     platform: iOS
     sources:
       - path: Sources/PocketMic
+      - path: ../localization/apple/Localizable.xcstrings
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.canopydigital.pocketmic

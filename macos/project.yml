@@ -13,6 +13,7 @@ targets:
     platform: macOS
     sources:
       - path: Sources/PocketMicMac
+      - path: ../localization/apple/Localizable.xcstrings
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.canopydigital.pocketmic.mac

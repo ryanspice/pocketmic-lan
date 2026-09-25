@@ -12,7 +12,7 @@ struct PocketMicDecodedFrame: Sendable {
 @MainActor
 final class PocketMicReceiver: ObservableObject {
     @Published private(set) var isListening = false
-    @Published private(set) var status = "Ready"
+    @Published private(set) var status = String(localized: "Ready")
     @Published private(set) var authenticatedPackets = 0
     @Published private(set) var codecWarning: String?
     @Published var errorMessage: String?
@@ -31,11 +31,11 @@ final class PocketMicReceiver: ObservableObject {
         guard !isListening else { return }
         guard let portNumber = UInt16(portText), portNumber > 0,
               let port = NWEndpoint.Port(rawValue: portNumber) else {
-            errorMessage = "Enter a valid UDP port between 1 and 65535."
+            errorMessage = String(localized: "Enter a valid UDP port between 1 and 65535.")
             return
         }
         guard !pairingKey.isEmpty else {
-            errorMessage = "Enter the pairing key used by the mobile sender."
+            errorMessage = String(localized: "Enter the pairing key used by the mobile sender.")
             return
         }
 
@@ -57,13 +57,13 @@ final class PocketMicReceiver: ObservableObject {
                     switch state {
                     case .ready:
                         self.isListening = true
-                        self.status = "Listening on UDP \(portNumber)"
+                        self.status = String(localized: "Listening on UDP") + " \(portNumber)"
                     case .failed(let error):
-                        self.errorMessage = "Receiver failed: \(error.localizedDescription)"
+                        self.errorMessage = String(localized: "Receiver failed:") + " \(error.localizedDescription)"
                         self.stop()
                     case .cancelled:
                         self.isListening = false
-                        self.status = "Ready"
+                        self.status = String(localized: "Ready")
                     default:
                         break
                     }
@@ -79,7 +79,7 @@ final class PocketMicReceiver: ObservableObject {
             local.start(queue: queue)
         } catch {
             key = nil
-            errorMessage = "Could not listen on UDP \(portNumber): \(error.localizedDescription)"
+            errorMessage = String(localized: "Could not listen on UDP") + " \(portNumber): \(error.localizedDescription)"
         }
     }
 
@@ -97,7 +97,7 @@ final class PocketMicReceiver: ObservableObject {
         lastSequence = nil
         seenSessionIDs.removeAll()
         isListening = false
-        status = "Ready"
+        status = String(localized: "Ready")
         didReportUnsupportedCodec = false
     }
 
@@ -141,7 +141,7 @@ final class PocketMicReceiver: ObservableObject {
     private func accept(_ frame: PocketMicDecodedFrame) -> Bool {
         if activeSessionID != frame.sessionID {
             guard seenSessionIDs.count < 64, !seenSessionIDs.contains(frame.sessionID) else {
-                errorMessage = "Rejected a replayed or excessive PocketMic stream session. Restart the receiver to begin a fresh validation session."
+                errorMessage = String(localized: "Rejected a replayed or excessive PocketMic stream session. Restart the receiver to begin a fresh validation session.")
                 return false
             }
             seenSessionIDs.insert(frame.sessionID)
@@ -156,7 +156,7 @@ final class PocketMicReceiver: ObservableObject {
     private func reportUnsupportedOpusOnce() {
         guard !didReportUnsupportedCodec else { return }
         didReportUnsupportedCodec = true
-        codecWarning = "Opus v2 traffic was detected, but this Mac preview accepts PCM v1. Select PCM on the sender and restart the stream."
+        codecWarning = String(localized: "Opus v2 traffic was detected, but this Mac preview accepts PCM v1. Select PCM on the sender and restart the stream.")
     }
 
     /// Identifies a structurally valid Opus v2 datagram without attempting to decode it.
