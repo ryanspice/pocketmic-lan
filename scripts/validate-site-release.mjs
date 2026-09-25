@@ -4,6 +4,8 @@ import { readdirSync, readFileSync } from "node:fs";
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const release = JSON.parse(read("dev/v3/release.json"));
 const routeManifest = JSON.parse(read("dev/v3/routes.json"));
+const siteLocaleCatalog = JSON.parse(read("localization/site/catalog-status.json"));
+const targetLocales = JSON.parse(read("localization/target-locales.json"));
 
 const siteRoot = new URL("../dev/v3/", import.meta.url);
 const htmlPages = [];
@@ -20,6 +22,25 @@ function collectHtmlPages(directory, prefix = "") {
 collectHtmlPages(siteRoot);
 for (const page of htmlPages) {
   assert.match(readFileSync(page.url, "utf8"), /<html\b[^>]*\blang="en-CA"/, `${page.path} must declare the Canadian English source locale`);
+}
+
+assert.equal(siteLocaleCatalog.defaultLocale, "en-CA", "the site fallback must remain Canadian English");
+assert.deepEqual(
+  Object.keys(siteLocaleCatalog.locales).sort(),
+  targetLocales.locales.map((locale) => locale.tag).sort(),
+  "site locale status must account for every product locale target",
+);
+assert.equal(siteLocaleCatalog.locales["en-US"].status, "draft", "US English is a spelling preview until its regional copy is reviewed");
+assert.equal(siteLocaleCatalog.locales["en-US"].reviewed, false, "the US English preview must not be reported as reviewed");
+
+const siteLocaleScript = read("dev/v3/assets/site-locale.js");
+assert.ok(siteLocaleScript.includes('var DEFAULT_LOCALE = "en-CA"'), "site locale control must use en-CA as fallback");
+assert.ok(siteLocaleScript.includes('var US_LOCALE = "en-US"'), "site locale control must expose the separate en-US preview");
+for (const page of htmlPages.filter((candidate) => !candidate.path.startsWith("marketing/"))) {
+  const depth = page.path.split("/").length - 1;
+  const localeScriptPath = `${"../".repeat(depth)}assets/site-locale.js`;
+  const html = readFileSync(page.url, "utf8");
+  assert.ok(html.includes(`<script src="${localeScriptPath}" defer></script>`), `${page.path} must load the shared locale preference control`);
 }
 
 assert.match(release.version, /^v\d+\.\d+\.\d+$/, "release version must be SemVer with a v prefix");
