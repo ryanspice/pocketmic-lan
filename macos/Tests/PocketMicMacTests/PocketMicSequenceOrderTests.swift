@@ -1,5 +1,5 @@
 import XCTest
-@testable import PocketMicMac
+@testable import PocketMic
 
 final class PocketMicSequenceOrderTests: XCTestCase {
     func testAcceptsNextSequenceAndForwardGap() {
