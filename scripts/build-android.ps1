@@ -15,12 +15,17 @@ $env:Path = ($env:Path -replace '"', '')
 
 $Root = Split-Path -Parent $PSScriptRoot
 $AndroidRoot = Join-Path $Root 'android'
+$AppBuildFile = Join-Path $AndroidRoot 'app\build.gradle.kts'
+$AppBuild = Get-Content $AppBuildFile -Raw
+if ($AppBuild -notmatch '(?m)^\s*versionName\s*=\s*"(?<version>\d+\.\d+\.\d+)"\s*$') {
+    throw "Could not read the Android versionName from $AppBuildFile."
+}
+$AppVersion = $Matches.version
 # The Gradle wrapper is the single source of truth for the build's Gradle version. This script
 # used to download and checksum-pin its own copy, which meant the repo declared two different
 # versions once the wrapper was added - the classic way a build becomes reproducible for one
 # person and not another.
 $GradleBat = Join-Path $AndroidRoot 'gradlew.bat'
-$AppVersion = '0.1.5'
 
 function Resolve-AndroidSdk {
     $candidates = @(
