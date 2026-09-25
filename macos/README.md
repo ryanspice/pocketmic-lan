@@ -21,7 +21,7 @@ The repository workflow `.github/workflows/macos.yml` builds universal arm64/x86
 5. In **System Settings → Sound → Input**, confirm **PocketMic Virtual Mic** is listed. Select it in the conferencing/recording app that should consume audio.
 6. On Android, select **PCM** as the audio codec before starting the stream. The Mac preview accepts PCM v1 only; if an Opus v2 stream arrives, PocketMic displays a compatibility warning and tells you to switch the sender to PCM. The current iOS client sends PCM v1.
 7. Open PocketMic, enter a pairing key, and start the receiver. On the Android/iOS sender use the Mac's private-LAN IPv4 address, UDP port `49500`, and the same pairing key.
-8. Speak into the phone and confirm the receiving app meters/hears audio. Check that a wrong key and a modified/replayed datagram produce no audio. Repeat stop/start and a Wi-Fi reconnect.
+8. Speak into the phone and confirm the receiving app meters/hears audio. Confirm that a wrong pairing key produces no audio. Do not modify or replay packets; CI protocol fixtures cover ciphertext tampering and wrong-key rejection. Repeat stop/start and a Wi-Fi reconnect.
 9. When finished, run `bash ./uninstall-driver.sh` from Terminal. Confirm removal by typing `REMOVE` when prompted; CoreAudio then restarts again.
 
 Use one receiving audio app at a time and keep PocketMic open in the foreground. The app currently supports PCM v1/manual pairing; Opus v2, receiver discovery, QR pairing, multiple simultaneous consumers, background service, signing, notarization, and store delivery are not included.
