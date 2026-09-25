@@ -9,7 +9,7 @@
 
 ### Changed
 - Use `com.canopydigital.pocketmic` as the Android and iOS application identifier. Android users must install this as a new app; it cannot upgrade the v0.1.5 package.
-- Bump Android, iOS, and Windows build versions to 0.1.6.
+- Bump Android, iOS, macOS, and Windows build versions to 0.1.6.
 - Use Canadian English (`en-CA`) as the default language fallback and describe the iOS destination generically as a PocketMic receiver.
 - Expose Android PCM/Opus selection, report the codec actually used when native Opus is unavailable, and apply input gain consistently before either encoding path.
 
