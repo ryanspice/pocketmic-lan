@@ -35,6 +35,12 @@ struct ReceiverView: View {
                         .foregroundStyle(.secondary)
                     Text("Authenticated packets: \(receiver.authenticatedPackets)")
                         .font(.system(.callout, design: .monospaced))
+                    if let warning = receiver.codecWarning {
+                        Label(warning, systemImage: "exclamationmark.triangle.fill")
+                            .foregroundStyle(.orange)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .textSelection(.enabled)
+                    }
                     if let error = receiver.errorMessage {
                         Text(error)
                             .foregroundStyle(.red)
@@ -62,7 +68,7 @@ struct ReceiverView: View {
                     .foregroundStyle(.secondary)
             }
 
-            Text("Preview limitation: one receiving audio client is supported at a time. Keep PocketMic open while streaming. Opus, discovery, background service, and signed distribution are not included yet.")
+            Text("Preview limitation: one receiving audio client is supported at a time. Keep PocketMic open while streaming. The Mac preview accepts PCM v1 only; select PCM on the sender. Opus, discovery, background service, and signed distribution are not included yet.")
                 .font(.footnote)
                 .foregroundStyle(.secondary)
         }

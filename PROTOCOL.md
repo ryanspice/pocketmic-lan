@@ -59,7 +59,7 @@ Header integers are big-endian. The header is 4 bytes longer than v1, adding a p
 
 Total datagram length: `28 + n + 16` bytes, where *n* is the Opus payload length (typically 60–150 bytes at 48 kbit/s).
 
-The receiver determines the codec from the version byte: version 1 = PCM16, version 2 = Opus. Both versions are accepted simultaneously — the receiver handles whichever the sender uses.
+The receiver determines the codec from the version byte: version 1 = PCM16, version 2 = Opus. The Windows receiver supports both versions. The current macOS preview supports v1 PCM only; it reports a compatibility warning when it detects a structurally valid v2 Opus datagram. Select PCM on an Android sender before connecting to the Mac. The current iOS publisher sends v1 PCM.
 
 ## Encryption
 

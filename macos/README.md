@@ -12,9 +12,10 @@ The repository workflow `.github/workflows/macos.yml` builds universal arm64/x86
 2. Unzip `PocketMicVirtualMic-driver-unsigned.zip` beside `install-driver.sh`, so `PocketMicVirtualMic.driver` is in the same folder.
 3. In Terminal, run `bash ./install-driver.sh`. macOS asks for administrator approval; the script installs the unsigned preview driver and restarts CoreAudio. Audio apps may briefly disconnect. Restart the Mac if macOS does not register the device.
 4. In **System Settings → Sound → Input**, confirm **PocketMic Virtual Mic** is listed. Select it in the conferencing/recording app that should consume audio.
-5. Open PocketMic, enter a pairing key, and start the receiver. On the Android/iOS sender use the Mac's private-LAN IPv4 address, UDP port `49500`, and the same pairing key.
-6. Speak into the phone and confirm the receiving app meters/hears audio. Check that a wrong key and a modified/replayed datagram produce no audio. Repeat stop/start and a Wi-Fi reconnect.
-7. When finished, run `bash ./uninstall-driver.sh` from Terminal. CoreAudio restarts again.
+5. On Android, select **PCM** as the audio codec before starting the stream. The Mac preview accepts PCM v1 only; if an Opus v2 stream arrives, PocketMic displays a compatibility warning and tells you to switch the sender to PCM. The current iOS client sends PCM v1.
+6. Open PocketMic, enter a pairing key, and start the receiver. On the Android/iOS sender use the Mac's private-LAN IPv4 address, UDP port `49500`, and the same pairing key.
+7. Speak into the phone and confirm the receiving app meters/hears audio. Check that a wrong key and a modified/replayed datagram produce no audio. Repeat stop/start and a Wi-Fi reconnect.
+8. When finished, run `bash ./uninstall-driver.sh` from Terminal. CoreAudio restarts again.
 
 Use one receiving audio app at a time and keep PocketMic open in the foreground. The app currently supports PCM v1/manual pairing; Opus v2, receiver discovery, QR pairing, multiple simultaneous consumers, background service, signing, notarization, and store delivery are not included.
 

@@ -14,6 +14,7 @@ final class PocketMicReceiver: ObservableObject {
     @Published private(set) var isListening = false
     @Published private(set) var status = "Ready"
     @Published private(set) var authenticatedPackets = 0
+    @Published private(set) var codecWarning: String?
     @Published var errorMessage: String?
 
     private let queue = DispatchQueue(label: "com.canopydigital.pocketmic.mac.receiver")
@@ -24,6 +25,7 @@ final class PocketMicReceiver: ObservableObject {
     private var activeSessionID: UInt64?
     private var lastSequence: UInt32?
     private var seenSessionIDs = Set<UInt64>()
+    private var didReportUnsupportedCodec = false
 
     func start(portText: String, pairingKey: String) {
         guard !isListening else { return }
@@ -39,6 +41,8 @@ final class PocketMicReceiver: ObservableObject {
 
         key = SymmetricKey(data: Data(SHA256.hash(data: Data(pairingKey.utf8))))
         authenticatedPackets = 0
+        codecWarning = nil
+        didReportUnsupportedCodec = false
         activeSessionID = nil
         lastSequence = nil
         seenSessionIDs.removeAll()
@@ -94,6 +98,7 @@ final class PocketMicReceiver: ObservableObject {
         seenSessionIDs.removeAll()
         isListening = false
         status = "Ready"
+        didReportUnsupportedCodec = false
     }
 
     private func accept(_ connection: NWConnection) {
@@ -114,13 +119,17 @@ final class PocketMicReceiver: ObservableObject {
         let bridge = virtualMicConnection
         connection.receiveMessage { [weak self, weak connection] data, _, _, error in
             guard let self, let connection else { return }
-            if let data, let packetKey, let frame = Self.decryptPCMv1(data, using: packetKey) {
-                Task { @MainActor in
-                    guard self.accept(frame) else { return }
-                    bridge?.send(content: frame.pcm, completion: .contentProcessed { [weak self] error in
-                        guard error == nil else { return }
-                        Task { @MainActor in self?.authenticatedPackets += 1 }
-                    })
+            if let data {
+                if Self.isOpusV2Packet(data) {
+                    Task { @MainActor in self.reportUnsupportedOpusOnce() }
+                } else if let packetKey, let frame = Self.decryptPCMv1(data, using: packetKey) {
+                    Task { @MainActor in
+                        guard self.accept(frame) else { return }
+                        bridge?.send(content: frame.pcm, completion: .contentProcessed { [weak self] error in
+                            guard error == nil else { return }
+                            Task { @MainActor in self?.authenticatedPackets += 1 }
+                        })
+                    }
                 }
             }
             if error == nil {
@@ -142,6 +151,30 @@ final class PocketMicReceiver: ObservableObject {
         if let lastSequence, frame.sequence <= lastSequence { return false }
         lastSequence = frame.sequence
         return true
+    }
+
+    private func reportUnsupportedOpusOnce() {
+        guard !didReportUnsupportedCodec else { return }
+        didReportUnsupportedCodec = true
+        codecWarning = "Opus v2 traffic was detected, but this Mac preview accepts PCM v1. Select PCM on the sender and restart the stream."
+    }
+
+    /// Identifies a structurally valid Opus v2 datagram without attempting to decode it.
+    /// This is only a compatibility hint; packets are still authenticated before PCM playback.
+    nonisolated private static func isOpusV2Packet(_ packet: Data) -> Bool {
+        guard packet.count >= 45,
+              packet.count <= 28 + 512 + 16,
+              packet[packet.startIndex] == 0x50,
+              packet[packet.startIndex + 1] == 0x4d,
+              packet[packet.startIndex + 2] == 0x49,
+              packet[packet.startIndex + 3] == 0x43,
+              packet[packet.startIndex + 4] == 2,
+              (packet[packet.startIndex + 5] & 0x03) == 0x03,
+              packet.uint16BE(at: 6) == 28,
+              packet.uint32BE(at: 20) == 48_000 else { return false }
+
+        let payloadLength = Int(packet.uint32BE(at: 24))
+        return (1...512).contains(payloadLength) && packet.count == 28 + payloadLength + 16
     }
 
     /// Opens PocketMic protocol v1 and rejects malformed or unauthenticated datagrams.
