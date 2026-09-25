@@ -227,6 +227,8 @@ internal sealed class MainForm : Form
     private Task? _stoppingTask;
     private bool _handlingFault;
     private bool _restoringMonitorSelection;
+    private bool _applyingVoiceControls;
+    private bool _reflectingPhoneDsp;
     private bool _closing;
     private long _runId;
 
@@ -330,8 +332,15 @@ internal sealed class MainForm : Form
         root.Controls.Add(_voiceStrengthLabel);
         root.Controls.Add(_voiceStrength);
         _advancedControls.AddRange(new Control[] { voiceSection, _voiceEnhanceCheck, _voiceStrengthLabel, _voiceStrength });
-        _voiceEnhanceCheck.CheckedChanged += (_, _) => ApplyVoiceSetting();
-        _voiceStrength.ValueChanged += (_, _) => ApplyVoiceSetting();
+        _voiceEnhanceCheck.CheckedChanged += (_, _) =>
+        {
+            if (!_applyingVoiceControls && !_reflectingPhoneDsp) ApplyVoiceSetting();
+        };
+        _voiceStrength.ValueChanged += (_, _) =>
+        {
+            if (!_applyingVoiceControls && !_reflectingPhoneDsp)
+                ApplyVoiceSetting(selectDesktopPreset: true);
+        };
 
         SubscribeToEngine();
         PopulateOutputs();
@@ -542,8 +551,16 @@ internal sealed class MainForm : Form
         _automaticBufferingCheck.Checked = savedAutomaticBuffering;
         _bufferSlider.Value = savedBuffer;
         ApplyBufferSetting();
-        _voiceEnhanceCheck.Checked = _settings.VoiceEnhance;
-        _voiceStrength.Value = Math.Clamp(_settings.VoiceStrength, _voiceStrength.Minimum, _voiceStrength.Maximum);
+        _applyingVoiceControls = true;
+        try
+        {
+            _voiceEnhanceCheck.Checked = _settings.VoiceEnhance;
+            _voiceStrength.Value = Math.Clamp(_settings.VoiceStrength, _voiceStrength.Minimum, _voiceStrength.Maximum);
+        }
+        finally
+        {
+            _applyingVoiceControls = false;
+        }
         ApplyVoiceSetting();
 
         var restored = false;
@@ -680,11 +697,14 @@ internal sealed class MainForm : Form
             PostUi(() =>
             {
                 if (runId != _runId) return;
-                // Setting the checkbox re-runs ApplyVoiceSetting, which would overwrite the
-                // label with the strength descriptor, so the custom text is written after it.
-                _voiceEnhanceCheck.Checked = dsp.Enabled;
+                // The processor already applied the phone config. Reflecting its enabled state
+                // must not be interpreted as a desktop preset override.
+                _reflectingPhoneDsp = true;
+                try { _voiceEnhanceCheck.Checked = dsp.Enabled; }
+                finally { _reflectingPhoneDsp = false; }
+                ApplyVoiceSetting();
                 _voiceStrengthLabel.Text =
-                    $"Custom (from phone) — HPF {dsp.HighPassHz} Hz · gate {dsp.Gate * 100:F0}% · " +
+                    $"Custom (from phone; move Strength to use desktop preset) — HPF {dsp.HighPassHz} Hz · gate {dsp.Gate * 100:F0}% · " +
                     $"comp {dsp.Compressor * 100:F0}% · presence {dsp.PresenceDb:F1} dB";
             });
         };
@@ -849,10 +869,13 @@ internal sealed class MainForm : Form
         if (!advanced && Height > 560) Height = 480;
     }
 
-    private void ApplyVoiceSetting()
+    private void ApplyVoiceSetting(bool selectDesktopPreset = false)
     {
         _engine.VoiceEnabled = _voiceEnhanceCheck.Checked;
-        _engine.VoiceStrength = _voiceStrength.Value / 100f;
+        if (selectDesktopPreset)
+            _engine.SelectVoicePreset(_voiceStrength.Value / 100f);
+        else
+            _engine.VoiceStrength = _voiceStrength.Value / 100f;
         _voiceStrength.Enabled = _voiceEnhanceCheck.Checked;
 
         var descriptor = _voiceStrength.Value switch

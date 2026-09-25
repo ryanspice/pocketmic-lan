@@ -47,6 +47,21 @@ Working-tree implementation on top of `f3dc632`:
 - Windows receiver core tests: **161 passed, 0 failed, 0 skipped**. Windows desktop build: **0 warnings, 0 errors**.
 - Live device switching and audible output remain unverified on this machine. The pushed CI run is required for this source revision, followed by a real Windows receiver smoke with a phone stream and two selectable output devices.
 
+### D2 CI on commit `e12b57bbdd0a0ff925234c79aac745b8eb8d0e25`
+
+- Primary Android/Windows/web CI passed: [run 36075977938](https://github.com/ryanspice/pocketmic-lan/actions/runs/36075977938).
+- iOS passed: [run 36075977954](https://github.com/ryanspice/pocketmic-lan/actions/runs/36075977954). macOS passed: [run 36075977937](https://github.com/ryanspice/pocketmic-lan/actions/runs/36075977937).
+- This confirms the source compiles and the existing Windows core suite runs on CI; it does not prove a physical device switch or audible monitor playback.
+
+## Windows Custom DSP override fix (2026-09-24)
+
+Working-tree implementation on top of `e12b57b`:
+
+- A deliberate desktop Strength slider change now exits the phone-provided Custom mode, applies that strength to the desktop preset, and restores the preset's 85 Hz high-pass and 3.5 dB presence defaults.
+- Reflecting the phone's Custom enable state does not trigger the desktop override. The UI labels the phone Custom state and tells the user that moving Strength returns to the desktop preset.
+- Windows receiver core tests: **162 passed, 0 failed, 0 skipped**. Windows desktop build: **0 warnings, 0 errors**.
+- Hosted CI and listening/runtime acceptance remain pending for this new revision.
+
 ## Published artifact verification (2026-09-23)
 
 Downloaded the tag-pinned public release assets and checked them against the attached `SHA256SUMS.txt` manifest and GitHub asset digests.

@@ -319,6 +319,9 @@ public sealed class PocketMicEngine
         set => _voice.Strength = value;
     }
 
+    /// <summary>Leaves phone Custom DSP and selects the desktop preset at the given strength.</summary>
+    public void SelectVoicePreset(float strength) => _voice.SelectPresetStrength(strength);
+
     /// <summary>
     /// Counters as they stand right now. Deliberately survives a stop so a host can show the
     /// totals of the run that just ended; they are cleared by the next <see cref="Start"/>.
