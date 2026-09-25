@@ -1,9 +1,26 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 const release = JSON.parse(read("dev/v3/release.json"));
 const routeManifest = JSON.parse(read("dev/v3/routes.json"));
+
+const siteRoot = new URL("../dev/v3/", import.meta.url);
+const htmlPages = [];
+function collectHtmlPages(directory, prefix = "") {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const relativePath = prefix ? `${prefix}/${entry.name}` : entry.name;
+    if (entry.isDirectory()) {
+      collectHtmlPages(new URL(`${entry.name}/`, directory), relativePath);
+    } else if (entry.isFile() && entry.name.endsWith(".html")) {
+      htmlPages.push({ path: relativePath, url: new URL(entry.name, directory) });
+    }
+  }
+}
+collectHtmlPages(siteRoot);
+for (const page of htmlPages) {
+  assert.match(readFileSync(page.url, "utf8"), /<html\b[^>]*\blang="en-CA"/, `${page.path} must declare the Canadian English source locale`);
+}
 
 assert.match(release.version, /^v\d+\.\d+\.\d+$/, "release version must be SemVer with a v prefix");
 assert.match(release.checkedOn, /^\d{4}-\d{2}-\d{2}$/, "checkedOn must be an ISO date");
