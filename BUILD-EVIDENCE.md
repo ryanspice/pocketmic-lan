@@ -60,7 +60,32 @@ Working-tree implementation on top of `e12b57b`:
 - A deliberate desktop Strength slider change now exits the phone-provided Custom mode, applies that strength to the desktop preset, and restores the preset's 85 Hz high-pass and 3.5 dB presence defaults.
 - Reflecting the phone's Custom enable state does not trigger the desktop override. The UI labels the phone Custom state and tells the user that moving Strength returns to the desktop preset.
 - Windows receiver core tests: **162 passed, 0 failed, 0 skipped**. Windows desktop build: **0 warnings, 0 errors**.
-- Hosted CI and listening/runtime acceptance remain pending for this new revision.
+- Live Windows controls and listening/audio acceptance remain open for this change; hosted CI is recorded below.
+
+### D3 CI on commit `a584f1a76d902114b3c63caf20663e579c44d801` (2026-09-25 UTC)
+
+All push-triggered workflows and their associated pull-request workflows completed successfully:
+
+| Event | Workflow | Result | Evidence |
+|---|---|---|---|
+| Push | Primary CI (Android build/lint/unit tests, Windows build/tests, web validation) | PASS | [run 36076365312](https://github.com/ryanspice/pocketmic-lan/actions/runs/36076365312) |
+| Push | iOS simulator build | PASS | [run 36076365210](https://github.com/ryanspice/pocketmic-lan/actions/runs/36076365210) |
+| Push | macOS build/tests/package | PASS | [run 36076365257](https://github.com/ryanspice/pocketmic-lan/actions/runs/36076365257) |
+| Pull request | Primary CI | PASS | [run 36076370399](https://github.com/ryanspice/pocketmic-lan/actions/runs/36076370399) |
+| Pull request | iOS simulator build | PASS | [run 36076370449](https://github.com/ryanspice/pocketmic-lan/actions/runs/36076370449) |
+| Pull request | macOS build/tests/package | PASS | [run 36076370405](https://github.com/ryanspice/pocketmic-lan/actions/runs/36076370405) |
+| Pull request | Lighthouse validation | PASS | [run 36076370441](https://github.com/ryanspice/pocketmic-lan/actions/runs/36076370441) |
+
+These checks establish hosted build/test success for commit `a584f1a`; they do not establish live desktop interaction/audio, physical mobile interoperability, or physical Mac driver acceptance.
+
+## Windows selected-cable microphone routing fix (D4, 2026-09-25)
+
+Working-tree implementation on top of `a584f1a`:
+
+- The receiver now maps only recognized exact playback/capture pairs (VB-CABLE and VoiceMeeter VAIO/AUX). Generic or ambiguous names do not enable automatic routing; changing playback selection refreshes the explanation and eligibility.
+- Before routing, it snapshots Windows Console, Multimedia, and Communications capture defaults independently. A failed per-role update rolls earlier roles back. Explicit Restore restores each saved role even if the cable disappears; application exit restores only roles still pointing to the endpoint PocketMic assigned, preserving later changes to other microphones.
+- Windows receiver core tests: **172 passed, 0 failed, 0 skipped**. Windows desktop build: **0 warnings, 0 errors**. `git diff --check` passed.
+- Hosted CI for this D4 working tree is pending until its source revision is pushed. No Windows default microphone was changed for testing; device enumeration, actual system-default mutation/restore, destination-app audio, and unplug/replug behavior remain unverified on a live Windows audio stack.
 
 ## Published artifact verification (2026-09-23)
 

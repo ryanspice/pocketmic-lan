@@ -100,6 +100,7 @@ internal sealed class MainForm : Form
     private const int DefaultPrebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
 
     private readonly PocketMicEngine _engine = new();
+    private readonly CaptureDefaultRouting _captureRouting = DefaultDeviceSwitcher.CreateRoutingController();
 
     private readonly TextBox _portText = new() { Text = "49500", Width = 110 };
     private readonly TextBox _keyText = new() { Width = 280, UseSystemPasswordChar = true };
@@ -165,8 +166,8 @@ internal sealed class MainForm : Form
         Enabled = false,
     };
 
-    private string? _previousDefaultCaptureId;
-    private bool _isDefaultMic;
+    private CaptureDefaultRoute? _activeCaptureRoute;
+    private string? _activeCaptureRouteName;
 
     // Routing the stream into a virtual cable makes it available to other applications but
     // silences it for the person running PocketMic, because a cable is not a speaker. The
@@ -312,6 +313,7 @@ internal sealed class MainForm : Form
         root.Controls.Add(_routingLabel);
         root.Controls.Add(_makeDefaultMicButton);
         _makeDefaultMicButton.Click += (_, _) => MakeVirtualCableDefaultMicrophone();
+        _outputCombo.SelectedIndexChanged += (_, _) => DescribeRouting(_outputCombo.SelectedItem as DeviceItem);
         root.Controls.Add(_autoListenCheck);
         root.Controls.Add(_minimizeToTrayCheck);
         _advancedControls.AddRange(new Control[] { connectionGrid, _autoListenCheck, _minimizeToTrayCheck });
@@ -412,23 +414,46 @@ internal sealed class MainForm : Form
 
     private void DescribeRouting(DeviceItem? device)
     {
-        if (device is null) return;
-        var name = device.ToString();
-        var isCable = VirtualCableHints.Any(h => name.Contains(h, StringComparison.OrdinalIgnoreCase));
-
-        if (isCable)
+        if (_activeCaptureRoute is not null)
         {
-            _routingLabel.Text =
-                $"Routing through \"{name}\" — other apps can select PocketMic as a microphone.";
+            _routingLabel.Text = $"Windows default microphone remains \"{_activeCaptureRouteName ?? "the previously selected virtual endpoint"}\". If playback now goes somewhere else, destination apps will not receive PocketMic audio. Restore before routing a different cable.";
             _routingLabel.ForeColor = Color.DarkGreen;
-            _makeDefaultMicButton.Enabled = DefaultDeviceSwitcher.FindVirtualCaptureDevice() is not null;
+            _makeDefaultMicButton.Enabled = true;
+            _makeDefaultMicButton.Text = "Restore previous Windows microphone";
+            return;
         }
-        else
+
+        var renderName = device is null
+            ? null
+            : device.DeviceNumber < 0 ? DefaultDeviceSwitcher.DefaultRenderFriendlyName() : device.Name;
+        if (!string.IsNullOrWhiteSpace(renderName))
         {
-            _routingLabel.Text =
-                $"Playing to \"{name}\". This is audible here but not available to other apps as a microphone.";
+            var resolution = DefaultDeviceSwitcher.ResolveCaptureForRenderName(renderName);
+            if (resolution.Endpoint is { } endpoint)
+            {
+                _routingLabel.Text = $"\"{renderName}\" maps to the matching microphone endpoint \"{endpoint.FriendlyName}\". You can route Windows defaults to that microphone.";
+                _routingLabel.ForeColor = Color.DarkGreen;
+                _makeDefaultMicButton.Enabled = true;
+                _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
+                return;
+            }
+
+            var expected = CaptureEndpointMatcher.ExpectedCaptureName(renderName);
+            _routingLabel.Text = expected is null
+                ? $"Playing to \"{renderName}\". PocketMic cannot confirm a matching microphone endpoint for this output; select the microphone manually in the destination app."
+                : resolution.Matches.Count > 1
+                    ? $"More than one microphone endpoint is named \"{expected}\". Automatic routing is disabled; choose the correct microphone manually."
+                    : $"The matching microphone endpoint \"{expected}\" is not active. Automatic routing is disabled; select a microphone manually in Windows Sound settings.";
             _routingLabel.ForeColor = Color.DarkOrange;
+            _makeDefaultMicButton.Enabled = false;
+            _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
+            return;
         }
+
+        _routingLabel.Text = "No active playback output could be identified. Select a microphone manually in the destination app.";
+        _routingLabel.ForeColor = Color.DarkOrange;
+        _makeDefaultMicButton.Enabled = false;
+        _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
     }
 
     private void AutoSelectVirtualCable()
@@ -441,19 +466,13 @@ internal sealed class MainForm : Form
                 if (device.ToString().Contains(hint, StringComparison.OrdinalIgnoreCase))
                 {
                     _outputCombo.SelectedItem = item;
-                    _routingLabel.Text =
-                        $"Routing through \"{device}\" — select its matching Output device as your microphone in Discord, OBS, or Teams.";
-                    _routingLabel.ForeColor = Color.DarkGreen;
-                    _makeDefaultMicButton.Enabled = DefaultDeviceSwitcher.FindVirtualCaptureDevice() is not null;
+                    DescribeRouting(device);
                     return;
                 }
             }
         }
 
-        _routingLabel.Text =
-            "No virtual audio cable detected. Audio will play through speakers only. " +
-            "To use PocketMic as a microphone in other apps, install VB-CABLE (vb-audio.com/Cable) and restart this app.";
-        _routingLabel.ForeColor = Color.DarkOrange;
+        DescribeRouting(_outputCombo.SelectedItem as DeviceItem);
     }
 
     /// <summary>
@@ -467,57 +486,52 @@ internal sealed class MainForm : Form
     /// </summary>
     private void MakeVirtualCableDefaultMicrophone()
     {
-        var device = DefaultDeviceSwitcher.FindVirtualCaptureDevice();
-        if (device is null)
+        if (_activeCaptureRoute is { } activeRoute)
         {
-            MessageBox.Show(
-                this,
-                "No virtual audio cable recording device was found.\r\n\r\n" +
-                "Install VB-CABLE from vb-audio.com/Cable, reboot, then restart PocketMic.",
-                "PocketMic",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Information);
-            return;
-        }
-
-        // Toggle back if we already redirected it.
-        if (_isDefaultMic)
-        {
-            var restoreError = "No previous microphone was recorded to restore.";
-            var restored = _previousDefaultCaptureId is not null &&
-                DefaultDeviceSwitcher.TrySetDefaultCapture(_previousDefaultCaptureId, out restoreError);
-
-            if (restored)
+            if (_captureRouting.TryRestore(activeRoute, onlyIfStillTarget: false, out var restoreError))
             {
-                _isDefaultMic = false;
+                _activeCaptureRoute = null;
+                _activeCaptureRouteName = null;
                 _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
-                _routingLabel.Text = "Previous Windows microphone restored.";
+                DescribeRouting(_outputCombo.SelectedItem as DeviceItem);
+                _routingLabel.Text = "The previous Windows microphone assignment has been restored for each role.";
                 _routingLabel.ForeColor = Color.DimGray;
             }
             else
             {
-                MessageBox.Show(this, restoreError, "PocketMic", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show(this, restoreError, "Could not restore Windows microphone", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-
             return;
         }
 
-        _previousDefaultCaptureId ??= DefaultDeviceSwitcher.CurrentDefaultCaptureId();
-
-        if (DefaultDeviceSwitcher.TrySetDefaultCapture(device.ID, out var error))
+        var selected = _outputCombo.SelectedItem as DeviceItem;
+        var renderName = selected is null
+            ? null
+            : selected.DeviceNumber < 0 ? DefaultDeviceSwitcher.DefaultRenderFriendlyName() : selected.Name;
+        var resolution = string.IsNullOrWhiteSpace(renderName)
+            ? new CaptureEndpointResolution(string.Empty, Array.Empty<CaptureEndpointInfo>())
+            : DefaultDeviceSwitcher.ResolveCaptureForRenderName(renderName);
+        if (resolution.Endpoint is not { } endpoint)
         {
-            _isDefaultMic = true;
-            _routingLabel.Text =
-                $"\"{device.FriendlyName}\" is now the Windows default microphone. " +
-                "Apps set to System Default will hear your phone.";
+            DescribeRouting(selected);
+            MessageBox.Show(this, _routingLabel.Text, "No unambiguous matching microphone", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        if (_captureRouting.TryRouteTo(endpoint.Id, out var route, out var error) && route is not null)
+        {
+            _activeCaptureRoute = route;
+            _activeCaptureRouteName = endpoint.FriendlyName;
+            _routingLabel.Text = $"\"{endpoint.FriendlyName}\" is now the Windows default microphone for all three roles. Apps using System Default can receive PocketMic audio.";
             _routingLabel.ForeColor = Color.DarkGreen;
             _makeDefaultMicButton.Text = "Restore previous Windows microphone";
+            _makeDefaultMicButton.Enabled = true;
         }
         else
         {
             MessageBox.Show(
                 this,
-                $"Could not change the default recording device.\r\n\r\n{error}\r\n\r\n" +
+                $"Could not change the default recording device safely.\r\n\r\n{error}\r\n\r\n" +
                 "You can set it manually in Windows Sound settings instead.",
                 "PocketMic",
                 MessageBoxButtons.OK,
@@ -832,8 +846,30 @@ internal sealed class MainForm : Form
             return;
         }
 
-        _trayIcon.Visible = false;
         base.OnFormClosing(e);
+        if (e.Cancel) return;
+
+        _trayIcon.Visible = false;
+        RestoreOwnedMicrophoneRouteOnExit();
+    }
+
+    private void RestoreOwnedMicrophoneRouteOnExit()
+    {
+        if (_activeCaptureRoute is not { } route) return;
+
+        if (_captureRouting.TryRestore(route, onlyIfStillTarget: true, out var error))
+        {
+            _activeCaptureRoute = null;
+            _activeCaptureRouteName = null;
+            return;
+        }
+
+        MessageBox.Show(
+            this,
+            $"PocketMic could not fully restore the Windows microphone assignments before exiting.\r\n\r\n{error}",
+            "Check Windows microphone settings",
+            MessageBoxButtons.OK,
+            MessageBoxIcon.Warning);
     }
 
     protected override void Dispose(bool disposing)
