@@ -52,7 +52,7 @@ jobs:
           'ARCHS=arm64 x86_64' ONLY_ACTIVE_ARCH=NO build
 
       - name: Verify macOS app localization bundle
-        run: python3 localization/verify_apple_bundle.py build/macOS/Build/Products/Release/PocketMic.app
+        run: python3 localization/verify_apple_bundle.py --platform macos build/macOS/Build/Products/Release/PocketMic.app
 
       - name: Build universal virtual audio driver
         run: |

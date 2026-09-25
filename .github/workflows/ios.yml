@@ -57,7 +57,7 @@ jobs:
 
       - name: Verify simulator app localization bundle
         if: github.event_name != 'release' && !startsWith(github.ref, 'refs/tags/')
-        run: python3 localization/verify_apple_bundle.py build/DerivedData/Build/Products/Debug-iphonesimulator/PocketMic.app
+        run: python3 localization/verify_apple_bundle.py --platform ios build/DerivedData/Build/Products/Debug-iphonesimulator/PocketMic.app
 
       - name: Archive unsigned app
         if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
@@ -68,7 +68,7 @@ jobs:
 
       - name: Verify archive app localization bundle
         if: github.event_name == 'release' || startsWith(github.ref, 'refs/tags/')
-        run: python3 localization/verify_apple_bundle.py build/PocketMic.xcarchive/Products/Applications/PocketMic.app
+        run: python3 localization/verify_apple_bundle.py --platform ios build/PocketMic.xcarchive/Products/Applications/PocketMic.app
 
       - name: Upload simulator build
         if: github.event_name != 'release' && !startsWith(github.ref, 'refs/tags/')

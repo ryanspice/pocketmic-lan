@@ -8,4 +8,6 @@ Android currently validates `en-CA`, `en-US`, `ckb`, and `kmr`; Kurdish remains 
 
 Run `python localization/validate_android_locales.py` to check Android resource XML, locale registration, fallback coverage, and format placeholders. Android CI runs this check before building.
 
-Run `python localization/validate_apple_catalog.py` to check shared Apple catalog coverage, en-US slots, review-needed ckb/kmr drafts, and en-CA Xcode project development language. iOS and macOS CI run this check before generating their Xcode projects.
+Run `python localization/validate_apple_catalog.py` to check shared Apple UI and InfoPlist catalogs, en-US slots, review-needed ckb/kmr drafts, and en-CA Xcode project development language. iOS and macOS CI run this check before generating their Xcode projects.
+
+Run `python localization/verify_apple_bundle.py --platform ios <path-to-built-app.app>` or use `--platform macos` for a Mac bundle. It checks the packaged `en-CA` development region, complete English/Kurdish UI catalogs, and translated local-network/microphone purpose strings. iOS and macOS CI run this against the built app bundles.

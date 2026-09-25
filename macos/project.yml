@@ -15,6 +15,7 @@ targets:
     sources:
       - path: Sources/PocketMicMac
       - path: ../localization/apple/Localizable.xcstrings
+      - path: ../localization/apple/InfoPlist.xcstrings
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.canopydigital.pocketmic.mac
@@ -24,7 +25,7 @@ targets:
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: PocketMic
         INFOPLIST_KEY_CFBundleDevelopmentRegion: en-CA
-        INFOPLIST_KEY_NSLocalNetworkUsageDescription: PocketMic receives encrypted microphone audio from a paired device on your local network.
+        INFOPLIST_KEY_NSLocalNetworkUsageDescription: PocketMic uses your local network to send or receive encrypted microphone audio with a paired PocketMic device.
         CODE_SIGNING_ALLOWED: NO
     scheme:
       testTargets:

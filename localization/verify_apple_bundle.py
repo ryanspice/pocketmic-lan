@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import plistlib
 import re
 import sys
@@ -44,13 +45,14 @@ def read_strings(path: Path) -> dict[str, object]:
 
     entries = re.findall(r'^\s*("(?:\\.|[^"\\])*")\s*=\s*("(?:\\.|[^"\\])*")\s*;\s*$', text, re.MULTILINE)
     if entries:
-        return {key: value for key, value in entries}
+        return {json.loads(key): json.loads(value) for key, value in entries}
     raise ValueError("file is not a binary/XML property list or a strings key/value catalog")
 
 
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("bundle", type=Path, help="Path to a built .app bundle")
+    parser.add_argument("--platform", choices=("ios", "macos"), required=True)
     args = parser.parse_args()
 
     info_path = args.bundle / "Contents" / "Info.plist"
@@ -68,6 +70,9 @@ def main() -> int:
         return 1
 
     errors: list[str] = []
+    required_info_keys = {"NSLocalNetworkUsageDescription"}
+    if args.platform == "ios":
+        required_info_keys.add("NSMicrophoneUsageDescription")
     resources = args.bundle / "Contents" / "Resources"
     if not resources.is_dir():
         resources = args.bundle
@@ -81,6 +86,16 @@ def main() -> int:
         if not isinstance(strings, dict) or len(strings) != EXPECTED_STRING_COUNT:
             count = len(strings) if isinstance(strings, dict) else "invalid"
             errors.append(f"{locale} must contain {EXPECTED_STRING_COUNT} strings; found {count}.")
+        info_strings_path = resources / f"{locale}.lproj" / "InfoPlist.strings"
+        try:
+            info_strings = read_strings(info_strings_path)
+        except (OSError, UnicodeDecodeError, ValueError, plistlib.InvalidFileException) as error:
+            errors.append(f"Cannot read {locale} purpose strings: {error}")
+            continue
+        for key in sorted(required_info_keys):
+            value = info_strings.get(key)
+            if not isinstance(value, str) or not value.strip():
+                errors.append(f"{locale} InfoPlist.strings is missing nonempty {key}.")
 
     if errors:
         print("Apple app bundle localization validation failed:", file=sys.stderr)
@@ -89,7 +104,7 @@ def main() -> int:
         return 1
 
     print(
-        f"Apple app bundle localization passed: en-CA default and {EXPECTED_STRING_COUNT} strings each for en-US, ckb, and ku-Latn."
+        f"Apple {args.platform} app bundle localization passed: en-CA default, {EXPECTED_STRING_COUNT} UI strings, and localized purpose strings for en-US, ckb, and ku-Latn."
     )
     return 0
 

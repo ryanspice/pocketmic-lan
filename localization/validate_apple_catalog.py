@@ -10,6 +10,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG_PATH = ROOT / "localization" / "apple" / "Localizable.xcstrings"
+INFO_CATALOG_PATH = ROOT / "localization" / "apple" / "InfoPlist.xcstrings"
 PROJECTS = (ROOT / "ios" / "project.yml", ROOT / "macos" / "project.yml")
 SWIFT_ROOTS = (ROOT / "ios" / "Sources", ROOT / "macos" / "Sources")
 STATUS_PATH = ROOT / "localization" / "apple" / "catalog-status.json"
@@ -30,6 +31,7 @@ def swift_keys(source: str) -> set[str]:
 def main() -> int:
     try:
         catalog = json.loads(CATALOG_PATH.read_text(encoding="utf-8"))
+        info_catalog = json.loads(INFO_CATALOG_PATH.read_text(encoding="utf-8"))
         status = json.loads(STATUS_PATH.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError) as error:
         print(f"Invalid Apple String Catalog: {error}", file=sys.stderr)
@@ -56,6 +58,14 @@ def main() -> int:
     if not isinstance(strings, dict):
         print("Apple String Catalog must contain a strings object.", file=sys.stderr)
         return 1
+    info_strings = info_catalog.get("strings")
+    required_info_keys = {"NSLocalNetworkUsageDescription", "NSMicrophoneUsageDescription"}
+    if info_catalog.get("sourceLanguage") != "en-CA" or not isinstance(info_strings, dict):
+        print("Apple InfoPlist String Catalog must use en-CA and contain a strings object.", file=sys.stderr)
+        return 1
+    if set(info_strings) != required_info_keys:
+        print("Apple InfoPlist catalog must contain the local-network and microphone purpose strings.", file=sys.stderr)
+        return 1
 
     errors: list[str] = []
     for key, entry in strings.items():
@@ -72,10 +82,20 @@ def main() -> int:
         content = project.read_text(encoding="utf-8")
         if "../localization/apple/Localizable.xcstrings" not in content:
             errors.append(f"{project.relative_to(ROOT)} does not include the shared catalog.")
+        if "../localization/apple/InfoPlist.xcstrings" not in content:
+            errors.append(f"{project.relative_to(ROOT)} does not include the localized purpose-string catalog.")
         if "developmentLanguage: en-CA" not in content:
             errors.append(f"{project.relative_to(ROOT)} must set XcodeGen developmentLanguage to en-CA.")
         if "INFOPLIST_KEY_CFBundleDevelopmentRegion: en-CA" not in content:
             errors.append(f"{project.relative_to(ROOT)} must use en-CA as its development region.")
+        required_purpose_keys = (
+            ("NSLocalNetworkUsageDescription", "NSMicrophoneUsageDescription")
+            if project.parts[-2] == "ios"
+            else ("INFOPLIST_KEY_NSLocalNetworkUsageDescription",)
+        )
+        for key in required_purpose_keys:
+            if key not in content:
+                errors.append(f"{project.relative_to(ROOT)} is missing its {key} purpose string.")
 
     source_keys: set[str] = set()
     for source_root in SWIFT_ROOTS:
@@ -84,13 +104,21 @@ def main() -> int:
     for key in sorted(source_keys - strings.keys()):
         errors.append(f"Swift UI string is absent from Localizable.xcstrings: {key!r}.")
 
+    for key, entry in info_strings.items():
+        localizations = entry.get("localizations", {})
+        for locale in ("en-US", "ckb", "ku-Latn"):
+            unit = localizations.get(locale, {}).get("stringUnit", {})
+            expected_state = "translated" if locale == "en-US" else "needs_review"
+            if unit.get("state") != expected_state or not isinstance(unit.get("value"), str) or not unit["value"].strip():
+                errors.append(f"Missing {expected_state} {locale} purpose string for {key!r}.")
+
     if errors:
         print("Apple localization validation failed:", file=sys.stderr)
         for error in errors:
             print(f"- {error}", file=sys.stderr)
         return 1
 
-    print(f"Apple localization validation passed: {len(strings)} strings, en-CA development/source locale, en-US target coverage, ckb drafts, and kmr drafts mapped to ku-Latn.")
+    print(f"Apple localization validation passed: {len(strings)} UI strings, InfoPlist purpose strings, en-CA development/source locale, en-US target coverage, ckb drafts, and kmr drafts mapped to ku-Latn.")
     return 0
 
 
