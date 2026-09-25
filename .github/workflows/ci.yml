@@ -96,20 +96,61 @@ jobs:
         working-directory: windows-receiver
         run: dotnet build --no-restore -c Release
 
-      - name: Run tests (core only, no opus.dll)
-        working-directory: windows-receiver-tests
-        run: dotnet test --filter "FullyQualifiedName!~OpusSmoke" --logger "trx;LogFileName=test-results.trx"
+      - name: Build pinned Opus 1.5.2 x64 shared library
+        shell: pwsh
+        run: |
+          $version = '1.5.2'
+          $archive = Join-Path $env:RUNNER_TEMP "opus-$version.tar.gz"
+          $source = Join-Path $env:RUNNER_TEMP "opus-$version-source"
+          $build = Join-Path $env:RUNNER_TEMP "opus-$version-build"
+          Invoke-WebRequest -Uri "https://downloads.xiph.org/releases/opus/opus-$version.tar.gz" -OutFile $archive
+          $actual = (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($actual -ne '65c1d2f78b9f2fb20082c38cbe47c951ad5839345876e46941612ee87f9a7ce1') {
+            throw "Opus source checksum mismatch: $actual"
+          }
+          New-Item -ItemType Directory -Path $source -Force | Out-Null
+          tar -xzf $archive -C $source --strip-components=1
+          cmake --version
+          cmake -S $source -B $build -A x64 -DOPUS_BUILD_SHARED_LIBRARY=ON -DOPUS_BUILD_PROGRAMS=OFF -DOPUS_BUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
+          cmake --build $build --config Release --target opus --parallel
+          $opusDll = Get-ChildItem -LiteralPath $build -Filter opus.dll -File -Recurse | Select-Object -First 1
+          if (-not $opusDll -or $opusDll.Length -lt 100000) {
+            throw 'The pinned Opus build did not produce a valid x64 opus.dll.'
+          }
+          "POCKETMIC_OPUS_DLL=$($opusDll.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Build Windows tests and stage Opus library
+        shell: pwsh
+        run: |
+          dotnet build windows-receiver-tests/PocketMicReceiver.Tests.csproj -c Release
+          if ($LASTEXITCODE -ne 0) { throw "Windows test build exited with code $LASTEXITCODE." }
+          $testOutput = Join-Path $env:GITHUB_WORKSPACE 'windows-receiver-tests/bin/Release/net8.0-windows'
+          if (-not (Test-Path -LiteralPath $testOutput -PathType Container)) {
+            throw "Windows test output directory was not created: $testOutput"
+          }
+          Copy-Item -LiteralPath $env:POCKETMIC_OPUS_DLL -Destination (Join-Path $testOutput 'opus.dll') -Force
+
+      - name: Run full Windows test suite, including Opus smoke tests
+        shell: pwsh
+        run: |
+          dotnet test windows-receiver-tests/PocketMicReceiver.Tests.csproj -c Release --no-build --logger "trx;LogFileName=test-results.trx"
+          if ($LASTEXITCODE -ne 0) { throw "Windows tests exited with code $LASTEXITCODE." }
+
+      - name: Publish self-contained Windows receiver package
+        shell: pwsh
+        run: |
+          .\scripts\publish-windows.ps1 `
+            -OutputDirectory 'windows-receiver/bin/Release/net8.0-windows/package' `
+            -ArchivePath 'windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver-win-x64.zip' `
+            -OpusDllPath $env:POCKETMIC_OPUS_DLL
 
       - name: Upload receiver
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: pocketmic-receiver-win-x64
-          path: |
-            windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver.exe
-            windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver.dll
-            windows-receiver-core/bin/Release/net8.0-windows/PocketMicReceiver.Core.dll
-          retention-days: 14
+          path: windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver-win-x64.zip
+          retention-days: 30
 
   web:
     name: Web — validate
