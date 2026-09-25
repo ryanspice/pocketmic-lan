@@ -85,7 +85,16 @@ Working-tree implementation on top of `a584f1a`:
 - The receiver now maps only recognized exact playback/capture pairs (VB-CABLE and VoiceMeeter VAIO/AUX). Generic or ambiguous names do not enable automatic routing; changing playback selection refreshes the explanation and eligibility.
 - Before routing, it snapshots Windows Console, Multimedia, and Communications capture defaults independently. A failed per-role update rolls earlier roles back. Explicit Restore restores each saved role even if the cable disappears; application exit restores only roles still pointing to the endpoint PocketMic assigned, preserving later changes to other microphones.
 - Windows receiver core tests: **172 passed, 0 failed, 0 skipped**. Windows desktop build: **0 warnings, 0 errors**. `git diff --check` passed.
-- Hosted CI for this D4 working tree is pending until its source revision is pushed. No Windows default microphone was changed for testing; device enumeration, actual system-default mutation/restore, destination-app audio, and unplug/replug behavior remain unverified on a live Windows audio stack.
+- Hosted push CI, iOS, and macOS passed on D4 commit `1d7f5c0540b3029a83cc9025d9da66a15cb8405b`: [CI run 36077749662](https://github.com/ryanspice/pocketmic-lan/actions/runs/36077749662), [iOS run 36077749750](https://github.com/ryanspice/pocketmic-lan/actions/runs/36077749750), [macOS run 36077749625](https://github.com/ryanspice/pocketmic-lan/actions/runs/36077749625). Associated pull-request CI/iOS/macOS/Lighthouse passed in [36077752796](https://github.com/ryanspice/pocketmic-lan/actions/runs/36077752796), [36077752850](https://github.com/ryanspice/pocketmic-lan/actions/runs/36077752850), [36077752812](https://github.com/ryanspice/pocketmic-lan/actions/runs/36077752812), and [36077752961](https://github.com/ryanspice/pocketmic-lan/actions/runs/36077752961).
+- No Windows default microphone was changed for testing; device enumeration, actual system-default mutation/restore, destination-app audio, and unplug/replug behavior remain unverified on a live Windows audio stack.
+
+## Windows active-session report export fix (D5, 2026-09-25)
+
+Working-tree implementation on top of D4 commit `1d7f5c0`:
+
+- Session report reads now open the live JSONL file with read/write sharing, snapshot its contents, and parse only complete lines. The recorder's existing write sharing remains read-only to other processes; export does not stop or mutate the recording session.
+- Regression coverage exports a Markdown report while a `SessionRecorder` is still open and appending. Windows receiver core tests: **173 passed, 0 failed, 0 skipped**. Windows desktop build: **0 warnings, 0 errors**. `git diff --check` passed.
+- Hosted CI and a live Save dialog export during phone traffic remain pending for this working-tree change.
 
 ## Published artifact verification (2026-09-23)
 

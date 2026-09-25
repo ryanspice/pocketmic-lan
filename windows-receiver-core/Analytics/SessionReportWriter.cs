@@ -34,7 +34,19 @@ public static class SessionReportWriter
         var oneMinute = new List<WindowStats>();
         var events = new List<SessionEventRecord>();
 
-        foreach (var line in File.ReadLines(path))
+        // The recorder intentionally remains open during a live session. Share read/write so
+        // export can snapshot it without stopping recording, then ignore any partial last line
+        // if an append happened while the file was being read.
+        using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+        var contents = reader.ReadToEnd();
+        var lastCompleteLine = contents.LastIndexOf('\n');
+        if (lastCompleteLine >= 0) contents = contents[..(lastCompleteLine + 1)];
+        else contents = string.Empty;
+
+        using var lines = new StringReader(contents);
+        string? line;
+        while ((line = lines.ReadLine()) is not null)
         {
             if (string.IsNullOrWhiteSpace(line)) continue;
 
