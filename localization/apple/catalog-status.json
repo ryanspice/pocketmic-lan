@@ -13,14 +13,14 @@
       "notes": "Apple catalog has separate locale slots, but regional copy has not been adapted or reviewed; do not claim support yet."
     },
     "ckb": {
-      "status": "target",
+      "status": "draft",
       "reviewed": false,
-      "notes": "Central Kurdish (Sorani), RTL; not yet localized in the Apple apps."
+      "notes": "Central Kurdish (Sorani), RTL. Draft Apple strings use Android terminology for consistency and need fluent linguistic and device-layout review."
     },
     "kmr": {
-      "status": "target",
+      "status": "draft",
       "reviewed": false,
-      "notes": "Northern Kurdish (Kurmanji), LTR; not yet localized in the Apple apps."
+      "notes": "Northern Kurdish (Kurmanji), LTR. Draft Apple strings use Android terminology for consistency and need fluent linguistic and device-layout review."
     }
   }
 }

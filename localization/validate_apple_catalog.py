@@ -46,8 +46,8 @@ def main() -> int:
         print("en-US must remain an unreviewed target until regional copy review is complete.", file=sys.stderr)
         return 1
     for tag in ("ckb", "kmr"):
-        if locales.get(tag, {}).get("status") != "target" or locales.get(tag, {}).get("reviewed"):
-            print(f"{tag} must remain an unreviewed target until Apple translations are reviewed.", file=sys.stderr)
+        if locales.get(tag, {}).get("status") != "draft" or locales.get(tag, {}).get("reviewed"):
+            print(f"{tag} must remain an unreviewed draft until Apple translations are reviewed.", file=sys.stderr)
             return 1
     strings = catalog.get("strings")
     if not isinstance(strings, dict):
@@ -56,9 +56,14 @@ def main() -> int:
 
     errors: list[str] = []
     for key, entry in strings.items():
-        unit = entry.get("localizations", {}).get("en-US", {}).get("stringUnit", {})
+        localizations = entry.get("localizations", {})
+        unit = localizations.get("en-US", {}).get("stringUnit", {})
         if unit.get("state") != "translated" or not isinstance(unit.get("value"), str):
-            errors.append(f"Missing completed en-US value for {key!r}.")
+            errors.append(f"Missing en-US catalog value for {key!r}.")
+        for tag in ("ckb", "kmr"):
+            draft = localizations.get(tag, {}).get("stringUnit", {})
+            if draft.get("state") != "needs_review" or not isinstance(draft.get("value"), str):
+                errors.append(f"Missing {tag} review-needed draft for {key!r}.")
 
     for project in PROJECTS:
         content = project.read_text(encoding="utf-8")
@@ -80,7 +85,7 @@ def main() -> int:
             print(f"- {error}", file=sys.stderr)
         return 1
 
-    print(f"Apple localization validation passed: {len(strings)} strings, en-CA source, en-US catalog coverage, Kurdish targets remain unreviewed.")
+    print(f"Apple localization validation passed: {len(strings)} strings, en-CA source, en-US target coverage, and ckb/kmr review-needed drafts.")
     return 0
 
 
