@@ -1,15 +1,41 @@
 package com.canopydigital.pocketmic
 
+import java.io.File
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertSame
 import org.junit.Test
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.Properties
 import javax.crypto.Cipher
 import javax.crypto.spec.GCMParameterSpec
 
 class PacketCryptoTest {
+    @Test
+    fun pcmAndOpusPacketsMatchSharedCrossLanguageFixtures() {
+        val vectors = loadSharedProtocolVectors()
+        val key = PacketCrypto.deriveKey(vectors.getProperty("pairing_key"))
+        val sessionId = vectors.getProperty("session_id").toLong()
+        val sequence = vectors.getProperty("sequence").toInt()
+        val sampleRate = vectors.getProperty("sample_rate").toInt()
+
+        assertArrayEquals(hex(vectors, "key_hex"), key.encoded)
+
+        val pcm = hex(vectors, "v1.pcm_payload_hex")
+        val pcmPacket = PacketCrypto.Encryptor(
+            key, sessionId, sampleRate, pcm.size, AudioCodec.PCM,
+        ).encrypt(sequence, pcm)
+        assertArrayEquals(hex(vectors, "v1.datagram_hex"), pcmPacket)
+
+        // The payload is a deterministic protocol fixture, not an audio-quality sample.
+        val opus = hex(vectors, "v2.opus_payload_hex")
+        val opusPacket = PacketCrypto.Encryptor(
+            key, sessionId, sampleRate, pcm.size, AudioCodec.OPUS,
+        ).encrypt(sequence, opus)
+        assertArrayEquals(hex(vectors, "v2.datagram_hex"), opusPacket)
+    }
+
     @Test
     fun optimizedEncryptorProducesDecryptableProtocolPacketAndReusesBuffer() {
         val sessionId = 0x0102030405060708L
@@ -54,4 +80,22 @@ class PacketCryptoTest {
 
         assertEquals(pcm.size + PacketCrypto.GCM_TAG_BYTES, encrypted.size)
     }
+
+    private fun loadSharedProtocolVectors(): Properties {
+        var directory: File? = File(System.getProperty("user.dir"))
+        while (directory != null) {
+            val fixture = File(directory, "tests/fixtures/protocol-vectors.properties")
+            if (fixture.isFile) {
+                return Properties().apply {
+                    fixture.inputStream().use { load(it) }
+                }
+            }
+            directory = directory.parentFile
+        }
+        throw AssertionError("Could not locate tests/fixtures/protocol-vectors.properties from user.dir")
+    }
+
+    private fun hex(properties: Properties, key: String): ByteArray =
+        properties.getProperty(key)?.chunked(2)?.map { it.toInt(16).toByte() }?.toByteArray()
+            ?: throw AssertionError("Missing protocol fixture property: $key")
 }

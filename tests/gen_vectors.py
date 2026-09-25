@@ -57,8 +57,28 @@ vectors = {
 with open('tests/fixtures/vectors.json', 'w') as f:
     json.dump(vectors, f, indent=2)
 
+# Android's local JVM tests use java.util.Properties (available without adding a
+# JSON library to the app). Keep this generated companion in lockstep with the
+# JSON fixture consumed by the C# and Swift suites.
+android_vectors = {
+    "key_hex": key.hex(),
+    "pairing_key": pairing_key,
+    "session_id": str(session_id),
+    "sequence": str(sequence),
+    "sample_rate": str(sample_rate),
+    "v1.pcm_payload_hex": pcm.hex(),
+    "v1.datagram_hex": (h1 + ct1).hex(),
+    "v2.opus_payload_hex": opus.hex(),
+    "v2.datagram_hex": (h2 + ct2).hex(),
+}
+
+with open('tests/fixtures/protocol-vectors.properties', 'w', encoding='ascii', newline='\n') as f:
+    for name, value in android_vectors.items():
+        f.write(f"{name}={value}\n")
+
 print(f"v1 datagram: {len(h1 + ct1)} bytes (expected 1000)")
 print(f"v2 datagram: {len(h2 + ct2)} bytes")
 print(f"v1 round-trip: OK")
 print(f"v2 round-trip: OK")
 print(f"Written to tests/fixtures/vectors.json")
+print(f"Written to tests/fixtures/protocol-vectors.properties")
