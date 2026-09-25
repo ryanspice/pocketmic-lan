@@ -99,14 +99,15 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $zip = [System.IO.Compression.ZipFile]::OpenRead($Archive)
 try {
-    $archiveNames = @($zip.Entries | ForEach-Object { $_.FullName })
-    foreach ($required in @('PocketMicReceiver.exe', 'PocketMicReceiver.deps.json', 'PocketMicReceiver.runtimeconfig.json')) {
-        if ($required -notin $archiveNames) {
-            throw "Windows package is missing required file '$required'."
-        }
+    $executableEntry = $zip.GetEntry('PocketMicReceiver.exe')
+    if (-not $executableEntry -or $executableEntry.Length -lt 10MB) {
+        throw 'Windows package is missing the self-contained PocketMicReceiver.exe payload.'
     }
-    if ($OpusDllPath -and 'opus.dll' -notin $archiveNames) {
-        throw 'Windows package was built with Opus enabled but does not contain opus.dll.'
+    if ($OpusDllPath) {
+        $opusEntry = $zip.GetEntry('opus.dll')
+        if (-not $opusEntry -or $opusEntry.Length -lt 100000) {
+            throw 'Windows package is missing the expected native Opus decoder payload.'
+        }
     }
 }
 finally {

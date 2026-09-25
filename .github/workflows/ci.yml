@@ -111,7 +111,7 @@ jobs:
           New-Item -ItemType Directory -Path $source -Force | Out-Null
           tar -xzf $archive -C $source --strip-components=1
           cmake --version
-          cmake -S $source -B $build -A x64 -DOPUS_BUILD_SHARED_LIBRARY=ON -DOPUS_BUILD_PROGRAMS=OFF -DOPUS_BUILD_TESTING=OFF -DCMAKE_BUILD_TYPE=Release -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded -DCMAKE_POLICY_DEFAULT_CMP0091=NEW
+          cmake -S $source -B $build -A x64 -DOPUS_BUILD_SHARED_LIBRARY=ON -DOPUS_BUILD_PROGRAMS=OFF -DOPUS_BUILD_TESTING=OFF -DOPUS_STATIC_RUNTIME=ON -DCMAKE_BUILD_TYPE=Release -DCMAKE_MSVC_RUNTIME_LIBRARY=MultiThreaded
           cmake --build $build --config Release --target opus --parallel
           $opusDll = Get-ChildItem -LiteralPath $build -Filter opus.dll -File -Recurse | Select-Object -First 1
           if (-not $opusDll -or $opusDll.Length -lt 100000) {
