@@ -125,6 +125,8 @@ for (const staleClaim of [
 }
 assert.ok(homepage.includes("packet-rate readout are illustrative"), "no-JavaScript Signal Lab text must label its simulated network display");
 assert.ok(homeScript.includes("packet-rate readout are illustrative"), "Signal Lab copy must remain accurate after JavaScript initializes");
+assert.ok(homeScript.includes('noteMuted:"LOCAL BROWSER DEMO MUTED — NO AUDIO IS SENT TO POCKETMIC."'), "muting the local demo must not imply a live receiver connection");
+assert.ok(!homeScript.includes("THE RECEIVER SEES SILENCE"), "Signal Lab must not describe a receiver connection it does not create");
 assert.ok(homepage.includes('data-i18n="stage.live">PREVIEW</span>'), "the illustrative device mockup must not present a live device connection");
 assert.ok(homepage.includes("EXAMPLE PC : 9014") && !homepage.includes("192.168.1.8"), "the device mockup must use an example endpoint, not a plausible private address");
 assert.ok(homepage.includes("PCM / OPUS · UDP · LAN") && homeScript.includes("PCM / OPUS · UDP · LAN"), "the architecture diagram must name both supported Android packet formats");
