@@ -56,6 +56,9 @@ def main() -> int:
 
     if target_data.get("defaultLocale") != SOURCE_LOCALE:
         errors.append(f"target registry defaultLocale must remain {SOURCE_LOCALE}")
+    properties = (RES / "resources.properties").read_text(encoding="utf-8") if (RES / "resources.properties").exists() else ""
+    if f"unqualifiedResLocale={SOURCE_LOCALE}" not in properties.splitlines():
+        errors.append(f"Android resources.properties must declare unqualifiedResLocale={SOURCE_LOCALE}")
     if SOURCE_LOCALE not in locales:
         errors.append(f"Android locale config must include fallback locale {SOURCE_LOCALE}")
     if len(locales) != len(set(locales)):
@@ -96,7 +99,7 @@ def main() -> int:
             actual = sorted(PLACEHOLDER.findall(translated))
             if expected != actual:
                 errors.append(f"{locale}:{key}: placeholders {actual} do not match source {expected}")
-        if locale in {"ckb", "kmr"}:
+        if locale in {"en-US", "ckb", "kmr"}:
             missing = sorted(source.keys() - catalog.keys())
             if missing:
                 errors.append(f"{locale}: incomplete catalog, missing {', '.join(missing)}")
@@ -109,7 +112,7 @@ def main() -> int:
 
     print(
         f"Android locale resources valid: fallback {SOURCE_LOCALE}; "
-        f"app languages {', '.join(locales)}; full Kurdish catalogs and placeholders verified."
+        f"app languages {', '.join(locales)}; complete non-fallback catalogs and placeholders verified."
     )
     return 0
 
