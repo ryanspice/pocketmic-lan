@@ -139,7 +139,7 @@ def main() -> None:
     readme = (artifact_dir / "README.md").read_text(encoding="utf-8")
     if "shasum -a 256 -c SHA256SUMS.txt" not in readme:
         fail("tester guide does not include the archive checksum verification command")
-    if "do not disable Gatekeeper/System Integrity Protection" not in readme:
+    if "do not bypass that alert or disable Gatekeeper/System Integrity Protection" not in readme:
         fail("tester guide does not preserve Gatekeeper/System Integrity Protection")
 
     for script_name in ("install-driver.sh", "uninstall-driver.sh"):
