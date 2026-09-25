@@ -162,48 +162,19 @@ jobs:
         with:
           node-version: 20
 
-      - name: Validate JS syntax
-        run: node --check web/app.js
-
-      - name: Check for stale version references
+      - name: Validate homepage and shared JavaScript syntax
         run: |
-          if grep -q 'v0\\.1\\.[0-3][^0-9]' web/index.html; then
-            echo "ERROR: Found stale version references in index.html"
-            grep -n 'v0\\.1\\.[0-3][^0-9]' web/index.html
-            exit 1
-          fi
-          echo "Version strings clean"
+          node --check dev/v3/assets/marketing-home.js
+          node --check dev/v3/assets/subsite.js
+          node --check dev/v3/assets/site-locale.js
 
-      - name: Check HTML structure
-        run: |
-          # Must have exactly one h1
-          h1_count=$(grep -c '<h1' web/index.html || echo 0)
-          if [ "$h1_count" -ne 1 ]; then
-            echo "ERROR: Expected 1 h1, found $h1_count"
-            exit 1
-          fi
-          echo "h1 count: $h1_count ✓"
-
-          # Must have canonical URL
-          if ! grep -q 'rel="canonical"' web/index.html; then
-            echo "ERROR: Missing canonical URL"
-            exit 1
-          fi
-          echo "canonical ✓"
-
-          # Must have OG tags
-          if ! grep -q 'og:title' web/index.html; then
-            echo "ERROR: Missing OG tags"
-            exit 1
-          fi
-          echo "OG tags ✓"
-
-          # Must have JSON-LD
-          if ! grep -q 'application/ld+json' web/index.html; then
-            echo "ERROR: Missing JSON-LD"
-            exit 1
-          fi
-          echo "JSON-LD ✓"
-
-      - name: Validate current release metadata and download pages
+      - name: Validate canonical marketing site, routes, hooks, and release metadata
         run: node scripts/validate-site-release.mjs
+
+      - name: Upload canonical marketing-site preview
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocketmic-website-preview
+          path: dev/v3/
+          retention-days: 30

@@ -1,385 +1,1074 @@
-<!doctype html>
-<html lang="en-CA" prefix="og: https://ogp.me/ns#">
+<!DOCTYPE html>
+<html lang="en-CA">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="color-scheme" content="light dark">
-<title>Your phone. Your next PC mic. | PocketMic LAN</title>
-<meta name="description" content="Turn your Android phone into a Windows microphone over your private LAN. Free, open source, encrypted audio. Get the APK, receiver, and setup guide.">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PocketMic LAN — Android microphone for Windows</title>
+<meta name="description" content="PocketMic LAN sends audio from an Android phone to a Windows PC over your local network. AES-256-GCM encrypted, with PCM and Opus modes. Free and open source.">
+<meta name="theme-color" content="#F4F2E9">
+<meta name="application-name" content="PocketMic">
+
+<!-- Canonical URL points to the existing PocketMic LAN marketing path. -->
 <link rel="canonical" href="https://canopydigital.ca/sites/pocketmic-lan/">
-<meta name="theme-color" content="#b88a3b" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#1d1a16" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="PocketMic LAN">
-<meta property="og:title" content="Your phone. Your next PC mic.">
-<meta property="og:description" content="Turn your Android phone into a Windows microphone over your private LAN. Free, open source, encrypted audio.">
+<meta property="og:site_name" content="PocketMic">
+<meta property="og:title" content="PocketMic LAN — Android microphone for Windows">
+<meta property="og:description" content="Send audio from an Android phone to a Windows PC over your local network. AES-256-GCM encrypted. Free and open source.">
 <meta property="og:url" content="https://canopydigital.ca/sites/pocketmic-lan/">
+<!-- Reuses the current site's social card until a candidate-specific card is approved. -->
 <meta property="og:image" content="https://canopydigital.ca/sites/pocketmic-lan/assets/social/launch-1200x630.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Your phone. Your next PC mic.">
-<meta name="twitter:description" content="Turn your Android phone into a Windows microphone over your private LAN. Free, open source, encrypted audio.">
+<meta name="twitter:title" content="PocketMic LAN — Android microphone for Windows">
+<meta name="twitter:description" content="Send audio from an Android phone to a Windows PC over your local network. Free and open source.">
 <meta name="twitter:image" content="https://canopydigital.ca/sites/pocketmic-lan/assets/social/launch-1200x630.png">
-<link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-<link rel="stylesheet" href="styles.css">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230E7B3F'/%3E%3Crect x='13' y='7' width='6' height='12' rx='3' fill='%23F4F2E9'/%3E%3Cpath d='M9 15a7 7 0 0 0 14 0M16 22v4' stroke='%23F4F2E9' stroke-width='2.4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..800&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<!-- Font-provider requests are disclosed on the Privacy and terms page. -->
+
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
-  "name": "PocketMic LAN",
-  "operatingSystem": "Android 8+, Windows 11 x64",
+  "name": "PocketMic",
+  "description": "Stream microphone audio from Android to a Windows PC over a local network.",
   "applicationCategory": "MultimediaApplication",
-  "description": "Turn your Android phone into a Windows microphone over your private LAN. Free, open source, encrypted audio.",
-  "url": "https://github.com/ryanspice/pocketmic-lan",
+  "operatingSystem": "Android, Windows",
   "softwareVersion": "0.1.5",
+  "isAccessibleForFree": true,
   "license": "https://opensource.org/licenses/MIT",
-  "downloadUrl": "https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.5",
-  "author": { "@type": "Person", "name": "Ryan Spice-Finnie" }
+  "offers": {"@type": "Offer", "price": "0", "priceCurrency": "USD"},
+  "author": {"@type": "Organization", "name": "PocketMic LAN contributors"},
+  "sameAs": ["https://github.com/ryanspice/pocketmic-lan"]
 }
 </script>
-<script src="app.js" defer></script>
-<script src="assets/site-locale.js" defer></script></head>
-<body>
-<a class="skip" href="#main">Skip to content</a>
 
-<header class="site-header">
-  <div class="wrap header-inner">
-    <a class="brand" href="#hero" aria-label="PocketMic LAN home">
-      <svg class="brand-mark" width="30" height="30" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
-        <rect x="1.5" y="1.5" width="29" height="29" rx="8" fill="none" stroke="currentColor" stroke-width="2"/>
-        <path d="M16 8.5a4 4 0 0 0-4 4v4.2a4 4 0 0 0 8 0V12.5a4 4 0 0 0-4-4Z" fill="currentColor"/>
-        <path d="M10.5 17.4a5.5 5.5 0 0 0 11 0M16 22.6v3.2M12 25.8h8" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-      </svg>
-      <span class="brand-name">PocketMic <span class="brand-sub">LAN</span></span>
+<script>
+/* Set theme before first paint — prevents flash. Preference wins, else system. */
+(function(){try{
+  var p=localStorage.getItem('pm-theme');
+  var t=(p==='light'||p==='dark')?p:((window.matchMedia&&matchMedia('(prefers-color-scheme: dark)').matches)?'dark':'light');
+  document.documentElement.setAttribute('data-theme',t);
+}catch(e){document.documentElement.setAttribute('data-theme','light');}})();
+</script>
+
+<style>
+/* =====================================================================
+   tokens.css — design tokens (light / dark) + surfaces
+   ===================================================================== */
+:root{
+  color-scheme:light;
+  --paper:#F4F2E9; --paper2:#EBE8DB;
+  --ink:#171610; --mut:#6F6A5B;
+  --line:rgba(23,22,16,.15); --line2:rgba(23,22,16,.42);
+  --green:#0E7B3F; --green-deep:#0A5C30; --green-fg:#F1EFE2;
+  /* inverted band (download) */
+  --inv-bg:#171610; --inv-fg:#F1EFE2; --inv-mut:rgba(241,239,226,.72);
+  --inv-acc:#3EE586; --inv-line:rgba(241,239,226,.35);
+  /* software surfaces — used ONLY for application mockups, never for content */
+  --surface:#FAF9F3; --surface-raised:#FFFFFF; --surface-code:#0B0E07;
+  --shadow-sm:0 2px 8px rgba(23,22,16,.07);
+  --shadow-lg:0 24px 64px rgba(23,22,16,.14);
+  --scr:#EDEAE0;
+  --coffee-bg:#0E7B3F;
+  --demo-bg:#101309;
+  --head-bg:rgba(244,242,233,.88);
+  --panel:#0B0E07;
+  --cream:#F1EFE2; --cream-dim:rgba(241,239,226,.6);
+  --cline:rgba(241,239,226,.22);
+  --phos:#3EE586;
+  --bmc:#FFDD00; --bmc-ink:#0D0C22;
+  --disp:'Bricolage Grotesque',sans-serif;
+  --body:'Instrument Sans',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+html[data-theme="dark"]{
+  color-scheme:dark;
+  --paper:#10130A; --paper2:#151910;
+  --ink:#F1EFE2; --mut:#A6A28F;
+  --line:rgba(241,239,226,.14); --line2:rgba(241,239,226,.42);
+  --green:#3EE586; --green-fg:#0B0D07;
+  --inv-bg:#F1EFE2; --inv-fg:#10130A; --inv-mut:rgba(16,19,10,.72);
+  --inv-acc:#0A5C30; --inv-line:rgba(16,19,10,.3);
+  --surface:#151910; --surface-raised:#1B2114;
+  --shadow-sm:0 2px 8px rgba(0,0,0,.3);
+  --shadow-lg:0 24px 64px rgba(0,0,0,.5);
+  --scr:#171B10;
+  --coffee-bg:#0A5C30;
+  --demo-bg:#0B0E07;
+  --head-bg:rgba(16,19,10,.82);
+}
+@media (prefers-color-scheme: dark){
+  html:not([data-theme]){
+    color-scheme:dark;
+    --paper:#10130A; --paper2:#151910;
+    --ink:#F1EFE2; --mut:#A6A28F;
+    --line:rgba(241,239,226,.14); --line2:rgba(241,239,226,.42);
+    --green:#3EE586; --green-fg:#0B0D07;
+    --inv-bg:#F1EFE2; --inv-fg:#10130A; --inv-mut:rgba(16,19,10,.72);
+    --inv-acc:#0A5C30; --inv-line:rgba(16,19,10,.3);
+    --surface:#151910; --surface-raised:#1B2114;
+    --scr:#171B10;
+    --coffee-bg:#0A5C30;
+    --demo-bg:#0B0E07;
+    --head-bg:rgba(16,19,10,.82);
+  }
+}
+
+/* =====================================================================
+   base.css
+   ===================================================================== */
+/* ------------------------------------------------------------
+   FONT SELF-HOSTING (recommended for a no-cloud product)
+   Ship .woff2 files in /assets/fonts/ (latin + latin-ext for FR),
+   delete the Google Fonts <link> in <head>, and uncomment:
+@font-face{font-family:'Bricolage Grotesque';src:url('/assets/fonts/bricolage-grotesque-var.woff2') format('woff2');font-weight:300 800;font-style:normal;font-display:swap}
+@font-face{font-family:'Instrument Sans';src:url('/assets/fonts/instrument-sans-var.woff2') format('woff2');font-weight:400 600;font-style:normal;font-display:swap}
+@font-face{font-family:'IBM Plex Mono';src:url('/assets/fonts/ibm-plex-mono-400.woff2') format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:'IBM Plex Mono';src:url('/assets/fonts/ibm-plex-mono-500.woff2') format('woff2');font-weight:500;font-display:swap}
+------------------------------------------------------------ */
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--paper);color:var(--ink);font:400 16.5px/1.65 var(--body);-webkit-font-smoothing:antialiased;transition:background-color .35s ease,color .35s ease}
+::selection{background:var(--green);color:var(--green-fg)}
+:focus-visible{outline:2px solid var(--green);outline-offset:3px}
+img,svg,canvas{display:block}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+section[id]{scroll-margin-top:106px}
+.wrap{width:min(1200px,92vw);margin:0 auto}
+h1,h2,h3{font-family:var(--disp);font-weight:700;letter-spacing:-.03em;text-wrap:balance}
+.gr{color:var(--green)}
+.sec-tag{font:500 11px/1 var(--mono);letter-spacing:.22em;color:var(--mut);display:flex;align-items:center;gap:12px;text-transform:uppercase}
+.sec-tag::before{content:"";width:20px;height:2px;background:var(--green)}
+.sec-head h2{font-size:clamp(2.1rem,4.6vw,3.9rem);line-height:1.02;margin-top:18px;max-width:20ch}
+.sec-sub{max-width:56ch;color:var(--mut);margin-top:18px}
+.sec-sub,.hero-sub,.step p,.row p,.qa-a p,.coffee p.lead{text-wrap:pretty}
+.skip{position:fixed;left:14px;top:-60px;z-index:200;background:var(--ink);color:var(--inv-fg);font:500 11px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;padding:13px 17px;border-radius:8px;transition:top .2s}
+.skip:focus{top:14px}
+.rv{opacity:1;transform:translateY(24px);transition:opacity .7s cubic-bezier(.2,.65,.2,1),transform .7s cubic-bezier(.2,.65,.2,1)}
+.rv.in{opacity:1;transform:none}
+
+/* =====================================================================
+   components.css — header
+   ===================================================================== */
+.site-head{position:sticky;top:0;z-index:90;border-bottom:1px solid var(--line);background:var(--paper);transition:background-color .35s ease}
+@supports ((backdrop-filter:blur(4px)) or (-webkit-backdrop-filter:blur(4px))){
+  .site-head{background:var(--head-bg);-webkit-backdrop-filter:blur(10px) saturate(1.1);backdrop-filter:blur(10px) saturate(1.1)}
+}
+.head-row{height:60px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 max(20px,4vw)}
+.brand{display:flex;align-items:center;gap:10px;font:700 19px/1 var(--disp);letter-spacing:-.02em}
+.brand svg{width:22px;height:22px}
+.brand .chip{font:500 9px/1 var(--mono);letter-spacing:.16em;border:1px solid var(--line2);padding:3px 6px;border-radius:4px;color:var(--mut)}
+.site-nav{position:absolute;left:50%;top:30px;transform:translateX(-50%);display:flex;gap:28px;font:500 11px/1 var(--mono);letter-spacing:.16em;z-index:1}
+.site-nav a{color:var(--mut);padding:6px 0;border-bottom:1px solid transparent;transition:.2s;white-space:nowrap}
+.site-nav a:hover,.site-nav a.act{color:var(--green);border-color:var(--green)}
+.head-right{display:flex;align-items:center;gap:10px}
+.ctrl-btn{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;color:var(--mut);transition:background .2s,color .2s,border-color .2s}
+.ctrl-btn:hover{border-color:var(--ink);background:var(--ink);color:var(--inv-fg)}
+.ctrl-btn svg{width:16px;height:16px}
+.lang-sw{display:flex;align-items:stretch;height:34px;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.lang-sw button{font:500 10px/1 var(--mono);letter-spacing:.12em;padding:0 10px;color:var(--mut);transition:background .2s,color .2s}
+.lang-sw button+button{border-left:1px solid var(--line)}
+.lang-sw button:hover{color:var(--green)}
+.lang-sw button[aria-pressed="true"]{background:var(--ink);color:var(--inv-fg)}
+.lang-sw button[aria-pressed="true"]:hover{color:var(--inv-fg)}
+.gh-ic{width:34px;height:34px;display:grid;place-items:center;border:1px solid var(--line);border-radius:8px;transition:.2s}
+.gh-ic:hover{border-color:var(--ink);background:var(--ink);color:var(--inv-fg)}
+.gh-ic svg{width:17px;height:17px;fill:currentColor}
+@media(max-width:980px){
+  .site-nav{position:static;transform:none;gap:24px;overflow-x:auto;padding:2px max(20px,4vw) 12px;scrollbar-width:none}
+  .site-nav::-webkit-scrollbar{display:none}
+  .head-row .site-nav{display:none}
+  .site-head{display:block}
+  .site-nav{display:flex}
+}
+@media(max-width:400px){
+  .brand .chip{display:none}
+  .lang-sw button{padding:0 8px}
+  .head-dl{padding:9px 12px}
+}
+
+/* ---- buttons ---- */
+.btn{display:inline-flex;align-items:center;gap:10px;font:500 11px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;padding:15px 24px;border:1px solid var(--ink);border-radius:8px;transition:.2s;white-space:nowrap}
+.btn svg{width:15px;height:15px;flex:none}
+.btn-solid{background:var(--ink);color:var(--inv-fg)}
+.btn-solid:hover{background:var(--green);border-color:var(--green);color:var(--green-fg)}
+.btn-ghost:hover{background:var(--ink);color:var(--inv-fg)}
+.btn:active{transform:translateY(1px)}
+.btn-sm{padding:9px 14px;font-size:10px;border-radius:6px}
+.btn-ocream{border-color:rgba(244,242,233,.5);color:var(--cream)}
+.btn-ocream:hover{background:var(--cream);color:var(--green-deep);border-color:var(--cream)}
+.btn-phos{background:var(--phos);border-color:var(--phos);color:#0B0D07}
+.btn-phos:hover{background:var(--cream);border-color:var(--cream)}
+.btn-dghost{border-color:rgba(241,239,226,.35);color:var(--cream)}
+.btn-dghost:hover{background:var(--cream);color:#0B0D07;border-color:var(--cream)}
+.btn[disabled]{opacity:.35;cursor:default;pointer-events:none}
+.btn-bmc{background:var(--bmc);border-color:var(--bmc);color:var(--bmc-ink);box-shadow:0 2px 0 rgba(13,12,34,.12)}
+.btn-bmc:hover{background:#F2CE00;border-color:#F2CE00;box-shadow:0 1px 0 rgba(13,12,34,.12)}
+.btn-bmc:focus-visible{outline-color:var(--bmc-ink)}
+
+/* =====================================================================
+   HERO — product UI, not illustration
+   ===================================================================== */
+.hero{min-height:calc(100vh - 106px);display:flex;align-items:center;padding:56px 0 64px}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:44px;align-items:center;width:100%}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.2em;color:var(--mut);display:flex;align-items:center;gap:10px}
+.eyebrow .dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:blink 2.4s ease-in-out infinite}
+@keyframes blink{50%{opacity:.25}}
+.hero h1{font-size:clamp(2.4rem,5.4vw,4.9rem);line-height:1;margin:24px 0 24px}
+.hero-sub{max-width:47ch;font-size:17.5px;color:var(--mut)}
+.hero-cta{display:flex;align-items:center;gap:16px;margin-top:34px;flex-wrap:wrap}
+.hero-specs{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:34px;padding-top:22px;border-top:1px solid var(--line);font:500 11px/1.6 var(--mono);letter-spacing:.12em;color:var(--ink)}
+.hero-specs>span{display:flex;align-items:center;gap:8px}
+.hero-specs i{width:6px;height:6px;background:var(--green);flex:none}
+
+/* the stage: phone + link + receiver window */
+.stage-fig{min-width:0}
+.stage{display:flex;align-items:center;justify-content:center}
+.stage-wifi{display:none;font:500 10px/1 var(--mono);letter-spacing:.2em;color:var(--mut);border:1px dashed var(--line2);border-radius:99px;padding:9px 16px}
+.stage-cap{margin-top:26px;text-align:center;font:500 10px/1.6 var(--mono);letter-spacing:.18em;color:var(--mut)}
+.stage-link{width:126px;height:320px;flex:none;overflow:visible}
+.sl-flow{stroke:var(--line2);stroke-width:1.6;fill:none;stroke-dasharray:4 7;animation:dashflow 1.1s linear infinite}
+@keyframes dashflow{to{stroke-dashoffset:-11}}
+.sl-pkt{fill:var(--green)}
+.sl-box{fill:var(--paper);stroke:var(--ink);stroke-width:2}
+.sl-ant{stroke:var(--ink);stroke-width:2}
+.sl-lbl{font-family:var(--mono);font-size:9px;letter-spacing:.14em;fill:var(--mut)}
+
+/* phone mockup (transmitter page) */
+.hp{width:196px;flex:none;background:#070904;border:1px solid rgba(241,239,226,.4);border-radius:28px;padding:10px;box-shadow:var(--shadow-lg)}
+.hp-screen{height:312px;border:1px solid var(--cline);border-radius:20px;padding:14px 13px;display:flex;flex-direction:column;gap:12px}
+.hp-row{display:flex;justify-content:space-between;align-items:center;font:500 9px/1 var(--mono);letter-spacing:.16em;color:var(--cream-dim)}
+.hp-chip{border:1px solid var(--cline);border-radius:4px;padding:2px 5px;color:var(--phos)}
+.hp-live{display:flex;gap:8px;align-items:center;font:500 10.5px/1 var(--mono);letter-spacing:.14em;color:var(--cream)}
+.lamp{width:8px;height:8px;border-radius:50%;background:#4A5142;flex:none}
+.lamp.on{background:var(--phos);animation:blink 1.3s ease-in-out infinite}
+.hp-bars{flex:1;display:flex;align-items:center;gap:7px;min-height:0}
+.hp-bars i{flex:1;background:var(--phos);border-radius:2px;height:22%;animation:hbar1 1.15s ease-in-out infinite}
+.hp-bars i:nth-child(2){animation-name:hbar2;animation-duration:1.4s;animation-delay:-.3s}
+.hp-bars i:nth-child(3){animation-name:hbar3;animation-duration:.95s;animation-delay:-.6s}
+.hp-bars i:nth-child(4){animation-name:hbar2;animation-duration:1.25s;animation-delay:-.15s}
+.hp-bars i:nth-child(5){animation-name:hbar1;animation-duration:1.05s;animation-delay:-.45s}
+@keyframes hbar1{0%,100%{height:14%}50%{height:74%}}
+@keyframes hbar2{0%,100%{height:46%}50%{height:16%}}
+@keyframes hbar3{0%,100%{height:26%}50%{height:88%}}
+.hp-dest{font:400 9px/1 var(--mono);color:var(--cream-dim);letter-spacing:.08em}
+.hp-foot{display:flex;justify-content:space-between;font:500 9px/1 var(--mono);letter-spacing:.14em;color:var(--phos)}
+
+/* receiver window mockup */
+.hw{width:min(320px,100%);background:var(--surface-code);border:1px solid rgba(241,239,226,.4);border-radius:12px;box-shadow:var(--shadow-lg);overflow:hidden}
+.hw-bar{display:flex;align-items:center;gap:7px;padding:11px 14px;border-bottom:1px solid var(--cline)}
+.hw-bar i{width:10px;height:10px;border-radius:50%;background:rgba(241,239,226,.18)}
+.hw-t{margin-left:8px;font:500 10px/1 var(--mono);letter-spacing:.18em;color:var(--cream-dim)}
+.hw-ver{margin-left:auto;font:400 9px/1 var(--mono);letter-spacing:.1em;color:var(--cream-dim)}
+.hw-body{padding:16px;display:flex;flex-direction:column;gap:12px}
+.hw-conn{display:flex;justify-content:space-between;align-items:center;gap:10px;font:500 9.5px/1 var(--mono);letter-spacing:.14em;color:var(--cream)}
+.hw-conn .l{display:flex;align-items:center;gap:8px;flex:none;white-space:nowrap}
+.hw-conn>span:last-child{min-width:0;text-align:right}
+.hw-meter{height:26px;border:1px solid var(--cline);border-radius:6px;position:relative;overflow:hidden;background:rgba(241,239,226,.05)}
+.hw-fill{position:absolute;top:0;bottom:0;left:0;width:58%;background:repeating-linear-gradient(90deg,var(--phos) 0 10px,transparent 10px 13px);animation:hfill 2.4s ease-in-out infinite}
+@keyframes hfill{0%,100%{width:42%}50%{width:76%}}
+.hw-db{display:flex;justify-content:space-between;font:400 9.5px/1 var(--mono);letter-spacing:.1em;color:var(--cream-dim)}
+.hw-io{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--cline);padding-top:12px;font:500 9.5px/1 var(--mono);letter-spacing:.14em;color:var(--cream)}
+.hw-chip{border:1px solid rgba(62,229,134,.5);color:var(--phos);border-radius:4px;padding:3px 7px}
+
+/* =====================================================================
+   TRUST STRIP
+   ===================================================================== */
+.trust{border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.trust-row{display:flex;flex-wrap:wrap;gap:10px 34px;justify-content:center;padding:16px 0;font:500 10.5px/1.7 var(--mono);letter-spacing:.15em;color:var(--mut);text-transform:uppercase}
+.trust-row .sn{color:var(--green)}
+
+/* =====================================================================
+   SETUP — three steps with application mockups
+   ===================================================================== */
+.setup{padding:110px 0 120px}
+.steps{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:44px;margin-top:66px}
+.steps::before{content:"";position:absolute;top:11px;left:0;right:0;height:1px;background:var(--line2)}
+.steps::after{content:"";position:absolute;top:7.5px;left:0;width:8px;height:8px;border-radius:50%;background:var(--green);animation:travel 7s linear infinite}
+@keyframes travel{0%{left:0;opacity:0}8%{opacity:1}90%{opacity:1}100%{left:calc(100% - 8px);opacity:0}}
+.step{position:relative;padding-top:44px}
+.step .node{position:absolute;top:0;left:0;width:23px;height:23px;border:1px solid var(--ink);border-radius:50%;background:var(--paper);display:grid;place-items:center;font:500 9px/1 var(--mono);z-index:1}
+.step h3{font-size:1.45rem;letter-spacing:-.02em;margin-bottom:10px}
+.step p{font-size:15px;color:var(--mut);max-width:36ch}
+
+.mock{margin-top:26px;border-radius:14px;overflow:hidden;box-shadow:var(--shadow-lg);max-width:340px}
+/* 01 — desktop window with QR */
+.mw{background:var(--surface-code);border:1px solid rgba(241,239,226,.4);color:var(--cream)}
+.mw-bar{display:flex;justify-content:space-between;align-items:center;padding:11px 15px;border-bottom:1px solid var(--cline);font:500 10px/1 var(--mono);letter-spacing:.18em;color:var(--cream-dim)}
+.mw-chip{border:1px solid var(--cline);border-radius:4px;padding:2px 6px;font-size:8.5px}
+.mw-body{padding:20px 20px 22px;display:flex;flex-direction:column;gap:14px;align-items:center}
+.mw-t{font:600 15px/1.3 var(--disp);letter-spacing:-.01em}
+.qr{width:132px;height:132px;border-radius:8px}
+.qr .bg{fill:#F4F2E9}
+.qr .md{fill:#14130C}
+.mw-url{font:500 11px/1 var(--mono);letter-spacing:.06em;color:var(--phos);background:rgba(62,229,134,.08);border:1px solid rgba(62,229,134,.3);border-radius:6px;padding:8px 12px}
+.mw-s{font:500 8.5px/1 var(--mono);letter-spacing:.2em;color:var(--cream-dim)}
+/* 02 — phone transmitter page */
+.mp{background:#070904;border:1px solid rgba(241,239,226,.4);border-radius:26px;padding:9px;max-width:220px}
+.mp-bar{display:flex;align-items:center;justify-content:center;gap:7px;padding:9px 4px;font:400 9.5px/1 var(--mono);letter-spacing:.06em;color:var(--cream-dim)}
+.mp-bar svg{width:10px;height:10px;stroke:var(--phos)}
+.mp-body{border:1px solid var(--cline);border-radius:18px;padding:20px 16px;display:flex;flex-direction:column;gap:12px;align-items:center;text-align:center}
+.mp-logo{width:40px;height:40px;border:1px solid rgba(62,229,134,.45);border-radius:12px;display:grid;place-items:center;color:var(--phos)}
+.mp-logo svg{width:19px;height:19px}
+.mp-t{font:600 14px/1 var(--disp);letter-spacing:.02em;color:var(--cream)}
+.mp-s{font:500 8.5px/1.6 var(--mono);letter-spacing:.2em;color:var(--cream-dim)}
+.mp-btn{width:100%;background:var(--phos);color:#0B0D07;border-radius:9px;padding:13px 10px;font:500 10px/1 var(--mono);letter-spacing:.16em}
+.mp-n{font:400 8px/1.6 var(--mono);letter-spacing:.14em;color:var(--cream-dim)}
+/* 03 — native input picker (light, theme-aware surfaces) */
+.ms{background:var(--surface-raised);border:1px solid var(--line);color:var(--ink);font-family:var(--body)}
+.ms-bar{padding:12px 16px;border-bottom:1px solid var(--line);font:500 9.5px/1 var(--mono);letter-spacing:.18em;color:var(--mut)}
+.ms-field{padding:14px 16px 10px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.ms-lab{font-size:13.5px;color:var(--mut)}
+.ms-cur{font:500 10px/1 var(--mono);letter-spacing:.1em;color:var(--green)}
+.ms-dd{margin:0 12px 14px;border:1px solid var(--line2);border-radius:9px;overflow:hidden;box-shadow:var(--shadow-sm);background:var(--surface-raised)}
+.ms-opt{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;font-size:13.5px}
+.ms-opt+.ms-opt{border-top:1px solid var(--line)}
+.ms-opt svg{width:13px;height:13px;stroke:var(--green);stroke-width:2.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.ms-opt.sel{font-weight:600;background:rgba(14,123,63,.07)}
+@supports(color:color-mix(in srgb,red,blue)){.ms-opt.sel{background:color-mix(in srgb,var(--green) 8%,transparent)}}
+
+/* =====================================================================
+   SIGNAL LAB (always-dark console)
+   ===================================================================== */
+.demo{background:var(--demo-bg);color:var(--cream);padding:120px 0;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.demo .sec-tag{color:var(--cream-dim)}
+.demo .sec-sub{color:var(--cream-dim)}
+.demo h2 .ph{color:var(--phos)}
+.console{margin-top:56px;background:var(--panel);border:1px solid var(--cline);border-radius:14px;overflow:hidden}
+.con-top{display:flex;justify-content:space-between;align-items:center;padding:14px 22px;border-bottom:1px solid var(--cline);font:500 10.5px/1 var(--mono);letter-spacing:.18em}
+.con-mode{color:var(--phos)}
+.con-grid{display:grid;grid-template-columns:250px minmax(0,1fr) 360px;gap:30px;align-items:center;padding:34px 30px}
+.phone{width:250px;margin:0 auto;background:#070904;border:1px solid rgba(241,239,226,.4);border-radius:30px;padding:12px}
+.p-screen{border:1px solid var(--cline);border-radius:20px;height:430px;padding:16px 15px;display:flex;flex-direction:column;gap:10px}
+.p-row{display:flex;justify-content:space-between;align-items:center;font:500 9px/1 var(--mono);letter-spacing:.16em;color:var(--cream-dim)}
+.p-chip{border:1px solid var(--cline);padding:2px 6px;border-radius:4px;color:var(--phos)}
+.p-status{display:flex;align-items:center;gap:9px;font:500 11px/1 var(--mono);letter-spacing:.14em}
+.p-dest{font:400 9.5px/1 var(--mono);letter-spacing:.08em;color:var(--cream-dim)}
+#txMeter{width:100%;height:196px;flex:1;min-height:0}
+.p-gain{display:flex;align-items:center;gap:10px;font:500 9px/1 var(--mono);letter-spacing:.16em;color:var(--cream-dim)}
+.p-gain input{flex:1;accent-color:var(--phos);height:14px}
+.p-time{font:500 13px/1 var(--mono);letter-spacing:.14em;color:var(--phos)}
+.link{display:flex;flex-direction:column;gap:8px;min-width:0}
+.link-tag{text-align:center;font:500 9.5px/1 var(--mono);letter-spacing:.22em;color:var(--cream-dim)}
+#linkCv{width:100%;height:110px}
+.link-reads{display:flex;justify-content:space-between;font:500 10px/1 var(--mono);letter-spacing:.14em;color:var(--phos)}
+.laptop{width:100%;max-width:360px;justify-self:center}
+.l-screen{background:#070904;border:1px solid rgba(241,239,226,.4);border-radius:12px 12px 4px 4px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.l-row{display:flex;justify-content:space-between;font:500 9.5px/1 var(--mono);letter-spacing:.16em;color:var(--cream-dim)}
+.l-chip{color:var(--phos);transition:.3s}
+.l-chip.off{color:#4A5142}
+#rxScope{width:100%;height:150px}
+.l-foot{display:flex;justify-content:space-between;font:400 9.5px/1 var(--mono);letter-spacing:.1em;color:var(--cream-dim)}
+.l-base{height:13px;border:1px solid rgba(241,239,226,.4);border-top:0;border-radius:0 0 14px 14px;margin:0 -16px}
+.con-bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:20px 22px;border-top:1px solid var(--cline)}
+.con-note{margin-left:auto;font:500 10px/1.7 var(--mono);letter-spacing:.12em;color:var(--phos);max-width:420px;text-align:right}
+.lab-foot{margin-top:20px;font:400 11.5px/1.8 var(--mono);color:var(--cream-dim);max-width:76ch}
+@media(max-width:1080px){
+  .con-grid{grid-template-columns:1fr;gap:26px}
+  .phone{width:240px}
+  #linkCv{height:64px}
+  .con-note{margin-left:0;text-align:left;max-width:none}
+}
+@media(max-width:640px){
+  .con-grid{padding:24px 16px}
+  .con-bar{padding:18px 16px}
+  .con-bar .btn{flex:1 1 100%;justify-content:center}
+}
+
+/* =====================================================================
+   WHY — feature rows (calm hover: this isn't a control)
+   ===================================================================== */
+.features{padding:110px 0}
+.rows{margin-top:52px;border-bottom:1px solid var(--line)}
+.row{display:grid;grid-template-columns:70px 1fr 40px;gap:26px;align-items:start;padding:34px 18px;border-top:1px solid var(--line);transition:background .3s}
+.row-num{font:500 12px/1 var(--mono);letter-spacing:.14em;color:var(--green);padding-top:9px}
+.row h3{font-size:clamp(1.3rem,2.4vw,1.9rem);letter-spacing:-.02em;line-height:1.15;transition:transform .35s cubic-bezier(.2,.65,.2,1)}
+.row p{font-size:15px;color:var(--mut);max-width:64ch}
+.row-arrow{width:26px;height:26px;justify-self:end;opacity:0;transform:translateX(-8px);transition:.35s;padding-top:8px;color:var(--mut)}
+.row:hover{background:rgba(14,123,63,.055)}
+@supports(color:color-mix(in srgb,red,blue)){.row:hover{background:color-mix(in srgb,var(--green) 6%,transparent)}}
+.row:hover h3{transform:translateX(4px)}
+.row:hover .row-arrow{opacity:.6;transform:none;color:var(--green)}
+@media(max-width:760px){.row{grid-template-columns:44px 1fr;gap:8px 16px}.row-arrow{display:none}}
+
+/* =====================================================================
+   ARCHITECTURE — the technical diagram lives here now
+   ===================================================================== */
+.arch{padding:120px 0}
+.arch-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:64px;align-items:center}
+.arch-list{list-style:none;margin-top:32px;border-top:1px solid var(--line)}
+.arch-list li{display:grid;grid-template-columns:110px 1fr;gap:18px;padding:13px 2px;border-bottom:1px solid var(--line);font:500 11px/1.6 var(--mono);letter-spacing:.12em}
+.arch-list .al-k{color:var(--green)}
+.arch-list .al-v{color:var(--mut)}
+.arch-cta{margin-top:32px}
+.arch-fig svg{width:100%;height:auto;max-width:540px;margin:0 auto;overflow:visible}
+.diagram .st{stroke:var(--ink);stroke-width:2;fill:none}
+.diagram .stf{stroke:var(--ink);stroke-width:2;fill:var(--paper)}
+.diagram .thin{stroke:var(--line2);stroke-width:1;fill:none}
+.diagram .scr{fill:var(--scr);stroke:var(--line2)}
+.diagram text{font-family:var(--mono);fill:var(--ink)}
+.diagram .lbl{font-size:10px;font-weight:500;letter-spacing:.08em}
+.diagram .sub{font-size:8px;fill:var(--mut);letter-spacing:.08em}
+.diagram .tag{font-size:8px;fill:var(--mut);letter-spacing:.06em;paint-order:stroke;stroke:var(--paper);stroke-width:4px}
+.diagram .ms{font-size:9px;fill:var(--green);font-weight:500}
+.diagram .flow{stroke:var(--line2);stroke-width:1.6;fill:none;stroke-dasharray:4 7;animation:dashflow 1.1s linear infinite}
+.diagram .pkt{fill:var(--green)}
+.diagram .lvl{fill:var(--green)}
+.diagram .fill-ink{fill:var(--ink)}
+.diagram .fill-green{fill:var(--green)}
+.diagram .wave{fill:none;stroke:var(--green);stroke-width:2;stroke-linejoin:round}
+.diagram .stroke-ink{stroke:var(--ink)}
+.diagram .strike-p{stroke:var(--paper);stroke-width:5}
+.diagram .strike-g{stroke:var(--green);stroke-width:2}
+
+/* =====================================================================
+   LATENCY — presets, not a fake "simulation"
+   ===================================================================== */
+.latency{padding:120px 0;background:var(--paper2);transition:background-color .35s ease}
+.lat-grid{display:grid;grid-template-columns:1fr 1.15fr;gap:70px;align-items:center}
+.lat-ctl{margin-top:36px}
+.lat-lbl{font:500 10.5px/1 var(--mono);letter-spacing:.2em;color:var(--mut);margin-bottom:14px;text-transform:uppercase}
+.lat-presets{display:flex;flex-wrap:wrap;gap:10px}
+.lat-pre{display:flex;flex-direction:column;gap:7px;align-items:flex-start;border:1px solid var(--line2);border-radius:9px;padding:13px 17px;font:500 9.5px/1 var(--mono);letter-spacing:.14em;color:var(--mut);transition:.2s;text-transform:uppercase}
+.lat-pre b{font:700 18px/1 var(--disp);letter-spacing:-.02em;color:var(--ink)}
+.lat-pre:hover{border-color:var(--green);color:var(--green)}
+.lat-pre[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--inv-mut)}
+.lat-pre[aria-pressed="true"] b{color:var(--inv-acc)}
+.lat-read{display:flex;align-items:baseline;gap:16px;margin-top:22px;flex-wrap:wrap}
+#latVal{font:700 44px/1 var(--disp);letter-spacing:-.03em}
+#latVerdict{font:500 10px/1.4 var(--mono);letter-spacing:.14em;color:var(--green);border:1px solid var(--green);padding:6px 10px;border-radius:4px;max-width:30ch}
+.method{margin-top:28px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.method summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:12px;padding:16px 2px;font:500 10.5px/1.5 var(--mono);letter-spacing:.16em;color:var(--mut);text-transform:uppercase;transition:color .2s}
+.method summary:hover{color:var(--green)}
+.method summary::-webkit-details-marker{display:none}
+.method summary::before{content:"+";width:18px;height:18px;border:1px solid var(--line2);border-radius:50%;display:grid;place-items:center;font-size:11px;flex:none}
+.method[open] summary::before{content:"–"}
+.method p{padding:2px 2px 20px;color:var(--mut);font-size:13.5px;line-height:1.75;max-width:62ch}
+.lat-note{margin-top:16px;font:400 12px/1.7 var(--mono);color:var(--mut);max-width:44ch}
+.lchart{display:grid;gap:18px}
+.lbar{display:grid;grid-template-columns:150px 1fr 70px;align-items:center;gap:14px;font:500 10.5px/1.4 var(--mono);letter-spacing:.1em}
+.lbar .track{position:relative;height:20px;border:1px solid var(--line2)}
+.lbar .fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ink);transition:width 1.2s cubic-bezier(.25,0,.2,1)}
+.lbar.hot{color:var(--green)}
+.lbar.hot .fill{background:var(--green)}
+.lbar .val{text-align:right;white-space:nowrap}
+.lchart-foot{margin-top:10px;font:400 11px/1.8 var(--mono);color:var(--mut)}
+
+/* =====================================================================
+   DOWNLOAD — inverted band
+   ===================================================================== */
+.dl{background:var(--inv-bg);color:var(--inv-fg);padding:96px 0;transition:background-color .35s ease}
+.dl :focus-visible{outline-color:var(--inv-acc)}
+.dl-tag{font:500 11px/1 var(--mono);letter-spacing:.22em;color:var(--inv-mut);text-transform:uppercase}
+.dl h2{font-size:clamp(2rem,4.4vw,3.6rem);line-height:1.02;margin-top:18px;max-width:18ch}
+.dl h2 span{color:var(--inv-acc)}
+.dl-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:60px;align-items:center}
+.dl-cta{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+.btn-dl{background:var(--phos);border-color:var(--phos);color:#0B0D07}
+.btn-dl:hover{background:var(--cream);border-color:var(--cream)}
+.dl-sub{font:500 10px/1.7 var(--mono);letter-spacing:.14em;color:var(--inv-mut);text-transform:uppercase}
+.dl-plats{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;align-items:center}
+.dl-plats a{font:500 10px/1 var(--mono);letter-spacing:.14em;border:1px solid var(--inv-line);border-radius:6px;padding:9px 13px;transition:.2s}
+.dl-plats a:hover{border-color:var(--inv-acc);color:var(--inv-acc)}
+.dl-plats .dl-all{border-style:dashed}
+
+/* =====================================================================
+   FAQ
+   ===================================================================== */
+.faq{padding:120px 0}
+.qa-list{margin-top:52px;border-bottom:1px solid var(--line)}
+.qa{border-top:1px solid var(--line)}
+.qa-q{width:100%;display:flex;justify-content:space-between;align-items:center;gap:20px;padding:26px 6px;text-align:left;font:600 1.15rem/1.35 var(--disp);letter-spacing:-.015em;transition:color .2s;text-wrap:balance}
+.qa-q:hover{color:var(--green)}
+.qa-ic{flex:none;width:26px;height:26px;border:1px solid var(--line2);border-radius:50%;display:grid;place-items:center;transition:.3s}
+.qa-ic svg{width:11px;height:11px;stroke:currentColor;stroke-width:2;fill:none;transition:transform .3s}
+.qa.open .qa-ic{background:var(--green);border-color:var(--green);color:var(--green-fg)}
+.qa.open .qa-ic svg{transform:rotate(45deg)}
+.qa-a{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.2,.65,.2,1)}
+.qa.open .qa-a{grid-template-rows:1fr}
+.qa-a-in{overflow:hidden}
+.qa-a p{padding:0 6px 28px;max-width:66ch;color:var(--mut);font-size:15.5px}
+.qa-a a{border-bottom:1px solid var(--green);color:var(--green)}
+
+/* =====================================================================
+   OPEN SOURCE + COFFEE
+   ===================================================================== */
+.coffee{background:var(--coffee-bg);color:var(--cream);padding:120px 0;transition:background-color .35s ease}
+.coffee .sec-tag{color:rgba(244,242,233,.75)}
+.coffee .sec-tag::before{background:var(--cream)}
+.coffee :focus-visible{outline-color:var(--cream)}
+.coffee-grid{display:grid;grid-template-columns:1.15fr .85fr;gap:60px;align-items:center}
+.coffee h2{font-size:clamp(2.3rem,5vw,4.4rem);line-height:1;margin-top:18px}
+.coffee h2 span{display:block;color:rgba(244,242,233,.55)}
+.coffee p.lead{margin-top:22px;max-width:46ch;color:rgba(244,242,233,.85);font-size:16.5px}
+.coffee-cta{display:flex;gap:16px;margin-top:36px;flex-wrap:wrap;align-items:center}
+.sponsor-lnk{font:500 11px/1 var(--mono);letter-spacing:.14em;border-bottom:1px solid rgba(244,242,233,.5);padding-bottom:4px;transition:.2s}
+.sponsor-lnk:hover{border-color:var(--cream)}
+.star-count{font:500 11px/1 var(--mono);letter-spacing:.1em;opacity:.85}
+.oss-links{margin-top:26px;display:flex;gap:10px 22px;flex-wrap:wrap;font:500 10px/1.8 var(--mono);letter-spacing:.14em}
+.oss-links a{color:rgba(244,242,233,.75);border-bottom:1px solid rgba(244,242,233,.35);padding-bottom:3px;transition:.2s}
+.oss-links a:hover{color:var(--cream);border-color:var(--cream)}
+.cup-fig{justify-self:center}
+.cup{width:min(300px,70vw);height:auto}
+.cup .ln{stroke:var(--cream);stroke-width:2.5;fill:none;stroke-linecap:round}
+.cup .steam{stroke:rgba(244,242,233,.75);stroke-width:2.2;fill:none;stroke-linecap:round;animation:steam 3s ease-in-out infinite}
+.cup .s2{animation-delay:.7s}.cup .s3{animation-delay:1.4s}
+@keyframes steam{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-7px);opacity:.95}}
+
+/* =====================================================================
+   FOOTER
+   ===================================================================== */
+footer{border-top:1px solid var(--line);padding:30px max(20px,4vw);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font:500 10.5px/1.9 var(--mono);letter-spacing:.13em;color:var(--mut)}
+footer nav{display:flex;gap:24px;flex-wrap:wrap}
+footer a:hover{color:var(--green)}
+
+/* =====================================================================
+   responsive.css
+   ===================================================================== */
+@media(max-width:1140px){
+  .hero-grid{gap:30px}
+  .stage{transform:scale(.94)}
+}
+@media(max-width:960px){
+  .hero{min-height:0;padding:44px 0 56px}
+  .hero-grid{grid-template-columns:1fr;gap:48px}
+  .hero-sub{max-width:56ch}
+  .stage{transform:none;flex-direction:column;gap:18px}
+  .stage-link{display:none}
+  .stage-wifi{display:block}
+  .arch-grid{grid-template-columns:1fr;gap:44px}
+  .lat-grid{grid-template-columns:1fr;gap:44px}
+  .dl-grid{grid-template-columns:1fr;gap:36px}
+}
+@media(max-width:760px){
+  .steps{grid-template-columns:1fr;gap:44px}
+  .steps::before{left:11px;top:0;bottom:0;width:1px;height:auto;right:auto}
+  .steps::after{display:none}
+  .step{padding-top:0;padding-left:44px}
+  .step .node{top:2px}
+  .mock{max-width:100%}
+  .lbar{grid-template-columns:105px 1fr 62px;font-size:9.5px}
+  .diagram .lbl{font-size:14px}
+  .diagram .sub{font-size:10.5px}
+  .diagram .s-lbl{font-size:9.5px}
+  .diagram .tag{font-size:11.5px}
+  .diagram .ms{font-size:12.5px}
+}
+@media(max-width:560px){
+  .hero{padding:34px 0 48px}
+  .hero-cta{flex-direction:column;align-items:stretch;gap:12px}
+  .hero-cta .btn{justify-content:center}
+  .hero-specs{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px;padding-top:20px}
+  .trust-row{gap:8px 20px;justify-content:flex-start}
+  .coffee-cta{flex-direction:column;align-items:stretch;gap:12px}
+  .coffee-cta .btn{justify-content:center}
+  .sponsor-lnk{align-self:center;margin-top:4px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+  html{scroll-behavior:auto}
+}
+</style>
+<link rel="stylesheet" href="assets/marketing-home.css">
+<noscript><style>.rv{opacity:1;transform:none}.qa-q{cursor:default}.qa-ic{display:none}.qa-a{grid-template-rows:1fr}.qa-a-in{overflow:visible}</style></noscript>
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<body data-root="./" data-page="home">
+
+<a class="skip" href="#top" data-i18n="skip">Skip to content</a>
+
+<header class="site-head">
+  <div class="head-row">
+    <a class="brand" href="#top" data-i18n-aria="aria.brand" aria-label="PocketMic home">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0E7B3F"/><rect x="13" y="7" width="6" height="12" rx="3" fill="#F4F2E9"/><path d="M9 15a7 7 0 0 0 14 0M16 22v4" stroke="#F4F2E9" stroke-width="2.4" fill="none" stroke-linecap="round"/></svg>
+      PocketMic<span class="chip">LAN</span>
     </a>
-    <nav class="primary-nav" aria-label="Primary">
-      <input type="checkbox" id="nav-toggle" class="nav-toggle-input">
-      <label for="nav-toggle" class="nav-toggle" aria-label="Toggle navigation">
-        <span class="nav-toggle-bar" aria-hidden="true"></span>
-        <span class="nav-toggle-bar" aria-hidden="true"></span>
-        <span class="nav-toggle-bar" aria-hidden="true"></span>
-      </label>
-      <ul id="nav-list" class="nav-list">
-        <li><a href="#use-cases">Use cases</a></li>
-        <li><a href="#how-it-works">Setup</a></li>
-        <li><a href="#features">Features</a></li>
-        <li><a href="#voice-mode">Voice</a></li>
-        <li><a href="#compare">Compare</a></li>
-        <li><a href="#faq">FAQ</a></li>
-        <li><a href="#download">Download</a></li>
-      </ul>
-    </nav>
-    <span class="badge" aria-hidden="true"><img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&label=v&color=b88a3b" alt="Version" class="badge-img"></span>
+    <div class="head-right"><span class="site-locale-slot" data-site-locale-slot></span>
+      <button type="button" class="ctrl-btn" id="themeBtn" aria-label="Theme">
+        <svg id="icoAuto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor" stroke="none"/></svg>
+        <svg id="icoLight" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" hidden><circle cx="12" cy="12" r="4.2"/><path d="M12 2.6v2.1M12 19.3v2.1M2.6 12h2.1M19.3 12h2.1M5.2 5.2l1.5 1.5M17.3 17.3l1.5 1.5M18.8 5.2l-1.5 1.5M6.7 17.3l-1.5 1.5"/></svg>
+        <svg id="icoDark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" hidden><path d="M20.2 14.5A8.5 8.5 0 0 1 9.5 3.8a8.5 8.5 0 1 0 10.7 10.7z"/></svg>
+      </button>
+      <a class="gh-ic" href="https://github.com/ryanspice/pocketmic-lan" target="_blank" rel="noopener noreferrer" data-i18n-aria="aria.gh" aria-label="GitHub repository">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      </a>
+      <a class="header-coffee" href="https://www.buymeacoffee.com/ryanspice" aria-label="Buy me a coffee" title="Buy me a coffee"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M4 8h13v8a4 4 0 0 1-4 4H8a4 4 0 0 1-4-4V8Zm13 1h2a3 3 0 0 1 0 6h-2M7 3v2M11 2v3M15 3v2"/></svg></a>
+      <a class="btn btn-solid btn-sm head-dl" id="headDl" href="download/index.html" data-event="cta_click" data-target="downloads"><span data-i18n="head.dl">DOWNLOAD</span></a>
+    </div>
   </div>
+  <nav class="site-nav" aria-label="Sections">
+    <a href="#setup" data-i18n="nav.setup">SETUP</a>
+    <a href="#lab" data-i18n="nav.lab">SIGNAL LAB</a>
+    <a href="#why" data-i18n="nav.why">WHY</a>
+    <a href="#performance" data-i18n="nav.latency">PROTOCOL</a>
+    <a href="#faq" data-i18n="nav.faq">FAQ</a>
+  </nav>
 </header>
 
-<main id="main">
+<main id="top" tabindex="-1">
 
-<!-- ============================================================ HERO -->
-<section id="hero" class="hero">
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <p class="eyebrow"><span class="eyebrow-rule"></span>Android → Windows · v0.1.5 · Early release</p>
-      <h1>Your phone.<br>Your next<br><em>PC mic.</em></h1>
-      <p class="tagline">Turn your Android phone into a wireless microphone for Windows. For your next voice chat, stream, or call — over your own local network.</p>
-      <p class="cta-row">
-        <a class="btn btn-primary" href="#download">Get PocketMic <span class="btn-arrow" aria-hidden="true">→</span></a>
-        <a class="btn btn-ghost" href="#how-it-works">See the setup</a>
-        <a class="btn btn-bmc" href="https://www.buymeacoffee.com/ryanspice" target="_blank" rel="noopener noreferrer" aria-label="Buy me a coffee">
-          <span>☕</span>
-        </a>
-      </p>
-      <ul class="trust-row" aria-label="Trust indicators">
-        <li>✓ No account</li>
-        <li>✓ No cloud</li>
-        <li>✓ Open source</li>
-        <li>✓ LAN only</li>
-      </ul>
-      <div class="hero-badges">
-        <img src="https://img.shields.io/github/v/release/ryanspice/pocketmic-lan?style=flat-square&label=Latest&color=b88a3b" alt="Latest release">
-        <img src="https://img.shields.io/github/actions/workflow/status/ryanspice/pocketmic-lan/ci.yml?style=flat-square&label=CI" alt="CI status">
-        <img src="https://img.shields.io/github/license/ryanspice/pocketmic-lan?style=flat-square" alt="License">
-      </div>
-    </div>
-    <div class="hero-visual" aria-label="PocketMic Android and Windows app screenshots">
-      <figure class="product-stage">
-        <div class="stage-back" aria-hidden="true"></div>
-        <div class="stage-label">
-          <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" focusable="false"><rect x="4" y="10" width="16" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V6a4 4 0 0 1 8 0v4M12 15v2" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>
-          Your local connection
+  <!-- ============ HERO — the product, not a diagram of it ============ -->
+  <section class="hero">
+    <div class="wrap hero-grid">
+      <div>
+        <p class="eyebrow rv"><span class="dot"></span><span data-i18n="hero.eyebrow">ANDROID → WINDOWS · FREE &amp; OPEN SOURCE · v0.1.6 PLANNED</span></p>
+        <h1 class="rv" style="transition-delay:.08s" data-i18n="hero.h1">Your phone is <span class="gr">already</span> a great microphone.</h1>
+        <p class="hero-sub rv" style="transition-delay:.16s" data-i18n="hero.sub">PocketMic LAN streams audio from an Android app to a Windows receiver over your local network. Audio uses AES-256-GCM encryption; route it to calling and recording apps with a Windows audio device.</p>
+        <div class="hero-cta rv" style="transition-delay:.24s">
+          <a class="btn btn-solid" id="heroCta" href="download/index.html" data-event="cta_click" data-target="downloads">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M6 10l6 6 6-6M5 20h14"/></svg>
+            <span id="heroCtaLbl">DOWNLOAD POCKETMIC</span>
+          </a>
+          <a class="btn btn-ghost" href="https://github.com/ryanspice/pocketmic-lan" target="_blank" rel="noopener noreferrer"><span data-i18n="hero.cta2">VIEW THE SOURCE</span></a>
         </div>
-        <div class="stage-note"><strong>Two apps.<br>One audio path.</strong><br>Phone to Windows.</div>
-        <a class="image-link phone-frame" href="assets/screenshots/android-app.png" data-image-preview aria-label="Enlarge the Android app screenshot">
-          <img src="assets/screenshots/android-app-720.webp" alt="PocketMic Android app showing connection fields, QR scan button, capture mode selector, and gain slider" loading="lazy">
-        </a>
-        <a class="image-link receiver-frame" href="assets/screenshots/windows-receiver.webp" data-image-preview aria-label="Enlarge the Windows receiver screenshot">
-          <img src="assets/screenshots/windows-receiver.webp" alt="PocketMic Windows receiver waiting for a phone, with CABLE Input audio routing" loading="lazy">
-        </a>
-        <div class="signal-pill">
-          <div class="wave" aria-hidden="true">
-            <i style="--h:9px"></i><i style="--h:16px"></i><i style="--h:25px"></i><i style="--h:13px"></i><i style="--h:29px"></i>
-            <i style="--h:20px"></i><i style="--h:11px"></i><i style="--h:24px"></i><i style="--h:15px"></i><i style="--h:7px"></i>
+        <div class="hero-specs rv" style="transition-delay:.36s">
+          <span><i></i><span data-i18n="hero.spec1">ANDROID APP → WINDOWS RECEIVER</span></span>
+          <span><i></i><span data-i18n="hero.spec2">PCM + OPUS AUDIO</span></span>
+          <span><i></i><span data-i18n="hero.spec3">AES-256-GCM ENCRYPTION</span></span>
+          <span><i></i><span data-i18n="hero.spec4">LOCAL NETWORK · NO CLOUD RELAY</span></span>
+        </div>
+      </div>
+
+      <figure class="stage-fig rv" style="transition-delay:.2s" role="img" data-i18n-aria="aria.stage">
+        <div class="stage">
+          <div class="hp" aria-hidden="true">
+            <div class="hp-screen">
+              <div class="hp-row"><span>POCKETMIC LAN</span><span class="hp-chip">ANDROID</span></div>
+              <div class="hp-live"><i class="lamp"></i><span data-i18n="stage.live">PREVIEW</span></div>
+              <div class="hp-bars"><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="hp-dest">&rarr; EXAMPLE PC : 9014</div>
+              <div class="hp-foot"><span>MIC INPUT</span><span>ANDROID</span></div>
+            </div>
           </div>
-          <span><strong>48 kHz audio</strong>Encrypted over your LAN</span>
+          <svg class="stage-link" viewBox="0 0 140 320" aria-hidden="true">
+            <path class="sl-flow" d="M6,180 C40,180 44,120 70,104"/>
+            <path class="sl-flow" d="M70,104 C96,120 100,180 134,180"/>
+            <circle class="sl-pkt" r="3"><animateMotion dur="2s" repeatCount="indefinite" path="M6,180 C40,180 44,120 70,104"/></circle>
+            <circle class="sl-pkt" r="3"><animateMotion dur="2s" begin="-0.7s" repeatCount="indefinite" path="M6,180 C40,180 44,120 70,104"/></circle>
+            <circle class="sl-pkt" r="3"><animateMotion dur="2s" begin="-0.3s" repeatCount="indefinite" path="M70,104 C96,120 100,180 134,180"/></circle>
+            <circle class="sl-pkt" r="3"><animateMotion dur="2s" begin="-1.1s" repeatCount="indefinite" path="M70,104 C96,120 100,180 134,180"/></circle>
+            <line class="sl-ant" x1="58" y1="78" x2="50" y2="56"/><line class="sl-ant" x1="82" y1="78" x2="90" y2="56"/>
+            <circle class="sl-pkt" cx="50" cy="56" r="2.5"/><circle class="sl-pkt" cx="90" cy="56" r="2.5"/>
+            <rect class="sl-box" x="46" y="78" width="48" height="17" rx="5"/>
+            <circle class="sl-pkt" cx="58" cy="86.5" r="2.4"/><circle class="sl-pkt" cx="70" cy="86.5" r="2.4"/><circle class="sl-pkt" cx="82" cy="86.5" r="2.4"/>
+            <text class="sl-lbl" x="70" y="132" text-anchor="middle">WI-FI</text>
+          </svg>
+          <div class="hw" aria-hidden="true">
+          <div class="hw-bar"><i></i><i></i><i></i><span class="hw-t">POCKETMIC LAN</span><span class="hw-ver">v0.1.5</span></div>
+            <div class="hw-body">
+              <div class="hw-conn"><span class="l"><i class="lamp on"></i><span data-i18n="stage.conn">RECEIVER</span></span><span data-i18n="stage.dev">ANDROID · WINDOWS</span></div>
+              <div class="hw-meter"><span class="hw-fill"></span></div>
+              <div class="hw-db"><span>UDP · ENCRYPTED</span><span>PCM / OPUS</span></div>
+              <div class="hw-io"><span data-i18n="console.input">OUTPUT: WINDOWS AUDIO</span><span class="hw-chip">LOCAL LAN</span></div>
+            </div>
+          </div>
+          <span class="stage-wifi" data-i18n="stage.wifi" aria-hidden="true">WI-FI · LAN</span>
         </div>
-        <figcaption class="stage-caption">Real app captures · illustrative layout, not a live connection</figcaption>
+        <figcaption class="stage-cap" data-i18n="stage.cap">INTERFACE PREVIEW — TRANSMITTER AND RECEIVER</figcaption>
       </figure>
-      <div class="hero-bottom">
-        <p>Route into the Windows apps<br>you already use, via VB-CABLE.</p>
-        <div class="app-names">
-          <span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><path d="M7 6h10c2 0 3 1 3.5 3l1.5 8c.4 2-2 3-3.5 1L16 15H8l-2.5 3C4 20 1.6 19 2 17l1.5-8C4 7 5 6 7 6Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 10v4M4 12h4M16 11h.01M19 13h.01" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Discord</span>
-          <span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 7a7 7 0 0 0 0 10M17 7a7 7 0 0 1 0 10M3 3a13 13 0 0 0 0 18M21 3a13 13 0 0 1 0 18" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>OBS Studio</span>
-          <span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><rect x="2" y="5" width="14" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m16 10 6-4v12l-6-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg>Teams</span>
-          <span><svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true" focusable="false"><rect x="8" y="2" width="8" height="13" rx="4" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>Zoom <small>&amp; other apps</small></span>
+    </div>
+  </section>
+
+  <!-- ============ TRUST STRIP ============ -->
+  <section class="trust" data-i18n-aria="aria.trust" aria-label="At a glance">
+    <div class="wrap trust-row">
+      <span data-i18n="trust.mit">MIT LICENCE</span>
+      <span><span data-i18n="trust.gh">ON GITHUB</span></span>
+      <span data-i18n="trust.noacc">NO ACCOUNT</span>
+      <span data-i18n="trust.nocloud">NO CLOUD</span>
+      <span data-i18n="trust.plats">ANDROID · WINDOWS</span>
+    </div>
+  </section>
+
+  <!-- ============ SETUP — 40 seconds, shown as UI ============ -->
+  <section class="setup" id="setup">
+    <div class="wrap">
+      <header class="sec-head rv">
+        <p class="sec-tag" data-i18n="setup.tag">01 — SETUP</p>
+        <h2 data-i18n="setup.h2">From phone to PC <span class="gr">in a few steps.</span></h2>
+        <p class="sec-sub" data-i18n="setup.sub">Install the Android app and Windows receiver, connect them on the same trusted network, then choose an audio output.</p>
+      </header>
+      <div class="steps">
+        <div class="step rv">
+          <span class="node">01</span>
+          <h3 data-i18n="su1.h">Install the Android app</h3>
+          <p data-i18n="su1.p">Install PocketMic on your phone and grant microphone permission when you start a session.</p>
+          <div class="mock mw" aria-hidden="true">
+            <div class="mw-bar"><span>POCKETMIC</span><span class="mw-chip">LAN</span></div>
+            <div class="mw-body">
+            <p class="mw-t" data-i18n="su1.t">PocketMic · Android</p>
+              <svg class="qr" viewBox="0 0 108 108">
+                <rect class="bg" width="108" height="108"/>
+                <g class="md">
+                  <rect x="13" y="13" width="21" height="21"/><rect x="16" y="16" width="15" height="15" fill="#F4F2E9"/><rect x="19" y="19" width="9" height="9"/>
+                  <rect x="74" y="13" width="21" height="21"/><rect x="77" y="16" width="15" height="15" fill="#F4F2E9"/><rect x="80" y="19" width="9" height="9"/>
+                  <rect x="13" y="74" width="21" height="21"/><rect x="16" y="77" width="15" height="15" fill="#F4F2E9"/><rect x="19" y="80" width="9" height="9"/>
+                  <rect x="72" y="72" width="13" height="13"/><rect x="75" y="75" width="7" height="7" fill="#F4F2E9"/><rect x="77" y="77" width="3" height="3"/>
+                  <rect x="40" y="13" width="5" height="5"/><rect x="50" y="13" width="5" height="5"/><rect x="60" y="16" width="5" height="5"/><rect x="45" y="22" width="5" height="5"/><rect x="57" y="24" width="5" height="5"/><rect x="40" y="29" width="5" height="5"/><rect x="52" y="30" width="5" height="5"/><rect x="64" y="28" width="5" height="5"/>
+                  <rect x="13" y="40" width="5" height="5"/><rect x="24" y="40" width="5" height="5"/><rect x="38" y="42" width="5" height="5"/><rect x="52" y="40" width="5" height="5"/><rect x="66" y="41" width="5" height="5"/><rect x="80" y="40" width="5" height="5"/><rect x="91" y="42" width="5" height="5"/>
+                  <rect x="16" y="50" width="5" height="5"/><rect x="30" y="50" width="5" height="5"/><rect x="46" y="48" width="5" height="5"/><rect x="60" y="50" width="5" height="5"/><rect x="76" y="50" width="5" height="5"/><rect x="89" y="50" width="5" height="5"/>
+                  <rect x="13" y="60" width="5" height="5"/><rect x="28" y="61" width="5" height="5"/><rect x="44" y="60" width="5" height="5"/><rect x="58" y="62" width="5" height="5"/><rect x="72" y="60" width="5" height="5"/><rect x="88" y="61" width="5" height="5"/>
+                  <rect x="40" y="72" width="5" height="5"/><rect x="50" y="74" width="5" height="5"/><rect x="60" y="71" width="5" height="5"/><rect x="40" y="84" width="5" height="5"/><rect x="54" y="86" width="5" height="5"/><rect x="64" y="88" width="5" height="5"/><rect x="90" y="74" width="5" height="5"/><rect x="88" y="88" width="5" height="5"/><rect x="40" y="94" width="5" height="5"/><rect x="76" y="94" width="5" height="5"/>
+                </g>
+              </svg>
+              <code class="mw-url">EXAMPLE PC · PORT 9014</code>
+              <p class="mw-s" data-i18n="su1.s">NO CLOUD · NO ACCOUNT</p>
+            </div>
+          </div>
+        </div>
+        <div class="step rv" style="transition-delay:.12s">
+          <span class="node">02</span>
+          <h3 data-i18n="su2.h">Connect over your LAN</h3>
+          <p data-i18n="su2.p">Start the Windows receiver and pair the Android transmitter by QR code or manual IPv4 entry. Keep both devices on a trusted private network.</p>
+          <div class="mock mp" aria-hidden="true">
+            <div class="mp-bar">
+              <svg viewBox="0 0 24 24" fill="none" stroke-width="2" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+              <span>EXAMPLE PC</span>
+            </div>
+            <div class="mp-body">
+              <span class="mp-logo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/></svg></span>
+              <p class="mp-t">POCKETMIC</p>
+              <p class="mp-s" data-i18n="su2.ready">READY TO STREAM</p>
+              <span class="mp-btn" data-i18n="su2.btn">START MICROPHONE</span>
+              <p class="mp-n" data-i18n="su2.n">MIC PERMISSION · ASKED ONCE</p>
+            </div>
+          </div>
+        </div>
+        <div class="step rv" style="transition-delay:.24s">
+          <span class="node">03</span>
+          <h3 data-i18n="su3.h">Route audio to your app</h3>
+          <p data-i18n="su3.p">Select the desired Windows playback device in the receiver. For calls or recording apps, route that output through VB-CABLE or another virtual audio device.</p>
+          <div class="mock ms" aria-hidden="true">
+            <div class="ms-bar" data-i18n="su3.bar">SOUND SETTINGS</div>
+            <div class="ms-field"><span class="ms-lab" data-i18n="su3.in">Input device</span><span class="ms-cur">PocketMic</span></div>
+            <div class="ms-dd">
+              <div class="ms-opt"><span data-i18n="su3.opt1">CABLE Input</span></div>
+              <div class="ms-opt"><span data-i18n="su3.opt2">Speakers</span></div>
+              <div class="ms-opt sel"><span>PocketMic</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5 5L20 6.5"/></svg></div>
+              <div class="ms-opt"><span data-i18n="su3.opt4">Line In</span></div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ============================================================ USE CASES -->
-<section id="use-cases" class="section">
-  <div class="wrap">
-    <p class="sec-eyebrow">Find your setup</p>
-    <h2>Same phone. Different kind of mic.</h2>
-    <p class="lede">Pick what you want to do. Each use case shows the audio route, the right starting point, and the limits worth knowing.</p>
-    <div class="usecase-grid">
-      <a href="use-cases/discord/" class="usecase tile" style="text-decoration:none;color:inherit">
-        <span class="usecase-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><path d="M7 6h10c2 0 3 1 3.5 3l1.5 8c.4 2-2 3-3.5 1L16 15H8l-2.5 3C4 20 1.6 19 2 17l1.5-8C4 7 5 6 7 6Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M6 10v4M4 12h4M16 11h.01M19 13h.01" stroke="currentColor" stroke-width="1.6"/></svg></span>
-        <h3>Discord &amp; gaming</h3>
-        <p>Keep your headphones. Use your phone for voice chat on your PC.</p>
-      </a>
-      <a href="use-cases/obs/" class="usecase tile" style="text-decoration:none;color:inherit">
-        <span class="usecase-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><circle cx="12" cy="12" r="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M7 7a7 7 0 0 0 0 10M17 7a7 7 0 0 1 0 10M3 3a13 13 0 0 0 0 18M21 3a13 13 0 0 1 0 18" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span>
-        <h3>OBS &amp; creators</h3>
-        <p>Add your phone's mic to an OBS scene for a stream, tutorial, or recording.</p>
-      </a>
-      <a href="use-cases/meetings/" class="usecase tile" style="text-decoration:none;color:inherit">
-        <span class="usecase-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="28" height="28"><rect x="2" y="5" width="14" height="14" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="m16 10 6-4v12l-6-4" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span>
-        <h3>Meetings &amp; calls</h3>
-        <p>Try your phone as an alternative microphone for Teams, Zoom, or another Windows app.</p>
-      </a>
+  <!-- ============ SIGNAL LAB — honest about what's real ============ -->
+  <section class="section-pad" id="screenshots"><div class="wrap"><header class="sec-head"><p class="sec-tag">THE CURRENT APPS</p><h2>Real controls. <span class="gr">Real hardware.</span></h2><p class="sec-sub">Pair, choose a capture mode, adjust gain, and see what your connection is doing.</p></header><div class="screens-grid"><figure><a href="assets/screenshots/android-app.png" aria-label="Open full-size Android screenshot"><img src="assets/screenshots/android-app.png" alt="Android transmitter showing pairing, capture mode, gain, and connection status" loading="lazy"></a><figcaption><strong>Android transmitter</strong><span>QR pairing · foreground service · input gain</span></figcaption></figure><figure><a href="assets/screenshots/windows-receiver.png" aria-label="Open full-size Windows screenshot"><img src="assets/screenshots/windows-receiver.png" alt="Windows receiver showing output device, voice processing, and diagnostics" loading="lazy"></a><figcaption><strong>Windows receiver</strong><span>Output routing · voice controls · session reports</span></figcaption></figure></div><div class="three-columns modes"><article><p class="sec-tag">VOICE · DEFAULT</p><h3>Ready for conversation.</h3><p>Uses your phone’s own voice processing for calls and chat, without stacking another processing layer on top.</p></article><article><p class="sec-tag">CLEAN</p><h3>Keep the source clean.</h3><p>Requests the rawest capture your phone supports. Useful for recording and your own processing workflow.</p></article><article><p class="sec-tag">CUSTOM</p><h3>Shape it on the PC.</h3><p>Clean capture with receiver-side high-pass filtering, gate, compressor, presence EQ, and limiter.</p></article></div></div></section>
+<section class="demo" id="lab">
+    <div class="wrap">
+      <header class="sec-head rv">
+        <p class="sec-tag" data-i18n="lab.tag">02 — SIGNAL LAB</p>
+        <h2 style="color:var(--cream)" data-i18n="lab.h2">See your signal <span class="ph">move.</span></h2>
+        <p class="sec-sub" data-i18n="lab.sub">An isolated browser demo. After you grant permission, its level meter reads your chosen microphone; the generated sample stays on this page. The moving link and packet-rate readout are illustrative: nothing is sent to PocketMic and no network audio is measured.</p>
+      </header>
+
+      <div class="console rv" id="console">
+        <div class="con-top">
+          <span data-i18n="console.title">POCKETMIC — SIGNAL LAB</span>
+          <span class="con-mode" id="conMode">STANDBY</span>
+        </div>
+        <div class="con-grid">
+          <div class="phone">
+            <div class="p-screen">
+              <div class="p-row"><span>POCKETMIC</span><span class="p-chip">TX</span></div>
+              <div class="p-status"><i class="lamp" id="lamp"></i><span id="txStatus">STANDBY</span></div>
+              <div class="p-dest">&rarr; EXAMPLE PC : 9014</div>
+              <canvas id="txMeter" role="img" data-i18n-aria="aria.txMeter" aria-label="Live microphone level meter"></canvas>
+              <div class="p-gain"><label for="gain">GAIN</label><input type="range" id="gain" min="40" max="240" value="100" aria-label="Gain"></div>
+              <div class="p-time" id="txTime">REC 00:00</div>
+            </div>
+          </div>
+          <div class="link">
+            <div class="link-tag" data-i18n="console.link">WI-FI · UDP · VISUALIZATION</div>
+            <canvas id="linkCv" role="img" data-i18n-aria="aria.linkCv" aria-label="Animated packets travelling over Wi-Fi"></canvas>
+            <div class="link-reads"><span id="latRead"></span><span id="pktRead"></span></div>
+          </div>
+          <div class="laptop">
+            <div class="l-screen">
+              <div class="l-row"><span data-i18n="console.input">OUTPUT: CABLE INPUT</span><span class="l-chip off" id="liveChip">LIVE</span></div>
+              <canvas id="rxScope" role="img" data-i18n-aria="aria.rxScope" aria-label="Oscilloscope view of the received audio"></canvas>
+              <div class="l-foot"><span>48 kHz · LOCAL AUDIO</span><span id="dbRead">— dBFS</span></div>
+            </div>
+            <div class="l-base"></div>
+          </div>
+        </div>
+        <div class="con-bar">
+          <button type="button" class="btn btn-phos" id="micBtn" aria-pressed="false">USE THIS DEVICE'S MIC</button>
+          <button type="button" class="btn btn-dghost" id="simBtn" aria-pressed="false">SIMULATED VOICE</button>
+          <button type="button" class="btn btn-dghost" id="muteBtn" disabled aria-pressed="false">MUTE</button>
+          <p class="con-note" id="demoNote" role="status" aria-live="polite"></p>
+        </div>
+      </div>
+      <p class="lab-foot rv" data-i18n="lab.foot">This browser demo reads only the microphone you choose here or generates a local sample. It does not connect to PocketMic or measure network audio.</p>
     </div>
-  </div>
-</section>
+  </section>
 
-<div class="honesty-strip" aria-label="Product principles">
-  <div class="wrap honesty-inner">
-    <span>No account</span><i aria-hidden="true"></i><span>No cloud</span><i aria-hidden="true"></i><span>No telemetry</span><i aria-hidden="true"></i><span>Honest about its limits</span>
-  </div>
-</div>
-
-<!-- ============================================================ HOW IT WORKS -->
-<section id="how-it-works" class="section section-alt">
-  <div class="wrap">
-    <p class="sec-eyebrow">From pocket to PC</p>
-    <h2>Three steps to wireless audio</h2>
-    <p class="lede">Both devices stay on your private network. Scan a QR code or type an IP — everything after that is encrypted.</p>
-    <ol class="steps steps-3">
-      <li><span class="step-num" aria-hidden="true">1</span><div class="step-body"><h3>Get both apps</h3><p>Install the Android APK and extract the Windows receiver ZIP. Connect both to the same Wi-Fi.</p></div></li>
-      <li><span class="step-num" aria-hidden="true">2</span><div class="step-body"><h3>Pair your devices</h3><p>Open the receiver, scan the QR code with your phone. IP, port, and key fill in automatically.</p></div></li>
-      <li><span class="step-num" aria-hidden="true">3</span><div class="step-body"><h3>Choose your destination</h3><p>Route to <code>CABLE Input</code>. In Discord, OBS, or your app, choose <code>CABLE Output</code> as the mic.</p></div></li>
-    </ol>
-    <p class="steps-note"><strong>VB-CABLE is installed separately.</strong> For app routing, select <code>CABLE Input</code> as the PocketMic receiver output, then choose <code>CABLE Output</code> as the microphone in your Windows app. PocketMic does not currently include its own virtual audio driver.</p>
-  </div>
-</section>
-
-<!-- ============================================================ VOICE MODE -->
-<section id="voice-mode" class="section">
-  <div class="wrap">
-    <p class="sec-eyebrow">Voice processing</p>
-    <h2>One layer, not three</h2>
-    <p class="lede">PocketMic's Voice mode uses the phone's own voice-communication processing — the vendor-tuned noise suppression, gain control, and echo handling. No stacking.</p>
-    <div class="voice-grid">
-      <div class="voice-card">
-        <h3>Voice mode <span class="voice-badge voice-badge-default">Default</span></h3>
-        <p>Uses <code>VOICE_COMMUNICATION</code> — the Android source that phone vendors tune for calls. Exactly one processing layer.</p>
-        <p class="voice-note">Best for: Discord, Teams, calls</p>
-      </div>
-      <div class="voice-card">
-        <h3>Clean mode</h3>
-        <p>Requests the rawest input the phone offers. No phone-side processing.</p>
-        <p class="voice-note">Best for: recording, podcasting</p>
-      </div>
-      <div class="voice-card">
-        <h3>Custom mode</h3>
-        <p>Clean capture shaped by the receiver's DSP chain on the PC. Sliders on the phone control processing live.</p>
-        <p class="voice-note">Best for: streaming, broadcasting</p>
+  <!-- ============ WHY ============ -->
+  <section class="features" id="why">
+    <div class="wrap">
+      <header class="sec-head rv">
+        <p class="sec-tag" data-i18n="why.tag">03 — WHY</p>
+        <h2 data-i18n="why.h2">Built like a tool, <span class="gr">not a subscription.</span></h2>
+      </header>
+      <div class="rows">
+        <article class="row rv">
+          <span class="row-num">01</span>
+          <div>
+            <h3 data-i18n="feat1.h">A native Android transmitter</h3>
+            <p data-i18n="feat1.p">PocketMic captures audio in its Android app and sends it to the Windows receiver over your local network. The phone needs the app and microphone permission.</p>
+          </div>
+          <svg class="row-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h14M13 6l6 6-6 6"/></svg>
+        </article>
+        <article class="row rv">
+          <span class="row-num">02</span>
+          <div>
+            <h3 data-i18n="feat2.h">PocketMic sends directly over your LAN</h3>
+            <p data-i18n="feat2.p">The phone and computer use encrypted UDP on your local network; internet access is not required for PocketMic audio. A calling or recording app you route into may process or transmit that audio under its own service and privacy terms.</p>
+          </div>
+          <svg class="row-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h14M13 6l6 6-6 6"/></svg>
+        </article>
+        <article class="row rv">
+          <span class="row-num">03</span>
+          <div>
+            <h3 data-i18n="feat3.h">Choose a Windows audio route</h3>
+            <p data-i18n="feat3.p">The receiver plays to a selected Windows device. To feed a call or recording app, select a virtual audio cable such as VB-CABLE, then choose its input in that app.</p>
+          </div>
+          <svg class="row-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h14M13 6l6 6-6 6"/></svg>
+        </article>
+        <article class="row rv">
+          <span class="row-num">04</span>
+          <div>
+            <h3 data-i18n="feat4.h">Designed for a private LAN</h3>
+            <p data-i18n="feat4.p">The phone and PC communicate directly with encrypted audio packets. Internet access is not needed for audio transport; use a trusted private network and do not expose the receiver to the public internet.</p>
+          </div>
+          <svg class="row-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12h14M13 6l6 6-6 6"/></svg>
+        </article>
       </div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- ============================================================ FEATURES -->
-<section id="features" class="section section-alt">
-  <div class="wrap">
-    <p class="sec-eyebrow">Useful by design</p>
-    <h2>Less in the way of your voice</h2>
-    <p class="lede">No account, no cloud relay, no telemetry. Just a local audio path you can inspect.</p>
-    <ul class="feature-grid">
-      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="4" y="10" width="16" height="10" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 10V7a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.6"/></svg></span><h3>AES-256-GCM encryption</h3><p>Every packet authenticated. Key derived from a pairing phrase.</p></li>
-      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M17 2H7a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Z" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M12 18h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span><h3>QR code pairing</h3><p>Point your phone camera at the PC screen. No IP addresses to type.</p></li>
-      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg></span><h3>Resilient streaming</h3><p>Prebuffering, loss concealment, auto-reconnect, Wi-Fi lock policy.</p></li>
-      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M4 17 10 11 14 15 20 8" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M15 8h5v5" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span><h3>Session diagnostics</h3><p>Packet counters, jitter stats, Wi-Fi band/RSSI, exportable reports.</p></li>
-      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 12h8M12 8v8" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><h3>Windows app routing</h3><p>Use a separately installed virtual audio cable such as VB-CABLE to make PocketMic audio available as a microphone input in Discord, OBS, Teams, and other Windows apps.</p></li>
-      <li class="feature"><span class="feat-ico" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></span><h3>Adaptive quality</h3><p>LinkQualityPolicy auto-tunes bit rate and packets based on live connection quality — RSSI, loss, and jitter.</p></li>
-    </ul>
-  </div>
-</section>
+  <!-- ============ ARCHITECTURE ============ -->
+  <section class="arch" id="arch">
+    <div class="wrap arch-grid">
+      <div class="rv">
+        <p class="sec-tag" data-i18n="arch.tag">04 — ARCHITECTURE</p>
+        <h2 data-i18n="arch.h2">The whole path, <span class="gr">on your network.</span></h2>
+        <p class="sec-sub" data-i18n="arch.sub">The Android transmitter sends encrypted UDP audio over your LAN to the Windows receiver. The receiver plays the stream to a selected Windows audio device. Internet access is not required for the audio path.</p>
+        <ul class="arch-list">
+          <li><span class="al-k" data-i18n="arch.l1k">PHONE</span><span class="al-v" data-i18n="arch.l1v">ANDROID APP · MIC CAPTURE</span></li>
+          <li><span class="al-k" data-i18n="arch.l2k">LINK</span><span class="al-v" data-i18n="arch.l2v">PCM / OPUS · UDP · LAN</span></li>
+          <li><span class="al-k" data-i18n="arch.l3k">RECEIVER</span><span class="al-v" data-i18n="arch.l3v">48 KHZ DECODE · JITTER BUFFER</span></li>
+          <li><span class="al-k" data-i18n="arch.l4k">OUTPUT</span><span class="al-v" data-i18n="arch.l4v">SELECTED WINDOWS DEVICE</span></li>
+        </ul>
+        <a class="btn btn-ghost arch-cta" href="https://github.com/ryanspice/pocketmic-lan" target="_blank" rel="noopener noreferrer"><span data-i18n="arch.cta">VIEW THE SOURCE</span></a>
+      </div>
+      <figure class="arch-fig rv" style="transition-delay:.12s">
+        <svg class="diagram" viewBox="0 0 560 470" role="img" data-i18n-aria="aria.fig" aria-label="Diagram: the Android app sends encrypted UDP audio over the LAN to the Windows receiver and selected playback device.">
+          <path class="flow" d="M128,330 C186,318 214,196 246,100"/>
+          <path class="flow" d="M336,80 C384,110 428,200 434,274"/>
+          <circle class="pkt" r="3"><animateMotion dur="2.4s" repeatCount="indefinite" path="M128,330 C186,318 214,196 246,100"/></circle>
+          <circle class="pkt" r="3"><animateMotion dur="2.4s" begin="-1.2s" repeatCount="indefinite" path="M128,330 C186,318 214,196 246,100"/></circle>
+          <circle class="pkt" r="3"><animateMotion dur="2.4s" begin="-0.6s" repeatCount="indefinite" path="M336,80 C384,110 428,200 434,274"/></circle>
+          <circle class="pkt" r="3"><animateMotion dur="2.4s" begin="-1.8s" repeatCount="indefinite" path="M336,80 C384,110 428,200 434,274"/></circle>
+          <rect class="stf" x="36" y="246" width="92" height="186" rx="16"/>
+          <rect class="scr" x="45" y="256" width="74" height="166" rx="10"/>
+          <text class="sub s-lbl" x="82" y="274" text-anchor="middle" data-i18n="fig.screen">POCKETMIC LAN</text>
+          <rect class="lvl" x="66" y="318" width="8" height="12"><animate attributeName="height" values="12;24;8;20;12" dur="1.6s" repeatCount="indefinite"/><animate attributeName="y" values="318;306;322;310;318" dur="1.6s" repeatCount="indefinite"/></rect>
+          <rect class="lvl" x="80" y="310" width="8" height="20"><animate attributeName="height" values="20;10;26;14;20" dur="1.6s" repeatCount="indefinite"/><animate attributeName="y" values="310;320;304;316;310" dur="1.6s" repeatCount="indefinite"/></rect>
+          <rect class="lvl" x="94" y="314" width="8" height="16"><animate attributeName="height" values="16;8;22;12;16" dur="1.6s" repeatCount="indefinite"/><animate attributeName="y" values="314;322;308;318;314" dur="1.6s" repeatCount="indefinite"/></rect>
+          <g class="st" stroke-width="1.6">
+            <rect x="79" y="366" width="6" height="13" rx="3"/>
+            <path d="M72,375 a10,10 0 0 0 20,0"/>
+            <path d="M82,385 v7 M77,392 h10"/>
+          </g>
+          <text class="lbl" x="82" y="452" text-anchor="middle" data-i18n="fig.phone">YOUR PHONE</text>
+          <text class="sub" x="82" y="465" text-anchor="middle" data-i18n="fig.phoneSub">TRANSMITTER</text>
+          <line class="st" x1="258" y1="64" x2="250" y2="42"/><line class="st" x1="322" y1="64" x2="330" y2="42"/>
+          <circle class="fill-ink" cx="250" cy="40" r="2.5"/><circle class="fill-ink" cx="330" cy="40" r="2.5"/>
+          <rect class="stf" x="244" y="64" width="92" height="32" rx="6"/>
+          <circle class="fill-green" cx="266" cy="80" r="2.6"/><circle class="fill-green" cx="280" cy="80" r="2.6"/><circle class="fill-green" cx="294" cy="80" r="2.6"/>
+          <text class="lbl" x="290" y="120" text-anchor="middle" data-i18n="fig.router">YOUR ROUTER</text>
+          <text class="sub" x="290" y="133" text-anchor="middle" data-i18n="fig.routerSub">STAYS IN THE HALLWAY</text>
+          <rect class="stf" x="356" y="278" width="156" height="104" rx="8"/>
+          <text class="sub" x="434" y="296" text-anchor="middle" data-i18n="fig.input">OUTPUT: CABLE INPUT</text>
+          <polyline class="wave" points="368,338 380,326 392,342 404,318 416,344 428,330 440,340 452,324 464,336 476,328 488,340 500,332"/>
+          <rect class="stf" x="338" y="382" width="192" height="11" rx="5.5"/>
+          <text class="lbl" x="434" y="418" text-anchor="middle" data-i18n="fig.comp">YOUR COMPUTER</text>
+          <text class="sub" x="434" y="431" text-anchor="middle" data-i18n="fig.compSub">SELECTED WINDOWS DEVICE</text>
+          <text class="tag" x="208" y="216">OPUS · 48 kHz</text>
+          <text class="tag" x="448" y="188" data-i18n="fig.tag2">UDP · LAN-ONLY</text>
+          <text class="ms" x="452" y="262">AES-256-GCM</text>
+          <g transform="translate(438,30) rotate(-7)">
+            <rect x="0" y="0" width="126" height="42" rx="3" class="stroke-ink" fill="none" stroke-width="1.2" stroke-dasharray="3 3"/>
+            <g class="fill-ink">
+              <circle cx="28" cy="24" r="8"/><circle cx="39" cy="20" r="10"/><circle cx="50" cy="25" r="7"/>
+              <rect x="20" y="22" width="38" height="9" rx="4.5"/>
+            </g>
+            <text x="90" y="28" text-anchor="middle" style="font-size:9.5px;font-weight:500;letter-spacing:.06em" data-i18n="fig.nocloud">NO AUDIO RELAY</text>
+            <line class="strike-p" x1="6" y1="38" x2="120" y2="4"/>
+            <line class="strike-g" x1="6" y1="38" x2="120" y2="4"/>
+          </g>
+        </svg>
+      </figure>
+    </div>
+  </section>
 
-<!-- ============================================================ SCREENSHOTS -->
-<section id="screenshots" class="section">
+  <!-- ============ PROTOCOL DETAILS ============ -->
+  <section class="section-pad tint" id="roadmap">
   <div class="wrap">
-    <p class="sec-eyebrow">Screenshots</p>
-    <h2>Real captures, real hardware</h2>
-    <p class="lede">From the v0.1.5 artifacts on a OnePlus 9 Pro and Windows 11 PC. No mockups.</p>
-    <div class="screenshots-showcase">
-      <div class="screenshot-device">
-        <div class="device-frame device-phone">
-          <div class="device-notch"></div>
-          <a href="assets/screenshots/android-app.png" data-image-preview aria-label="Enlarge Android app screenshot" style="display:block">
-            <img src="assets/screenshots/android-app.png" alt="PocketMic Android app showing connection fields, QR scan button, capture mode selector, and gain slider" loading="lazy">
+    <header class="sec-head">
+      <p class="sec-tag">NEXT · PLANNED</p>
+      <h2>What v0.1.6 <span class="gr">is preparing.</span></h2>
+      <p class="sec-sub">v0.1.6 remains unreleased. These are the current release goals, not features in the published v0.1.5 downloads.</p>
+    </header>
+    <div class="four-columns stats">
+      <article><strong>01</strong><h3>macOS receiver preview</h3><p>An unsigned universal receiver and CoreAudio virtual-microphone preview have CI build and package evidence. A physical Mac tester still needs to verify installation, recovery, and routing into a real app.</p></article>
+      <article><strong>02</strong><h3>Mobile interoperability</h3><p>The experimental iOS PCM publisher currently has simulator-build evidence only; physical-device distribution remains open. Validate Android publishers with Windows and Mac using PCM v1 on the Mac, which does not decode Opus v2.</p></article>
+      <article><strong>03</strong><h3>Language readiness</h3><p>The localization catalog tracks 21 targets, including Canadian and American English and two Kurdish varieties. The full site is currently Canadian English; its US spelling option is a preview, and Kurdish and other site translations still need completion and review.</p></article>
+      <article><strong>04</strong><h3>Release and site readiness</h3><p>Keep the selected site aligned with published downloads, checksums, and platform evidence. The site cutover and v0.1.6 release remain gated on manual acceptance; CI previews are not release downloads.</p></article>
+    </div>
+    <p class="small">See the <a class="text-link" href="roadmap/index.html">full release roadmap</a> and <a class="text-link" href="release-notes/index.html">published v0.1.5 notes</a>. Linux receiver support, consumer-mode mobile apps, and store distribution remain later or separately gated work.</p>
+  </div>
+</section><section class="section-pad" id="use-cases"><div class="wrap"><header class="sec-head"><p class="sec-tag">COMPARE</p><h2>Find the right mic <span class="gr">for your setup.</span></h2><p class="sec-sub">PocketMic connects an Android phone and a Windows PC on a local network.</p></header><p class="small table-hint">Scroll the table horizontally on a small screen.</p><div class="table-scroll" tabindex="0" role="region" aria-label="Microphone options comparison"><table><caption>Practical tradeoffs between microphone setups</caption><thead><tr><th scope="col">What matters</th><th scope="col">PocketMic LAN</th><th scope="col">Bluetooth headset</th><th scope="col">USB microphone</th></tr></thead><tbody><tr><th scope="row">Hardware</th><td>Android phone + Windows PC</td><td>Headset + Bluetooth host</td><td>Microphone + USB host</td></tr><tr><th scope="row">Connection</th><td>Wireless over your LAN</td><td>Wireless to host</td><td>USB cable</td></tr><tr><th scope="row">Calling / recording apps</th><td>Windows playback device; virtual cable may be needed</td><td>Host input device</td><td>Host input device</td></tr><tr><th scope="row">Internet for audio transport</th><td>Not required on the local network</td><td>Not required</td><td>Not required</td></tr><tr><th scope="row">Audio path</th><td>Encrypted UDP; PCM or Opus</td><td>Bluetooth profile and host dependent</td><td>USB audio device</td></tr><tr><th scope="row">Source code</th><td>Open · MIT licence</td><td>Vendor-dependent</td><td>Vendor-dependent</td></tr><tr><th scope="row">Main tradeoff</th><td>Network + Windows audio routing setup</td><td>Hardware / profile compatibility</td><td>Cable and extra hardware</td></tr></tbody></table></div><p class="small">A calling app can still send audio to its service. These rows describe the microphone’s connection to your computer.</p></div></section>
+<section class="section-pad tint" id="performance"><div class="wrap"><header class="sec-head"><p class="sec-tag">PROTOCOL</p><h2>Audio facts, <span class="gr">without guessed latency.</span></h2><p class="sec-sub">No dated, reproducible end-to-end latency result is established for the current release candidate. These values describe protocol framing and receiver configuration; they are not a physical-device performance benchmark.</p></header><div class="four-columns stats"><article><strong>48 <span>kHz</span></strong><h3>Mono sample rate</h3><p>Both current packet formats use 48 kHz mono audio.</p></article><article><strong>10 <span>ms</span></strong><h3>Audio frame</h3><p>Each packet carries 480 mono samples.</p></article><article><strong>768 <span>kbit/s</span></strong><h3>PCM audio payload</h3><p>Raw PCM16 audio only; the encrypted PocketMic datagram is 800 kbit/s before UDP/IP overhead.</p></article><article><strong>32–48 <span>kbit/s</span></strong><h3>Opus target bitrate</h3><p>Protocol v2 target. The macOS preview currently supports PCM v1 only.</p></article></div><div class="three-columns"><article><h3>Receiver buffering</h3><p>Playback starts after a 100 ms prebuffer by default. The prebuffer can be adjusted from 40 to 300 ms; the 220 ms high-water mark applies at the default setting and is derived from the selected prebuffer.</p></article><article><h3>Packet-loss concealment</h3><p>The receiver can conceal gaps of up to 20 packets, or 200 ms, by repeating a decaying last-good frame. This is a recovery limit, not a latency figure or guarantee.</p></article><article><h3>PCM v1 packet size</h3><p>One encrypted datagram is 1,000 bytes: 24-byte header, 960-byte PCM16 ciphertext, and 16-byte authentication tag. UDP/IP overhead is additional.</p></article></div><details class="technical"><summary>PCM v1 frame and packet details</summary><div class="packet-bar" role="img" aria-label="1000-byte PCM datagram: 24-byte header, 960-byte audio ciphertext, 16-byte authentication tag"><span>24 B</span><span>960 B · AUDIO</span><span>16 B</span></div><p class="small">A PCM16 frame contains 480 mono samples at 48 kHz: 10 ms of audio, sent 100 times per second. Opus v2 carries the same 10 ms frame duration with a variable-length encrypted payload.</p></details><aside class="release-note"><strong>Published: v0.1.5 · Next candidate: v0.1.6 (unreleased).</strong> The v0.1.6 candidate adds an unsigned macOS receiver preview and an experimental iOS PCM publisher for manual interoperability testing. CI artifacts are previews, not v0.1.6 release downloads; see the roadmap and build evidence for open acceptance gates.</aside></div></section>
+
+  <!-- ============ DOWNLOAD ============ -->
+  <section class="section-pad" id="security"><div class="wrap security-grid"><div><header class="sec-head"><p class="sec-tag">SECURITY</p><h2>The PocketMic link stays <span class="gr">on your network.</span></h2><p class="sec-sub">PocketMic encrypts and authenticates audio datagrams with AES-256-GCM. No account or cloud relay is required for the phone-to-PC connection.</p></header><p class="inline-note">Use a trusted private LAN. Do not port-forward the receiver; it is not a hardened internet voice service. The app you route audio into can have its own network and privacy behaviour.</p></div><dl class="security-facts"><div><dt>Pairing</dt><dd>QR code or manual IP + pairing key</dd></div><div><dt>Key derivation</dt><dd>SHA-256 of the pairing key</dd></div><div><dt>Nonce</dt><dd>Session ID + packet sequence</dd></div><div><dt>Authenticated data</dt><dd>Complete header (24-byte PCM / 28-byte Opus)</dd></div><div><dt>Android key storage</dt><dd>Encrypted preferences backed by the Keystore</dd></div></dl></div></section>
+<section class="dl" id="download">
+    <div class="wrap dl-grid rv">
+      <div>
+        <p class="dl-tag" data-i18n="dl.tag">ANDROID + WINDOWS · FREE · MIT</p>
+        <h2 data-i18n="dl.h2">Get the Android app <span>and Windows receiver.</span></h2>
+      </div>
+      <div class="dl-cta">
+        <a class="btn btn-dl" id="dlBig" href="download/index.html" data-event="cta_click" data-target="downloads">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M6 10l6 6 6-6M5 20h14"/></svg>
+          <span id="dlBigLbl">DOWNLOAD POCKETMIC</span>
+        </a>
+        <p class="dl-sub" id="dlSub">CURRENT PUBLISHED RELEASE: v0.1.5</p>
+        <div class="dl-plats">
+          <a id="androidDl" href="download/android/index.html" data-event="cta_click" data-target="android">ANDROID APK</a>
+          <a id="windowsDl" href="download/windows/index.html" data-event="cta_click" data-target="windows">WINDOWS x64</a>
+          <a class="dl-all" href="https://github.com/ryanspice/pocketmic-lan/releases" target="_blank" rel="noopener noreferrer" data-i18n="dl.all">ALL RELEASES</a>
+        </div>
+        <p class="small">v0.1.6 is the planned candidate. The links above follow the latest published release; check the release page before installing.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="faq" id="faq">
+    <div class="wrap">
+      <header class="sec-head rv">
+        <p class="sec-tag" data-i18n="faq.tag">06 — FAQ</p>
+        <h2 data-i18n="faq.h2">Fair questions, <span class="gr">straight answers.</span></h2>
+      </header>
+      <div class="qa-list rv">
+        <div class="qa">
+          <button type="button" class="qa-q" aria-expanded="false" aria-controls="qa-a-1"><span data-i18n="faq.q1">Does PocketMic send audio through a server?</span>
+            <span class="qa-ic"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></span>
+          </button>
+          <div class="qa-a" id="qa-a-1"><div class="qa-a-in"><p data-i18n="faq.a1">No. PocketMic sends audio directly from the phone to the computer over local-network UDP, with no account or cloud relay. If you route audio into an online call or recording app, that app may process or transmit it under its own policy.</p></div></div>
+        </div>
+        <div class="qa">
+          <button type="button" class="qa-q" aria-expanded="false" aria-controls="qa-a-2"><span data-i18n="faq.q2">Do I have to install an app on my phone?</span>
+            <span class="qa-ic"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></span>
+          </button>
+          <div class="qa-a" id="qa-a-2"><div class="qa-a-in"><p data-i18n="faq.a2">Yes. PocketMic includes an Android transmitter app. Install it on the phone and install the Windows receiver on the PC.</p></div></div>
+        </div>
+        <div class="qa">
+          <button type="button" class="qa-q" aria-expanded="false" aria-controls="qa-a-3"><span data-i18n="faq.q3">Why not just use a Bluetooth headset?</span>
+            <span class="qa-ic"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></span>
+          </button>
+          <div class="qa-a" id="qa-a-3"><div class="qa-a-in"><p data-i18n="faq.a3">PocketMic uses your local network instead of Bluetooth. Actual end-to-end latency has not been established for this release candidate; the protocol and receiver settings above are not a physical-device benchmark.</p></div></div>
+        </div>
+        <div class="qa">
+          <button type="button" class="qa-q" aria-expanded="false" aria-controls="qa-a-4"><span data-i18n="faq.q4">What happens when my phone’s screen turns off?</span>
+            <span class="qa-ic"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></span>
+          </button>
+          <div class="qa-a" id="qa-a-4"><div class="qa-a-in"><p data-i18n="faq.a4">PocketMic uses an Android foreground service for microphone capture. Background and battery behavior can vary by Android version and phone manufacturer; follow the in-app battery guidance for your device.</p></div></div>
+        </div>
+        <div class="qa">
+          <button type="button" class="qa-q" aria-expanded="false" aria-controls="qa-a-5"><span data-i18n="faq.q5">Which platforms does the receiver support?</span>
+            <span class="qa-ic"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></span>
+          </button>
+          <div class="qa-a" id="qa-a-5"><div class="qa-a-in"><p data-i18n="faq.a5">Windows is the current published receiver. An unsigned macOS receiver preview is in v0.1.6 manual testing and supports PCM v1 only. Android is the published transmitter; the iOS PCM publisher is experimental. Linux receiver support is planned for a later release.</p></div></div>
+        </div>
+        <div class="qa">
+          <button type="button" class="qa-q" aria-expanded="false" aria-controls="qa-a-6"><span data-i18n="faq.q6">Is it really open source?</span>
+            <span class="qa-ic"><svg viewBox="0 0 12 12" fill="none" aria-hidden="true"><path d="M6 1v10M1 6h10"/></svg></span>
+          </button>
+          <div class="qa-a" id="qa-a-6"><div class="qa-a-in"><p data-i18n="faq.a6">The source for the Android app and desktop receivers is MIT-licensed and on <a href="https://github.com/ryanspice/pocketmic-lan" target="_blank" rel="noopener noreferrer">GitHub</a>. Open source is not a security certification. Report a reproducible issue or suggest a change.</p></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ OPEN SOURCE + COFFEE ============ -->
+  <section class="coffee" id="coffee">
+    <div class="wrap coffee-grid">
+      <div class="rv">
+        <p class="sec-tag" data-i18n="coffee.tag">07 — OPEN SOURCE</p>
+        <h2><span data-i18n="coffee.h2a">Free, forever.</span><span data-i18n="coffee.h2span">Coffee, occasionally.</span></h2>
+        <p class="lead" data-i18n="coffee.lead">PocketMic is MIT-licensed, ad-free, account-free and price-free. If it ends up on every call you take, a coffee is the entire business model — and it keeps the commits coming.</p>
+        <div class="coffee-cta">
+          <a class="btn btn-bmc" href="https://www.buymeacoffee.com/ryanspice" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 8h13l-1.2 11.2a2 2 0 0 1-2 1.8H8.7a2 2 0 0 1-2-1.8L5.5 8z"/><path d="M4.5 8h15M8.5 5h7l1 3h-9l1-3z"/></svg>
+            <span data-i18n="coffee.cta1">BUY ME A COFFEE</span>
           </a>
-        </div>
-        <div class="screenshot-caption">
-          <h3>Android Transmitter</h3>
-          <p>QR pairing, capture modes, adjustable gain, live level meter.</p>
-          <span class="screenshot-meta">Kotlin · Jetpack Compose · API 26+</span>
-        </div>
-      </div>
-      <div class="screenshot-device">
-        <div class="device-frame device-desktop">
-          <div class="device-titlebar"><span></span><span></span><span></span><span class="device-title">PocketMic Receiver</span></div>
-          <a href="assets/screenshots/windows-receiver.png" data-image-preview aria-label="Enlarge Windows receiver screenshot" style="display:block">
-            <img src="assets/screenshots/windows-receiver.png" alt="PocketMic Windows receiver with device selection, voice processing, and packet counters" loading="lazy">
+          <a class="btn btn-ocream" href="https://github.com/ryanspice/pocketmic-lan" target="_blank" rel="noopener noreferrer">
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+            <span data-i18n="coffee.cta2">VIEW SOURCE ON GITHUB</span>
           </a>
+          <a class="sponsor-lnk" href="https://github.com/sponsors/canopydigital-ca" target="_blank" rel="noopener noreferrer" data-i18n="coffee.sponsor">OR SPONSOR THE WORK &rarr;</a>
         </div>
-        <div class="screenshot-caption">
-          <h3>Windows Receiver</h3>
-          <p>Auto-discovers VB-CABLE, one-click default mic, voice processing, diagnostics.</p>
-          <span class="screenshot-meta">C# · .NET 8 · WinForms · NAudio</span>
-        </div>
+        <p class="oss-links">
+          <a href="https://github.com/ryanspice/pocketmic-lan" target="_blank" rel="noopener noreferrer" data-i18n="oss.a">READ THE SOURCE</a>
+          <a href="https://github.com/ryanspice/pocketmic-lan/issues" target="_blank" rel="noopener noreferrer" data-i18n="oss.b">OPEN AN ISSUE</a>
+          <a href="https://github.com/ryanspice/pocketmic-lan/contribute" target="_blank" rel="noopener noreferrer" data-i18n="oss.c">BROWSE CONTRIBUTIONS</a>
+        </p>
       </div>
+      <figure class="cup-fig rv" style="transition-delay:.15s">
+        <svg class="cup" viewBox="0 0 200 200" role="img" data-i18n-aria="aria.cup" aria-label="A cup of coffee">
+          <path class="steam" d="M80,64 C75,54 85,48 80,38"/>
+          <path class="steam s2" d="M100,60 C95,50 105,44 100,34"/>
+          <path class="steam s3" d="M120,64 C115,54 125,48 120,38"/>
+          <path class="ln" d="M55,84 h76 v40 a24,24 0 0 1 -24,24 h-28 a24,24 0 0 1 -24,-24 z"/>
+          <path class="ln" d="M131,92 h9 a15,15 0 0 1 0,30 h-9"/>
+          <path class="ln" d="M78,104 h30" opacity=".5"/>
+          <path class="ln" d="M48,162 h90"/>
+          <path class="ln" d="M60,172 h66" opacity=".5"/>
+        </svg>
+      </figure>
     </div>
-  </div>
-</section>
-
-<!-- ============================================================ COMPARISON -->
-<section id="compare" class="section section-alt">
-  <div class="wrap">
-    <p class="sec-eyebrow">Compare</p>
-    <h2>How PocketMic stacks up</h2>
-    <div class="compare-table-wrap">
-      <table class="compare-table" aria-label="Feature comparison">
-        <thead>
-          <tr><th scope="col">Feature</th><th scope="col">PocketMic LAN</th><th scope="col">Bluetooth mic</th><th scope="col">Discord / Krisp</th><th scope="col">USB mic</th></tr>
-        </thead>
-        <tbody>
-          <tr><td>Phone as wireless mic</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
-          <tr><td>Encrypted on the wire</td><td class="yes">AES-256-GCM</td><td class="partial">Depends</td><td class="yes">TLS</td><td class="na">N/A</td></tr>
-          <tr><td>LAN only — no cloud</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td></tr>
-          <tr><td>No account required</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="no">No</td><td class="yes">Yes</td></tr>
-          <tr><td>Works with any app</td><td class="yes">Via VB-CABLE</td><td class="partial">OS default only</td><td class="no">Discord only</td><td class="yes">Yes</td></tr>
-          <tr><td>Sample rate</td><td>48 kHz</td><td>8–16 kHz</td><td>48 kHz</td><td>48+ kHz</td></tr>
-          <tr><td>Wireless</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="na">N/A</td><td class="no">No</td></tr>
-          <tr><td>Open source</td><td class="yes">MIT</td><td class="na">N/A</td><td class="no">No</td><td class="na">N/A</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================ PERFORMANCE -->
-<section id="performance" class="section">
-  <div class="wrap">
-    <p class="sec-eyebrow">Performance</p>
-    <h2>Measured on real hardware</h2>
-    <p class="lede">From a OnePlus 9 Pro and Windows 11 PC over 5 GHz Wi-Fi. A 10 ms packet is not a 10 ms end-to-end claim.</p>
-    <dl class="stats">
-      <div class="stat tile"><dt>Prebuffer</dt><dd>100 <span>ms</span></dd><p>Adjustable 40–300 ms.</p></div>
-      <div class="stat tile"><dt>High-water</dt><dd>220 <span>ms</span></dd><p>Buffered latency trimmed above this.</p></div>
-      <div class="stat tile"><dt>Concealment</dt><dd>200 <span>ms</span></dd><p>Decayed-repeat fill for lost packets.</p></div>
-      <div class="stat tile"><dt>Bandwidth</dt><dd>768 <span>kbit/s</span></dd><p>48 kHz mono PCM16.</p></div>
-    </dl>
-  </div>
-</section>
-
-<!-- ============================================================ FAQ -->
-<section id="faq" class="section section-alt">
-  <div class="wrap">
-    <p class="sec-eyebrow">Before you download</p>
-    <h2>Good questions. Straight answers.</h2>
-    <div class="faq-grid">
-      <details class="faq-item"><summary>What do I need?</summary><p>An Android 8+ phone, a Windows 11 PC, both PocketMic apps, and a trusted private network. Add VB-CABLE to route into other apps.</p></details>
-      <details class="faq-item"><summary>Is it free?</summary><p>Yes. MIT licensed. VB-CABLE is a separate third-party download with its own donationware licensing.</p></details>
-      <details class="faq-item"><summary>Is the Android app on Google Play?</summary><p>No. The download is the debug-signed APK from the GitHub release. It is not a production-signed store release.</p></details>
-      <details class="faq-item"><summary>Does it work without internet?</summary><p>Yes. The phone-to-PC connection is LAN-only. Discord, Teams, or your streaming service may still need internet.</p></details>
-      <details class="faq-item"><summary>Will there be a delay?</summary><p>Yes. Capture, networking, buffering, and Windows audio routing add delay. The measured prebuffer is 100 ms. This is not intended for real-time instrument monitoring.</p></details>
-      <details class="faq-item"><summary>Why not just use Bluetooth?</summary><p>Bluetooth audio is typically 8–16 kHz. PocketMic streams at 48 kHz — CD quality. Bluetooth also adds its own latency and compression.</p></details>
-      <details class="faq-item"><summary>Is the audio encrypted?</summary><p>Every packet uses AES-256-GCM. The key is SHA-256 of your pairing phrase. The control channel uses HMAC-SHA256 with domain separation. LAN-only — do not port-forward.</p></details>
-      <details class="faq-item"><summary>Will it work on macOS or Linux?</summary><p>Not yet. The Windows receiver is the only one available. The protocol is documented and simple — other receivers are possible.</p></details>
-    </div>
-  </div>
-</section>
-
-<!-- ============================================================ DOWNLOAD -->
-<section id="download" class="section">
-  <div class="wrap">
-    <p class="sec-eyebrow">Get started</p>
-    <h2>Download PocketMic LAN</h2>
-    <p class="lede">Free, open source, MIT licensed. Both apps are required.</p>
-    <div class="download-grid">
-      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip">
-        <span class="download-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span>
-        <span class="download-info"><strong>Windows Receiver</strong><span>.NET 8 · WinForms · Self-contained ZIP</span></span>
-        <span class="download-action">Download .zip <span aria-hidden="true">→</span></span>
-      </a>
-      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMic-v0.1.5-debug.apk">
-        <span class="download-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24"><rect x="7" y="2" width="10" height="20" rx="2" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M11 18h2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></span>
-        <span class="download-info"><strong>Android APK</strong><span>Debug-signed · Kotlin · API 26+</span></span>
-        <span class="download-action">Download .apk <span aria-hidden="true">→</span></span>
-      </a>
-      <a class="download-row" href="https://github.com/ryanspice/pocketmic-lan">
-        <span class="download-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="24" height="24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
-        <span class="download-info"><strong>Source code</strong><span>MIT License · GitHub</span></span>
-        <span class="download-action">View on GitHub <span aria-hidden="true">→</span></span>
-      </a>
-    </div>
-    <p class="download-footer-note">Both PocketMic apps are required. App routing also needs a separately installed virtual audio cable such as VB-CABLE. <a href="setup/">See the setup guide →</a></p>
-  </div>
-</section>
-
+  </section>
 </main>
 
-<footer class="site-footer">
-  <div class="wrap footer-inner">
-    <div>
-      <p class="f-brand">PocketMic <span>LAN</span></p>
-      <p class="f-version">Open source · MIT License</p>
-    </div>
-    <div class="f-links">
-      <a href="https://github.com/ryanspice/pocketmic-lan">GitHub</a>
-      <a href="https://github.com/ryanspice/pocketmic-lan/releases">Releases</a>
-      <a href="setup/">Setup guide</a>
-      <a href="technical/">Technical</a>
-      <a href="policy.html">Privacy</a>
-    </div>
-    <p class="f-legal">Copyright &copy; <span id="year">2026</span> Ryan Spice-Finnie · <a href="https://github.com/ryanspice/pocketmic-lan/blob/master/LICENSE">MIT License</a> · <a href="https://www.buymeacoffee.com/ryanspice" target="_blank" rel="noopener">Support the project</a></p>
-  </div>
+<footer>
+  <span data-i18n="foot.left">POCKETMIC — FREE SOFTWARE UNDER THE MIT LICENCE</span>
+  <nav aria-label="Footer">
+    <a href="download/index.html" data-event="cta_click" data-target="downloads">DOWNLOADS</a>
+    <a href="setup/index.html" data-event="cta_click" data-target="setup">SETUP</a>
+    <a href="troubleshooting/index.html" data-event="cta_click" data-target="help">TROUBLESHOOTING</a>
+    <a href="roadmap/index.html" data-event="cta_click" data-target="roadmap">ROADMAP</a>
+    <a href="release-notes/index.html" data-event="cta_click" data-target="release">RELEASE NOTES</a>
+    <a href="privacy/index.html" data-event="cta_click" data-target="privacy">PRIVACY</a>
+    <a href="https://github.com/ryanspice/pocketmic-lan" target="_blank" rel="noopener noreferrer" data-event="external_link" data-target="github">GITHUB</a>
+    <a href="https://github.com/ryanspice/pocketmic-lan/releases" target="_blank" rel="noopener noreferrer" data-event="external_link" data-target="releases" data-i18n="foot.rel">RELEASES</a>
+    <a href="https://github.com/ryanspice/pocketmic-lan/issues" target="_blank" rel="noopener noreferrer" data-event="external_link" data-target="issues">ISSUES</a>
+    <a href="https://www.buymeacoffee.com/ryanspice" target="_blank" rel="noopener noreferrer" data-event="external_link" data-target="support" data-i18n="foot.bmc">BUY ME A COFFEE</a>
+  </nav>
+  <span data-i18n="foot.right">A CANOPY DIGITAL PROJECT</span>
 </footer>
 
-<div class="mobile-cta">
-  <p><strong>Android + Windows</strong>Free · Open source</p>
-  <a href="#download" class="btn btn-primary btn-sm">Get the apps <span class="btn-arrow" aria-hidden="true">→</span></a>
-</div>
-
-<div class="toast" id="status-message" role="status" aria-live="polite"></div>
-
-<dialog class="media-modal" id="screenshot-dialog" aria-label="App screenshot">
-  <button type="button" class="btn btn-sm" data-close-dialog>Close ✕</button>
-  <img alt="">
-</dialog>
-
+<script src="assets/marketing-home.js" defer></script>
+<script src="assets/subsite.js" defer></script>
+<script src="assets/site-locale.js" defer></script>
 </body>
 </html>

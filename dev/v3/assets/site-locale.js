@@ -35,7 +35,7 @@
     } catch (_) {
       // Storage can be unavailable in private or restricted browsing contexts.
     }
-    return String(navigator.language || "").toLowerCase() === "en-us" ? US_LOCALE : DEFAULT_LOCALE;
+    return DEFAULT_LOCALE;
   }
 
   function applyLocale(locale) {
@@ -72,7 +72,7 @@
   }
 
   function addLanguageControl(locale) {
-    var header = document.querySelector(".site-header .header-inner, .site-header .header-row");
+    var header = document.querySelector(".site-header .header-inner, .site-header .header-row, .site-head .head-row");
     if (!header) return;
 
     var label = document.createElement("label");
@@ -111,7 +111,8 @@
 
     label.appendChild(caption);
     label.appendChild(select);
-    header.appendChild(label);
+    var slot = header.querySelector("[data-site-locale-slot]");
+    (slot || header).appendChild(label);
   }
 
   var locale = readPreference();

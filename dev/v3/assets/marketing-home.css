@@ -1,0 +1,74 @@
+/* Additive sections for the supplied design. No global redesign. */
+[hidden]{display:none!important}
+.hero-grid{width:min(1200px,92vw)}
+.ctrl-btn svg[hidden]{display:none!important}
+.header-coffee{width:34px;height:34px;display:grid;place-items:center;flex:none;border-radius:8px;background:var(--bmc);color:var(--bmc-ink)}
+.header-coffee svg{width:18px;height:18px}
+.section-pad{padding:100px 0}
+.tint{background:var(--paper2)}
+.three-columns,.four-columns{display:grid;gap:30px;margin-top:42px}
+.three-columns{grid-template-columns:repeat(3,minmax(0,1fr))}
+.four-columns{grid-template-columns:repeat(4,minmax(0,1fr))}
+.three-columns article{border-top:1px solid var(--line2);padding-top:24px;min-width:0}
+.three-columns h3{font-size:1.3rem;margin:14px 0}
+.three-columns p,.inline-note{font-size:15px;color:var(--mut)}
+.small{font-size:12px;color:var(--mut);margin-top:16px;line-height:1.7}
+.screens-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:30px;margin-top:42px}
+.screens-grid figure{min-width:0;background:var(--paper2);padding:28px;border-radius:12px;border:1px solid var(--line)}
+.screens-grid a{display:flex;align-items:center;justify-content:center;height:420px}
+.screens-grid img{max-height:100%;max-width:100%;object-fit:contain;border-radius:8px}
+.screens-grid figcaption{padding-top:24px;font-size:15px}
+.screens-grid figcaption strong,.screens-grid figcaption span{display:block}
+.screens-grid figcaption span{font-size:12px;color:var(--mut);margin-top:6px}
+.modes .sec-tag{font-size:9px}
+
+.site-locale{display:flex;align-items:center;gap:8px;color:var(--mut);font:500 10px/1.2 var(--mono);white-space:nowrap}
+.site-locale-caption{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.site-locale select{max-width:190px;min-height:34px;padding:6px 26px 6px 9px;border:1px solid var(--line2);border-radius:7px;background:var(--paper);color:var(--ink);font:500 10px/1.3 var(--mono)}
+.site-locale select:focus-visible{outline:2px solid var(--green);outline-offset:2px}
+
+.table-scroll{overflow:auto;border:1px solid var(--line2);border-radius:10px;margin-top:20px}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:720px;text-align:left}
+caption{text-align:left;padding:18px 20px;font-size:12px;color:var(--mut);border-bottom:1px solid var(--line)}
+th,td{padding:18px 20px;border-bottom:1px solid var(--line);vertical-align:top}
+thead{font-family:var(--disp);font-size:16px}
+th{font-weight:600}
+td{color:var(--mut)}
+td:nth-child(2),th:nth-child(2){background:var(--paper2);color:var(--green)}
+tr:last-child td,tr:last-child th{border-bottom:0}
+.performance-grid{display:grid;grid-template-columns:1fr 1.25fr;gap:60px;margin-top:46px;align-items:center}
+.performance-grid h3{font-size:1.15rem}
+.metric{font:700 clamp(2.4rem,4vw,3.8rem)/1.2 var(--disp);color:var(--green);margin:14px 0}
+.metric span{font-size:24px}
+.performance-grid p:not(.metric){color:var(--mut);font-size:14px}
+.text-link{display:inline-block;margin-top:20px;font-size:13px;color:var(--green)}
+.range-chart{border:1px solid var(--line2);padding:28px;border-radius:12px;background:var(--paper)}
+.range-chart figcaption{font-size:13px;max-width:38ch;margin-bottom:26px}
+.chart-axis{display:flex;justify-content:space-between;font:400 10px/1 var(--mono);color:var(--mut);border-bottom:1px solid var(--line);padding-bottom:10px}
+.chart-row{margin-top:24px}
+.chart-row>span{display:flex;justify-content:space-between;gap:16px;font-size:12px}
+.chart-row b{color:var(--green);white-space:nowrap}
+.chart-track{height:24px;position:relative;margin-top:10px;background:var(--paper2);border-left:1px solid var(--line2);border-right:1px solid var(--line2)}
+.chart-track i{position:absolute;height:100%;background:var(--green);border:1px solid var(--green)}
+.chart-track i.buffer-range{background:transparent}
+.chart-track em{position:absolute;top:-4px;height:32px;border-left:2px solid var(--ink)}
+.stats article{border-top:1px solid var(--line2);padding-top:22px}
+.stats strong{font:700 34px/1.2 var(--disp)}
+.stats strong span{font-size:16px}
+.stats h3{font-size:14px;margin:12px 0 6px}
+.stats p{font-size:12px;color:var(--mut)}
+.technical{margin-top:40px;border-block:1px solid var(--line2);padding:18px 0}
+.technical summary{cursor:pointer;font-size:15px;font-weight:600}
+.packet-bar{display:flex;gap:4px;margin-top:24px;font:500 11px/1 var(--mono);color:var(--paper)}
+.packet-bar span{background:var(--ink);padding:20px 12px;flex:none}
+.packet-bar span:nth-child(2){background:var(--green);color:var(--green-fg);flex:1;text-align:center}
+.release-note{border-left:3px solid var(--green);padding:16px 20px;margin-top:24px;font-size:13px;color:var(--mut)}
+.release-note strong{color:var(--ink)}
+.security-grid{display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center}
+.security-facts div{display:grid;grid-template-columns:140px 1fr;gap:20px;border-bottom:1px solid var(--line);padding:18px 0;font-size:13px}
+.security-facts dt{color:var(--green)}
+.security-facts dd{color:var(--mut)}
+
+@media(max-width:1400px){.site-nav{position:static;transform:none;padding:0 4vw 14px;overflow:auto}.head-row{height:auto;min-height:60px;flex-wrap:wrap;padding-block:12px}.head-right{gap:8px}.performance-grid,.security-grid{grid-template-columns:1fr;gap:32px}}
+@media(max-width:760px){.section-pad{padding:70px 0}.screens-grid,.three-columns,.coffee-grid{grid-template-columns:1fr}.four-columns{grid-template-columns:repeat(2,minmax(0,1fr))}.screens-grid a{height:auto}.screens-grid img{max-height:420px}.head-dl{display:none}.head-row{gap:10px}.brand{font-size:18px}.brand .chip{display:none}.head-right{gap:6px}.table-scroll{max-width:100%}.cup-fig{max-width:100%}}
+@media(max-width:400px){.head-row{padding-inline:16px}.brand{font-size:16px;gap:6px}.brand svg{width:18px}.head-right{gap:4px}.site-locale select{max-width:126px;padding-inline:6px;font-size:9px}.gh-ic,.ctrl-btn,.header-coffee{width:30px}.range-chart{padding:20px 14px}.chart-row>span{font-size:11px}.security-facts div{grid-template-columns:100px 1fr}.packet-bar span{padding:14px 6px;font-size:9px}}

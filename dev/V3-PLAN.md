@@ -1,16 +1,17 @@
 # PocketMic LAN — v3 Marketing Site
 
-## Status: BUILT
+## Status: INTEGRATED LOCALLY · NOT DEPLOYED
 
-v3 is the merged marketing site combining v1's design system with v2's architecture.
+The selected cream-and-green marketing homepage is integrated into the canonical `dev/v3/` deployment payload. The multi-page guides remain on the shared subsite design system. CI and Lighthouse now target this same directory. Live deployment and visual/product acceptance remain open for the project owner.
 
 ## Directory structure
 
 ```
 dev/v3/
-├── index.html              Homepage (v3 design — warm paper + gold)
-├── styles.css              v3 design system (v1 tokens + v2 components)
-├── app.js                  v3 JS (v1 scroll spy + v2 checklist/modal)
+├── index.html              Selected marketing homepage (cream + green)
+├── assets/marketing-home.css Homepage-only layout additions
+├── assets/marketing-home.js Homepage theme, demo, navigation, and CTA behavior
+├── styles.css, app.js      Retained prior shared files; not used by the selected homepage
 ├── policy.html             Privacy & terms page
 ├── robots.txt, sitemap.xml, release.json, routes.json
 ├── assets/
@@ -32,7 +33,7 @@ dev/v3/
 │   └── ready/index.html    Sound check confirmation
 ├── technical/index.html    Protocol, encryption, build instructions
 ├── troubleshooting/index.html  Diagnostic flowchart
-├── release-notes/index.html    v0.1.4 release notes
+├── release-notes/index.html    v0.1.5 release notes
 ├── privacy/index.html      Privacy & terms
 └── marketing/
     ├── X-POSTS.md          12 standalone X drafts + 6-part thread
@@ -43,27 +44,25 @@ dev/v3/
     └── layouts/            7 editable HTML artwork files
 ```
 
-## What was merged
+## Release-candidate changes
 
-| From v1 | From v2 |
-|---------|---------|
-| Warm paper + gold design tokens | 14-page multi-page architecture |
-| shields.io live badges | "Your phone. Your next PC mic." copy |
-| BMC button in hero | VB-CABLE upfront explainer |
-| Comparison table | Interactive setup checklist |
-| Voice mode section | Troubleshooting page |
-| Measured performance (100/220/200ms) | Mobile sticky CTA bar |
-| Device-frame screenshots | Social media kit (12 X + 6 LinkedIn + 7 graphics) |
-| Dark mode (prefers-color-scheme) | Per-page SEO (OG/Twitter/JSON-LD) |
-| FAQ (8 questions) | Honest copy ("early release", "debug-signed") |
-| Download row layout | Breadcrumbs, print styles |
+- The approved cream-and-green homepage replaces the older v3 homepage in `dev/v3/index.html`.
+- Existing setup, download, technical, troubleshooting, use-case, privacy, roadmap, and release-note pages remain in the payload; their shared assets and homepage anchors resolve locally.
+- Homepage download links open the checked-in detail pages, which show the latest published v0.1.5 assets until v0.1.6 is actually released.
+- CTA and outbound-link hooks dispatch local `pocketmic:conversion` browser events; they do not send analytics to a service.
+- Protocol/configuration figures are documented separately from end-to-end latency, for which no current measurement is established.
+- The homepage uses the Canadian English source copy and a clearly labelled US spelling preview; other site translations remain incomplete.
 
 ## Design system split
 
-- **Homepage** (`index.html` + `styles.css` + `app.js`): v3 merged design
-- **Subpages** (all other `index.html` files): v2 design via `assets/subsite.css` + `assets/subsite.js`
+- **Homepage** (`index.html` + `assets/marketing-home.css` + `assets/marketing-home.js`): selected candidate with shared CTA hooks, locale preference, and local Signal Lab behavior
+- **Subpages** (all other public pages): shared design via `assets/subsite.css` + `assets/subsite.js`
 - Both share the same favicon, screenshots, and social graphics
+
+The site defaults to Canadian English (`en-CA`). The `en-US` option is a spelling preview, not a complete translated locale. The locale catalog tracks 21 targets, but only reviewed translations may be advertised as supported. The homepage numbers are protocol/configuration facts; no current end-to-end latency benchmark is published.
+
+The homepage uses locally checked-in download detail pages that read the current published release manifest. It does not fetch GitHub release or star APIs at page load. CTA and outbound-link hooks emit local browser events only; this build does not send analytics events to a service.
 
 ## Deployment
 
-Copy the contents of `dev/v3/` to the hosting server at `/sites/pocketmic-lan/`.
+After the v0.1.6 tag and manual site acceptance, stage the exact reviewed `dev/v3/` payload, verify its file manifest and hashes, then deploy it to `/sites/pocketmic-lan/`. Verify routes, downloads, metadata, and the public page from an external browser; retain the prior payload for rollback. The current candidate has not been deployed.

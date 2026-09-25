@@ -1,6 +1,6 @@
 # PocketMic LAN 0.1.6 — Manual Pre-Tag Test Plan
 
-> Candidate baseline: `700b245c0ab5e0d6459838389534f24f1b553150`
+> Candidate code commit: `76d7ce72905b59be89045e3d98cb05b7cc7bf91e` (the app/source code is unchanged from the previous code candidate; later commits updated release documents).
 > State: CI passed; manual acceptance is pending. This is a test build, not a release.
 
 Use this checklist to test the exact previews below before freezing a release candidate. Record `PASS`, `FAIL`, `BLOCKED`, or `NOT TESTED` for each row. Do not include pairing keys, public IP addresses, or private account details in notes.
@@ -9,10 +9,10 @@ Use this checklist to test the exact previews below before freezing a release ca
 
 | Platform | Preview | What it proves / limitation |
 |---|---|---|
-| Windows | [Receiver ZIP](https://github.com/ryanspice/pocketmic-lan/actions/runs/36110890990/artifacts/10853391723) | Self-contained Windows x64 receiver candidate. Install VB-CABLE separately for the documented virtual-cable route. |
-| Android | [Debug APK](https://github.com/ryanspice/pocketmic-lan/actions/runs/36110890990/artifacts/10852664676) | Version 0.1.6, package `com.canopydigital.pocketmic`, debug-signed. Installs separately from v0.1.5; app data and pairing keys do not migrate. |
-| macOS | [Unsigned preview package](https://github.com/ryanspice/pocketmic-lan/actions/runs/36110890967/artifacts/10852922653) | Universal app and virtual-mic driver with setup guide and report template. Unsigned and not notarized; use a Mac whose owner deliberately accepts this preview. |
-| iOS | [Simulator app](https://github.com/ryanspice/pocketmic-lan/actions/runs/36110890947/artifacts/10853161916) | Simulator build and protocol-vector test only. It is not an installable physical-iPhone app or an IPA for device testing. |
+| Windows | [Receiver ZIP](https://github.com/ryanspice/pocketmic-lan/actions/runs/36112980901/artifacts/10853728561) | Self-contained Windows x64 receiver candidate. Install VB-CABLE separately for the documented virtual-cable route. |
+| Android | [Debug APK](https://github.com/ryanspice/pocketmic-lan/actions/runs/36112980901/artifacts/10853648970) | Version 0.1.6, package `com.canopydigital.pocketmic`, debug-signed. Installs separately from v0.1.5; app data and pairing keys do not migrate. |
+| macOS | [Unsigned preview package](https://github.com/ryanspice/pocketmic-lan/actions/runs/36112980945/artifacts/10853733480) | Universal app and virtual-mic driver with setup guide and report template. Unsigned and not notarized; use a Mac whose owner deliberately accepts this preview. |
+| iOS | [Simulator app](https://github.com/ryanspice/pocketmic-lan/actions/runs/36112980929/artifacts/10854252307) | Simulator build and protocol-vector test only. It is not an installable physical-iPhone app or an IPA for device testing. |
 
 These GitHub artifacts expire on October 9 or 25, 2026. The Mac package contains `SHA256SUMS.txt` for its app and driver archives; verify it before opening either. Stop if macOS reports malware, damage, or revoked authorization. Do not bypass those alerts or weaken Gatekeeper/SIP. The published website manifest remains on v0.1.5 until a v0.1.6 release is actually published.
 
@@ -90,7 +90,28 @@ These checks are layout and preference checks only; they do not constitute fluen
 
 The site remains untranslated outside the limited `en-US` spelling preview. The mobile Kurdish catalogs are drafts. Do not include these locales in a supported-language claim without fluent review of critical flows on each claimed surface.
 
-## E. Results and release decision
+## E. Selected marketing-site replacement
+
+The selected design and candidate history are in [Replace marketing site](codex://threads/01a0d5b9-83f5-7dc2-8fde-958d75ac661c). Test the integrated release candidate from the latest `pocketmic-website-preview` CI artifact built from the candidate commit, or a staged copy of that exact `dev/v3/` payload. The detached candidate does not prove the deploy payload is ready.
+
+| Check | Result | Notes |
+|---|---|---|
+| Confirm the staged landing page is the selected PocketMic LAN design and keeps the existing canonical URL | | |
+| Confirm copy matches the tested v0.1.6 build: Android/Windows behavior, accepted Mac preview limits, actual codec/routing/signing state, and no unsupported Linux/iOS-distribution or latency claims | | |
+| Confirm repository/support links and release CTA resolve to PocketMic LAN; after tag creation, verify exact v0.1.6 asset names and SHA-256 values | | |
+| Confirm published v0.1.5 downloads are distinguished from unsigned/experimental v0.1.6 CI previews; verify the download CTAs open the checked-in detail pages | | |
+| Open every existing download, setup, policy/privacy, troubleshooting, roadmap, and release-notes route; verify each is retained or follows its documented redirect/retirement decision | | |
+| From a nested page, follow the shared navigation back to the homepage use-case section; verify route, fragment, locale, and CTA links resolve | | |
+| Check desktop, tablet, and 320–390 px phone layouts in light and dark themes; verify no unintended page-wide overflow, clipped controls, or overlapping content | | |
+| Use keyboard-only navigation; check skip link, visible focus, navigation, accordions, language/theme controls, and reduced-motion behavior | | |
+| Disable JavaScript and confirm essential product, routing, privacy, and download information remains available | | |
+| Confirm `en-CA` remains the default even in an en-US browser profile; verify the en-US spelling preview is explicitly labelled and persists only after selection | | |
+| Before activating Signal Lab, confirm its local-only purpose is explained; test permission grant/denial and unsupported-browser fallback without implying it transmits to PocketMic | | |
+| Record the staged payload file manifest and SHA-256 values; confirm the prior live payload and rollback route are available | | |
+
+Do not deploy the replacement before the v0.1.6 tagged assets exist and the staged page passes review. After release upload, deploy this exact reviewed payload at the existing site path, verify routes/downloads/metadata from an external browser, and roll back if any required check fails.
+
+## F. Results and release decision
 
 | Area | Result | Blocking issue / evidence |
 |---|---|---|
@@ -100,6 +121,7 @@ The site remains untranslated outside the limited `en-US` spelling preview. The 
 | Android → Mac PCM and virtual-device route | | |
 | Physical iPhone route (if installable build exists) | | |
 | Locale layout/preferences | | |
+| Marketing-site replacement and route checks | | |
 | Reproducible setup friction | | |
 
 Attach redacted screenshots/logs only when useful. Record model/OS/app versions and the exact artifact. Mark anything unavailable on the current unsigned/simulator previews as `BLOCKED`; do not turn a CI build into a hardware pass. Hold the v0.1.6 tag until release-scope failures are fixed or explicitly removed from claims, and until the final frozen-candidate artifacts and checksums are generated.

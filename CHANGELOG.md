@@ -8,6 +8,7 @@
 - Localization target registry for 21 locales, including en-CA/en-US and Central/Northern Kurdish (`ckb`/`kmr`); translations and review remain release gates.
 
 ### Changed
+- Replace the marketing landing page with the user-selected PocketMic LAN design, aligned to the v0.1.6 release contents, verified downloads, and reviewed language coverage.
 - Use `com.canopydigital.pocketmic` as the Android and iOS application identifier. Android users must install this as a new app; it cannot upgrade the v0.1.5 package.
 - Bump Android, iOS, macOS, and Windows build versions to 0.1.6.
 - Use Canadian English (`en-CA`) as the default language fallback and describe the iOS destination generically as a PocketMic receiver.

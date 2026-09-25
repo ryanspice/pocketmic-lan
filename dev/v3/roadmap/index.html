@@ -244,7 +244,7 @@
     <div class="faq-grid">
       <details class="faq-item">
         <summary>iOS support</summary>
-        <p>The protocol is platform-agnostic. An iOS app is possible but requires Swift development. QuicMic's browser approach shows it's possible without a native app — PocketMic could add a WebTransport fallback.</p>
+        <p>The current unreleased source includes an experimental native iOS publisher that sends PCM v1. It has simulator-build evidence, but no physical iPhone-to-receiver acceptance and no published iOS download. Treat it as a v0.1.6 manual-test preview.</p>
       </details>
       <details class="faq-item">
         <summary>Lower latency</summary>
@@ -252,7 +252,7 @@
       </details>
       <details class="faq-item">
         <summary>Opus codec for lower bandwidth</summary>
-        <p>Android Opus support is being validated in the unreleased v0.1.6 source. Codec support and bandwidth depend on the sender/receiver combination; PCM remains the compatibility path where supported. Physical interoperability is still required.</p>
+        <p>The Android source can send negotiated Opus v2, and the Windows receiver supports PCM v1 and Opus v2. Physical encode/decode and end-to-end acceptance are still open. The macOS preview supports PCM v1 only, so choose PCM when testing Android with the Mac receiver.</p>
       </details>
       <details class="faq-item">
         <summary>No-install browser mode</summary>
