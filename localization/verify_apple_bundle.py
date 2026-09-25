@@ -17,7 +17,9 @@ def main() -> int:
     parser.add_argument("bundle", type=Path, help="Path to a built .app bundle")
     args = parser.parse_args()
 
-    info_path = args.bundle / "Info.plist"
+    info_path = args.bundle / "Contents" / "Info.plist"
+    if not info_path.is_file():
+        info_path = args.bundle / "Info.plist"
     try:
         info = plistlib.loads(info_path.read_bytes())
     except (OSError, plistlib.InvalidFileException) as error:
@@ -30,8 +32,11 @@ def main() -> int:
         return 1
 
     errors: list[str] = []
+    resources = args.bundle / "Contents" / "Resources"
+    if not resources.is_dir():
+        resources = args.bundle
     for locale in sorted(EXPECTED_LOCALIZATIONS):
-        strings_path = args.bundle / f"{locale}.lproj" / "Localizable.strings"
+        strings_path = resources / f"{locale}.lproj" / "Localizable.strings"
         try:
             strings = plistlib.loads(strings_path.read_bytes())
         except (OSError, plistlib.InvalidFileException) as error:
