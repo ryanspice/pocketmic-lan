@@ -74,6 +74,9 @@ jobs:
             build/artifact/
           cp macos/README.md macos/TESTER-REPORT.md build/artifact/
 
+      - name: Verify packaged macOS preview artifacts
+        run: python3 scripts/verify_macos_artifacts.py build/artifact
+
       - uses: actions/upload-artifact@v4
         with:
           name: pocketmic-macos-preview-${{ github.sha }}
