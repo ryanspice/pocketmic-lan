@@ -156,3 +156,6 @@ jobs:
             exit 1
           fi
           echo "JSON-LD ✓"
+
+      - name: Validate current release metadata and download pages
+        run: node scripts/validate-site-release.mjs

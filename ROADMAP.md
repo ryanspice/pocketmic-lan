@@ -73,11 +73,11 @@ v0.1.5 is published. The checklist below preserves its original implementation s
 
 This is the expanded Phase 3 release scope. Do not tag v0.1.6 until its acceptance gates below pass. Phase 3 now includes the macOS receiver, reliable interoperability with both mobile clients, and a complete initial localization pass. Later work stays in Phases 4–7 and starts after this release scope is complete.
 
-- [ ] Build a native macOS receiver with the core Windows receiver workflow: LAN listening, manual pairing, pairing-key security, status/diagnostics, virtual microphone selection, and clean start/stop/recovery. The initial Mac preview is PCM v1/manual pairing; QR, discovery, Opus, and production distribution remain later work unless explicitly completed and accepted.
+- [x] Implemented a native macOS receiver preview with LAN listening, manual pairing, pairing-key security, status/diagnostics, a CoreAudio virtual microphone, and start/stop/recovery. The preview is PCM v1/manual pairing; QR, discovery, Opus, and production distribution remain outside this scope. Physical Mac install/routing acceptance is still required below.
 - [ ] Keep packet framing, protocol crypto, and shared control-message models in a platform-neutral Swift package where the iOS client and macOS receiver can use the same implementation; verify compatibility against Kotlin and C# fixtures.
 - [ ] Make the macOS receiver accept the supported Android and iOS client protocols. Cover PCM v1 and Android's negotiated Opus v2 path where the protocol supports it; add shared cross-language fixtures for framing, key derivation, AES-GCM fields, valid packets, tamper/wrong-key rejection, and sequence exhaustion.
-- [ ] Ship a macOS Audio Server Plug-in virtual microphone path so receiver audio is selectable as a microphone by conferencing/recording apps. Require physical Mac acceptance for installation, device visibility, continuity, recovery, and latency; a CI build does not prove this gate.
-- [ ] Add macOS build, unit, protocol, and packaging jobs to GitHub Actions on a hosted macOS runner, so development and release builds remain possible from Windows. CI is compile/test evidence, not physical audio-device acceptance.
+- [x] Implemented and packaged an unsigned macOS Audio Server Plug-in virtual microphone path. Physical Mac acceptance for installation, device visibility, continuity, recovery, and real-app routing is still required; a CI build does not prove this gate.
+- [x] Added macOS build, unit, protocol, and packaging workflows to GitHub Actions on a hosted macOS runner, so development and release builds remain possible from Windows. CI is compile/test evidence, not physical audio-device acceptance.
 - [ ] Localize every user-facing surface across Android, iOS, macOS, Windows, and the public marketing site. The initial target is 21 locales: Canadian English (en-CA), American English (en-US), Spanish, French, Brazilian Portuguese, German, Italian, Dutch, Polish, Turkish, Russian, Ukrainian, Arabic, Hindi, Indonesian, Japanese, Korean, Simplified Chinese, Traditional Chinese, Central Kurdish (Sorani, ckb), and Northern Kurdish (Kurmanji, kmr). Track the target tags in `localization/target-locales.json`.
 - [ ] Introduce locale-aware string resources/catalogs and formatting, an agreed translation glossary, locale selection/fallback rules, and an update workflow that makes additional locales data-only where practical. Include pluralization, text expansion, accessibility labels, and right-to-left layout support (especially Arabic) in acceptance.
 - [ ] Establish one reviewable localization source and validation workflow for web and native catalogs, with checks for missing keys, fallback coverage, malformed locale files, and accidental untranslated UI text.
@@ -143,7 +143,7 @@ These are acceptance checks for the release candidate, separate from feature pla
 ### Website & Docs
 - [ ] Technical deep-dive page
 - [ ] Privacy policy page
-- [ ] VB-CABLE renamed to PM-LAN in docs
+- [ ] Resolve the proposed PM-LAN name against the shipped route. Keep third-party VB-CABLE instructions explicit unless a PocketMic-owned Windows virtual route is implemented and tested; do not rename one product as the other.
 - [ ] Version number sourced from GitHub API
 
 ---
@@ -170,7 +170,7 @@ These are acceptance checks for the release candidate, separate from feature pla
 ### Website & Docs
 - [ ] Technical deep-dive page
 - [ ] Privacy policy page
-- [ ] VB-CABLE renamed to PM-LAN in docs
+- [ ] Resolve the proposed PM-LAN name against the shipped route. Keep third-party VB-CABLE instructions explicit unless a PocketMic-owned Windows virtual route is implemented and tested; do not rename one product as the other.
 - [ ] Version number sourced from GitHub API
 
 ---

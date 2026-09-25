@@ -26,6 +26,13 @@ Working-tree implementation on top of commit `5a98afdd31a6063173c909094be6bed5f4
 
 - GitHub uploaded the debug APK artifact from push run 36079402684 (SHA-256 `eccc0abe4145b07fb5ea009f560fa67847ce5c4aea5504aa87567c750b91fc95`; expires 2026-10-09). Hosted Android CI and the APK artifact do not prove physical-device Opus initialization/encoding, Android-to-Windows Opus audio, or Android-to-Mac PCM/codec acceptance.
 
+## Current-release site metadata reconciliation (2026-09-24)
+
+- GitHub's published `v0.1.5` release lists `app-debug.apk` (35,585,121 bytes; debug-signed) and `PocketMicReceiver-win-x64.zip` (70,613,256 bytes), with SHA-256 values recorded in `dev/v3/release.json` and the release asset manifest.
+- Updated the local `dev/v3` manifest, release notes, current download pages, setup/technical/troubleshooting references, and route title from stale `v0.1.4` release pointers to the verified published `v0.1.5` artifacts. Historical marketing drafts remain version-pinned to their original campaign.
+- Added `scripts/validate-site-release.mjs` to verify manifest schema, release URLs, checksums, sizes, page links, route title, and matching visible version. `node scripts/validate-site-release.mjs`, `node --check web/app.js`, JSON parsing, stale-reference scan of active pages, and `git diff --check` passed locally.
+- Extended the Web CI job to run this release-site validator. This is a source correction only; no live-site deployment or direct live download-page verification was performed.
+
 ### D5 hosted CI on commit `5a98afdd31a6063173c909094be6bed5f4425c77`
 
 All push-triggered and associated pull-request workflows completed successfully:
