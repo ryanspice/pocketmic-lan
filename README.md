@@ -125,7 +125,7 @@ Allow the selected UDP port on **Private networks** only. Default: `49500`.
 
 ## Verification
 
-The Android build runs Kotlin/JVM tests and lint by default. The Windows build runs 146 xUnit tests (100 existing + 6 Opus smoke + 21 protocol fixtures + 19 jitter buffer). Standalone protocol checks:
+The Android build runs Kotlin/JVM tests and lint by default. The Windows receiver suite currently has 173 xUnit tests, including native Opus smoke coverage. Hosted CI runs the Windows build and full test suite. Standalone protocol checks:
 
 ```powershell
 python .\tools\verify_protocol.py
@@ -173,11 +173,10 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 ## Current limits
 
 - iOS has an initial PCM streaming client in `ios/`. It uses SwiftUI and XcodeGen, so Windows contributors can edit it and rely on the macOS GitHub Actions runner to generate the Xcode project and build it. Pull requests and `codex/**` pushes build an unsigned simulator app; version tags and published GitHub releases produce an unsigned `.xcarchive`.
-- Windows receiver only — no macOS or Linux yet
-- LAN discovery with manual IPv4 fallback and QR pairing
-- PCM uses more bandwidth than Opus (~768 kbit/s)
-- v0.1.5 adds Opus and adaptive jitter handling; end-to-end device validation remains open
-- No production-signed Android release, Windows installer, or auto-updater
+- Windows receiver plus an unsigned macOS receiver and CoreAudio virtual-microphone preview; see [macOS tester setup](macos/README.md). No Linux receiver is included yet; Linux is planned after v0.1.6.
+- Android provides LAN discovery, QR pairing, and manual IPv4 fallback for Windows. The current iOS and macOS previews use manual pairing; iOS QR pairing and Mac receiver discovery are not implemented.
+- Windows supports PCM v1 and Opus v2 when `opus.dll` is present. The Mac receiver and initial iOS client use PCM v1; Opus is optional on Android. Physical codec/interoperability checks remain open.
+- Android, iOS, and macOS builds are unsigned previews; there is no Windows installer or automatic updater.
 - No internet relay — both devices must be on the same LAN
 - Designed for voice, not real-time music monitoring
 
@@ -200,7 +199,7 @@ An active Apple Developer Program membership and an App Store Connect app record
 android/                 Kotlin Android transmitter
 windows-receiver/        C# WinForms receiver UI
 windows-receiver-core/   C# shared engine, audio pipeline, protocol
-windows-receiver-tests/  C# xUnit tests (100 tests)
+windows-receiver-tests/  C# xUnit tests (173 tests)
 scripts/                 PowerShell build, publish, and firewall helpers
 tools/                   Python protocol, logic, source, and web verification
 web/                     Static marketing site (HTML/CSS/JS, zero deps)
