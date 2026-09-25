@@ -88,7 +88,7 @@ Deliver a testable macOS receiver preview and validated current mobile-publisher
 
 #### Gate 2 — Protocol and platform behavior
 
-- Add cross-language protocol fixtures for framing, key derivation, AES-GCM fields, valid packets, wrong-key/tamper rejection, and sequence boundary behavior where missing.
+- Shared protocol packet fixtures now cover Android PCM v1 and Opus v2 emission plus Windows and macOS PCM v1 decoding. The canonical Python-generated JSON vectors are consumed by C# and Swift; Android consumes a `.properties` companion generated from the same script and compares emitted datagrams byte-for-byte. Hosted push and PR CI passed for all platforms on `53c6896`. This verifies deterministic framing/crypto interoperability; physical audio and Mac Opus decoding remain separate and are not implied.
 - Verify Android and iOS PCM v1 publication to Windows and Mac receivers on a private LAN. For Android-to-Mac, verify the selected codec path specifically.
 - On physical iPhone and Android devices, cover microphone permission grant/denial, correct/wrong pairing key, audible receive, repeated start/stop, supported background behavior, network loss/recovery, and a sustained session.
 - For existing v0.1.5 Android-to-Windows follow-up, rerun the blocked checks recorded in `BUILD-EVIDENCE.md` when hardware is available. Do not hold v0.1.6 hostage to unrelated Opus/clock-drift work unless it affects a claim included in this release.
