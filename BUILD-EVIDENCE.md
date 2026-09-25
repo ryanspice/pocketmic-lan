@@ -315,3 +315,23 @@ libopus 1.5.2 is pinned at SHA-256 `65c1d2f78b9f2fb20082c38cbe47c951ad5839345876
 - Push artifact `pocketmic-receiver-win-x64` is 68,186,426 bytes (artifact ZIP digest `b3b33e3ae20e94566be4a0156b9ed6a09b52b5da31af6d6a5d8618c4a092e59c`; expires 2026-10-25). Download it from the Artifacts section of [push CI run 36096799338](https://github.com/ryanspice/pocketmic-lan/actions/runs/36096799338). This is a branch preview, not a release asset or physical Windows acceptance.
 - Push macOS preview `pocketmic-macos-preview-fda953e2006f38cc25791e0f9fdcfa19af861b4d` is 488,385 bytes (digest `86024ab9118021a4c57a1b1732ad06b2af244894e09e02524d7dfa413015718a`; expires 2026-10-25). Push iOS simulator artifact `pocketmic-ios-simulator-fda953e2006f38cc25791e0f9fdcfa19af861b4d` is 220,714 bytes (digest `5f9d07f87a540da34e988dff4e544581eb7a0b4e2b41104677dd547b09adf8bd`; expires 2026-10-09). Push Android debug APK `pocketmic-debug-apk` is 23,495,841 bytes (digest `e51d3ea50b761ac0642c1108cfde98500a87f40c61c4326eb2e54e68867f2033`; expires 2026-10-09).
 - These outputs are development previews, not tagged v0.1.6 assets. Physical Android/iOS audio, Mac driver install and app routing, Windows control/audio acceptance, fluent locale review, live site verification, and release signing remain separate gates.
+
+## Windows tester-ready package and hosted verification (2026-09-25)
+
+- Commit `7861f4fba3743fc1d9d03f03437aca0711ae5331` adds `README-Windows.txt`, `PocketMic-LICENSE.txt`, `THIRD-PARTY-NOTICES.txt`, and `OPUS-COPYING.txt` when the native Opus decoder is included. The guide distinguishes Android QR pairing from iOS manual entry and documents the separate VB-CABLE route. The publisher fails if required documentation or the Opus license is missing from the ZIP.
+- Local checks: PowerShell parser accepted `scripts/publish-windows.ps1`; `git diff --check` passed. Windows builds/tests/package validation ran in hosted CI.
+- All push and pull-request workflows passed on the commit:
+
+| Event | Workflow | Result | Evidence |
+|---|---|---|---|
+| Push | Primary CI: Android build/lint/JVM tests; Windows build, 173 tests and package; web validation | PASS | [run 36098433515](https://github.com/ryanspice/pocketmic-lan/actions/runs/36098433515) |
+| Push | iOS simulator build and bundle validation | PASS | [run 36098433618](https://github.com/ryanspice/pocketmic-lan/actions/runs/36098433618) |
+| Push | macOS protocol tests and universal driver/package validation | PASS | [run 36098433692](https://github.com/ryanspice/pocketmic-lan/actions/runs/36098433692) |
+| Pull request | Primary CI | PASS | [run 36098437339](https://github.com/ryanspice/pocketmic-lan/actions/runs/36098437339) |
+| Pull request | iOS simulator build and bundle validation | PASS | [run 36098437338](https://github.com/ryanspice/pocketmic-lan/actions/runs/36098437338) |
+| Pull request | macOS protocol tests and universal driver/package validation | PASS | [run 36098437393](https://github.com/ryanspice/pocketmic-lan/actions/runs/36098437393) |
+| Pull request | Lighthouse validation | PASS | [run 36098437420](https://github.com/ryanspice/pocketmic-lan/actions/runs/36098437420) |
+
+- Windows tests passed **173/173**. The publisher produced a 155.6 MB extracted payload and a 65.2 MB receiver ZIP with SHA-256 `1249ae758f575786f6c2ac2bc2fad60506022c256352ed90e31a81a008bf3b89`. The script validated the required ZIP entries before upload.
+- Push artifact `pocketmic-receiver-win-x64` (artifact ID `10848212920`) is 68,190,661 bytes, with Actions artifact digest `303801b936e334d50f681c3249ad6526f5486941b7c858bb4af915808ff00b01`; it expires 2026-10-25. Download it from [push CI run 36098433515](https://github.com/ryanspice/pocketmic-lan/actions/runs/36098433515).
+- The artifact remains an unsigned branch preview. Physical Windows audio/control acceptance and the separate Mac and mobile acceptance gates are still open; this is not a v0.1.6 release asset.
