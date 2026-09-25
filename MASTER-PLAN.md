@@ -122,6 +122,7 @@ Keep the preview unsigned and installer warnings explicit. CI success cannot pas
 
 - Run every relevant workflow on one frozen candidate commit: Windows build/tests, Android build/lint/unit tests, iOS simulator build, macOS build/tests/package, and website checks. CI must fail on unit-test failures.
 - Build all release artifacts from that exact commit; verify app versions, bundle/package identifiers, artifact names, SHA-256 manifest, and tag target agree.
+- Validate the Windows ZIP from a clean CI checkout: include a concise pairing/routing guide, the PocketMic license, NAudio and QRCoder MIT notices, and the Opus license whenever `opus.dll` is shipped. Confirm the guide names the actual platform pairing options and separately installed VB-CABLE route.
 - State which artifacts are unsigned, debug-signed, or production-signed. Verify clean install and documented upgrade/separate-install behavior. No store/TestFlight/notarization claims without successful signing and upload validation.
 - Review unresolved `BLOCKED` checks against release scope. A blocker that undermines a v0.1.6 claim must be resolved or the claim/scope must be reduced before tagging.
 - Only after these gates pass: create the v0.1.6 tag and release, attach exact artifacts/checksums, then verify tag-pinned downloads, README/site links, and release notes. Record the final commit and post-publication receipts in `BUILD-EVIDENCE.md`.
