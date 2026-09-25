@@ -128,24 +128,29 @@ Keep the preview unsigned and installer warnings explicit. CI success cannot pas
 - Publish `en-CA` as the default fallback, while honoring an available supported device/user preference. Keep `en-US` and the two Kurdish tags separate.
 - If one locale fails review or is incomplete, exclude it from the supported list; do not ship machine-only critical instructions as reviewed translations.
 
-#### Gate 5 — Frozen-candidate CI, artifacts, and release decision
+#### Gate 5 — Product truth, demonstration, and pre-release pilot
+
+- Reconcile README, `dev/v3/release.json`, website/download/setup pages, preview artifacts, version labels, signing language, codecs, and routing instructions before inviting testers. State the exact build under test and describe PM-LAN, VB-CABLE, or another route only as shipped and verified. Do not imply that a preview is a release candidate.
+- Remove or qualify latency/audio-quality claims without current measurement receipts. Describe only the PocketMic audio hop as local-network/no PocketMic account or relay; do not imply the user's whole destination-app workflow stays offline.
+- Once the selected Android + Windows + destination-app route works, capture a genuine 15–30 second demo showing the receiver, pairing/streaming, and audio reaching the named destination app. Check every protocol, codec, and routing label against current behavior; do not add unmeasured latency overlays.
+- Run a small, direct pre-release pilot of about five qualified testers against a clearly labeled preview. Collect device/OS versions, destination app, routing method, completed setup, success/failure, and reproducible friction. Recruit the physical Mac tester separately for Gate 3. Treat clicks/stars as attention, not activation.
+- Fix and verify the largest repeatable setup issue found by the pilot. If the pilot does not produce a concrete issue, record the evidence and decision; do not invent work just to justify a version bump. If no truthful end-to-end route can be demonstrated, hold the release and reduce or revise scope.
+- The pilot/demo sequence is a readiness gate, not a calendar campaign. Keep contributor recruitment and broad promotion out of the technical acceptance path.
+
+#### Gate 6 — Frozen-candidate CI, artifacts, and release decision
 
 - Run every relevant workflow on one frozen candidate commit: Windows build/tests, Android build/lint/unit tests, iOS simulator build, macOS build/tests/package, and website checks. CI must fail on unit-test failures.
 - Build all release artifacts from that exact commit; verify app versions, bundle/package identifiers, artifact names, SHA-256 manifest, and tag target agree.
 - Validate the Windows ZIP from a clean CI checkout: include a concise pairing/routing guide, the PocketMic license, NAudio and QRCoder MIT notices, and the Opus license whenever `opus.dll` is shipped. Confirm the guide names the actual platform pairing options and separately installed VB-CABLE route.
 - State which artifacts are unsigned, debug-signed, or production-signed. Verify clean install and documented upgrade/separate-install behavior. No store/TestFlight/notarization claims without successful signing and upload validation.
 - Review unresolved `BLOCKED` checks against release scope. A blocker that undermines a v0.1.6 claim must be resolved or the claim/scope must be reduced before tagging.
-- Only after these gates pass: create the v0.1.6 tag and release, attach exact artifacts/checksums, then verify tag-pinned downloads, README/site links, and release notes. Record the final commit and post-publication receipts in `BUILD-EVIDENCE.md`.
+- Only after Gates 1–5 pass: create the v0.1.6 tag and release, attach exact artifacts/checksums, then verify tag-pinned downloads, README/site links, and release notes. Record the final commit and post-publication receipts in `BUILD-EVIDENCE.md`.
 
-#### Gate 6 — Product truth and staged tester exposure
+#### Gate 7 — Post-release product truth and staged promotion
 
-- Before announcing availability, verify that README, `dev/v3/release.json`, website/download/setup pages, release assets, version labels, signing language, codecs, and routing instructions all refer to the same published build. Confirm the exact included Windows route; describe PM-LAN, VB-CABLE, or both only as shipped and tested.
-- Remove or qualify latency/audio-quality claims without current measurement receipts. Describe only the PocketMic audio hop as local-network/no PocketMic account or relay; do not imply the user's whole destination-app workflow stays offline.
-- Record one genuine 15–30 second end-to-end demo after the selected path works, showing receiver open, phone pairing/streaming, and audio reaching the named destination app. Prepare an architecture image only after protocol/codec/routing labels are checked against the release. Do not add unmeasured latency overlays.
-- Recruit a small pilot of about five qualified testers for a complete Android + Windows + destination-app route, and recruit the physical Mac tester separately for Mac-specific gates. Collect device/OS versions, destination app, routing method, success/failure, and reproducible setup friction. Count successful setup reports and recurring issues; treat clicks/stars as attention, not activation.
-- After the largest repeatable setup issue is fixed, make two community-specific posts one at a time: first to a relevant Android/audio/OBS tester audience, then to one maker/developer showcase. Recheck each venue's current rules and thread format before posting. Keep AI-tool process discussion separate and factual; defer broad multi-community campaigns until pilot results justify them.
-- The pilot and posts are gated by matched version/download/routing instructions and the product-truth audit above. If those prerequisites are not met, keep exposure to direct, clearly labeled preview testing; do not substitute a polished demo or broad launch copy for acceptance evidence.
-- Treat publishing the release and contacting communities as separate actions. Do not send posts or messages as part of CI or automatically from the release workflow.
+- Verify README, release manifest, website/download/setup pages, and attached assets resolve to the published tag and exact artifact checksums. Confirm the published signing, codec, routing, and migration disclosures still match the build.
+- If Gate 5's demo and pilot readiness criteria passed, make at most two tailored public posts, one at a time: first to a relevant Android/audio/OBS tester audience, then to a maker/developer showcase. Recheck venue rules and format immediately before posting. Keep AI-development discussion separate and factual; defer a broader campaign until pilot results justify it.
+- Do not send posts or messages from CI or automatically from the release workflow. Publishing and outreach remain separate actions; if matched links or verified route documentation break, stop promotion until corrected.
 
 ## After v0.1.6 — phases 4–7
 
