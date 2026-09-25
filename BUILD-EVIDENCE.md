@@ -1,8 +1,8 @@
 # PocketMic LAN v0.1.5 — Build and Release Evidence
 
 > Release: https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.5
-> Evidence refreshed: 2026-09-23 (artifact integrity and distribution metadata)
-> Runtime/build evidence below remains from 2026-09-11 unless explicitly noted.
+> Evidence refreshed: 2026-09-25 (current release metadata and v0.1.6 hosted previews)
+> Older runtime/build evidence remains dated 2026-09-11 unless explicitly noted.
 
 ## Android Opus selection and gain implementation (Packet C, 2026-09-24)
 
@@ -32,6 +32,14 @@ Working-tree implementation on top of commit `5a98afdd31a6063173c909094be6bed5f4
 - Updated the local `dev/v3` manifest, release notes, current download pages, setup/technical/troubleshooting references, and route title from stale `v0.1.4` release pointers to the verified published `v0.1.5` artifacts. Historical marketing drafts remain version-pinned to their original campaign.
 - Added `scripts/validate-site-release.mjs` to verify manifest schema, release URLs, checksums, sizes, page links, route title, and matching visible version. `node scripts/validate-site-release.mjs`, `node --check web/app.js`, JSON parsing, stale-reference scan of active pages, and `git diff --check` passed locally.
 - Extended the Web CI job to run this release-site validator. This is a source correction only; no live-site deployment or direct live download-page verification was performed.
+
+## v0.1.6 preview artifacts (2026-09-25)
+
+- Commit `41fb9ad14d34ec1c4b30f3b77c541ca3cf16134e` passed push CI [run 36081845224](https://github.com/ryanspice/pocketmic-lan/actions/runs/36081845224) and associated PR CI [run 36081849226](https://github.com/ryanspice/pocketmic-lan/actions/runs/36081849226). Android build, lint, JVM unit tests, Windows build/tests, and the web release validator all passed. The push run uploaded `pocketmic-debug-apk` (23,481,548 bytes; artifact SHA-256 `cafb86f85f52a97b6607422502a09765974d6a4da9425722a2ddc9d88e867f66`; expires 2026-10-09) and `pocketmic-receiver-win-x64` (151,959 bytes; artifact SHA-256 `9b03e6c04adab3c65e15f332f93e4c4ab4e10b897108fccbb4a71fc88de159e6`; expires 2026-10-09). The Android APK is debug-signed; the Windows artifact contains build outputs, not the published ZIP installer package. These development artifacts are not v0.1.6 release assets.
+- Commit `41fb9ad14d34ec1c4b30f3b77c541ca3cf16134e` passed the hosted macOS build, universal virtual-mic driver build, packaging, and artifact upload in [push run 36081845256](https://github.com/ryanspice/pocketmic-lan/actions/runs/36081845256). The tester artifact is `pocketmic-macos-preview-41fb9ad14d34ec1c4b30f3b77c541ca3cf16134e` (466,929 bytes; SHA-256 `26c65697871d1dff56be541c2c9e6b8f20cf9078947190070a04dc7bb18027a7`; expires 2026-10-25). This proves compilation and packaging only; physical installation, device visibility, selected-app routing, recovery, and uninstall remain open.
+- The same commit passed the iOS simulator build and uploaded `pocketmic-ios-simulator-41fb9ad14d34ec1c4b30f3b77c541ca3cf16134e` in [push run 36081845198](https://github.com/ryanspice/pocketmic-lan/actions/runs/36081845198) (209,865 bytes; SHA-256 `e534472a380dc6f8aff1ed2867d1434cfbe905d8482faf7abb0614ac633e76b2`; expires 2026-10-09). This is a simulator app artifact, not an installable signed iPhone distribution or physical-device test.
+- Pull-request iOS [run 36081849320](https://github.com/ryanspice/pocketmic-lan/actions/runs/36081849320), macOS [run 36081849215](https://github.com/ryanspice/pocketmic-lan/actions/runs/36081849215), and Lighthouse [run 36081849268](https://github.com/ryanspice/pocketmic-lan/actions/runs/36081849268) also passed on that commit.
+- Artifacts are tied to the development branch commit above. They are previews for testing, not v0.1.6 release assets; no tag, publication, or website deployment occurred.
 
 ### D5 hosted CI on commit `5a98afdd31a6063173c909094be6bed5f4425c77`
 
