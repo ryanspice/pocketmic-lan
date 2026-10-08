@@ -57,6 +57,7 @@ public static class ControlProtocol
     public const int MaxPayload = SignedSize - HeaderSize;
     public const int NonceSize = 16;
     public const byte Version = 1;
+    public const int DiscoveryPort = 49_501;
 
     // The control channel is audioPort + 1, so the highest usable audio port is one below the
     // end of the UDP port range. Both front ends validate against these constants before opening

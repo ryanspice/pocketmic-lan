@@ -191,6 +191,7 @@ class MicStreamingService : Service() {
             // sends allow the stream to keep running until the receiver is ready.
             socket = DatagramSocket().apply {
                 sendBufferSize = UDP_SEND_BUFFER_BYTES
+                ControlChannel.lanNetwork(this@MicStreamingService)?.bindSocket(this)
             }
 
             val samplesPerPacket = SAMPLE_RATE / PACKETS_PER_SECOND

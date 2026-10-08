@@ -8,9 +8,13 @@
 
 **v0.1.5** · Encrypted wireless microphone for your PC
 
-PocketMic turns an Android phone into an encrypted wireless microphone for a Windows PC on the same private LAN. 48 kHz mono, AES-256-GCM on every packet, zero cloud, zero account. Supports both PCM16 (v1) and Opus (v2) codecs.
+PocketMic turns an Android phone into an encrypted wireless microphone for a Windows PC on the same private LAN. It sends 48 kHz mono audio over UDP, with AES-256-GCM on every audio packet. No account or cloud relay is required. PCM16 is the default working path; Opus support exists in source but still needs native Windows packaging and end-to-end validation.
 
 **Live site:** [canopydigital.ca/sites/pocketmic-lan/](https://canopydigital.ca/sites/pocketmic-lan/)
+
+### Release and source status
+
+The latest published release is **v0.1.5**. Its downloadable assets predate the October 2026 connection fixes described below. Build the current `master` source for first-run auto-listen, the Available PCs list, the updated QR permission flow, and discovery of receivers using custom ports. The source still uses version `0.1.5`; a source update or CI artifact does not replace the published release downloads.
 
 ## Project links
 
@@ -27,16 +31,16 @@ PocketMic turns an Android phone into an encrypted wireless microphone for a Win
 |-----------|-------|-------------|
 | Android transmitter | Kotlin, Jetpack Compose | Foreground microphone service with QR pairing |
 | Windows receiver | C#/.NET 8, WinForms, NAudio 2.3 | Audio playback with voice processing |
-| Wire protocol | UDP, AES-256-GCM | v1: PCM16 (768 kbit/s), v2: Opus (~106 kbit/s), 10 ms packets |
+| Wire protocol | UDP, AES-256-GCM | v1: PCM16 by default; v2: Opus implementation; 10 ms frames |
 | Control channel | HMAC-SHA256 | Discovery, statistics, DSP config on `audioPort + 1` |
 
 Additional capabilities:
 - QR code pairing — scan from phone, zero manual IP entry
-- LAN receiver discovery with manual IPv4 fallback
+- LAN receiver discovery with an Available PCs list, refresh, and manual IPv4 fallback
 - VB-CABLE routing for Windows app audio; an installable PocketMic virtual device remains planned
-- Adaptive quality — auto-tunes bit rate and packets based on connection quality (RSSI, loss, jitter)
-- Opus codec (v2) — 16× bandwidth reduction over PCM, with FEC and PLC for loss recovery
-- Clean, voice-processed, and custom capture modes
+- Adaptive receiver buffering and Android Wi-Fi lock policies
+- Opus encoding/decoding implementation; the Windows package currently does not bundle `opus.dll`
+- Clean, voice-processed, and custom Android capture modes; Windows voice processing is controlled separately
 - Adjustable input gain and live input level meter
 - Selectable Windows playback device (speakers, VB-CABLE, VoiceMeeter)
 - Prebuffering, bounded loss concealment, rollover-safe sequencing
@@ -53,13 +57,14 @@ Additional capabilities:
 | ![PocketMic Android app](web/assets/screenshots/android-app.png) | ![PocketMic Windows receiver](web/assets/screenshots/windows-receiver.png) |
 | Connection, QR pairing, capture modes | Device selection, voice processing, diagnostics |
 
-Captured from v0.1.5 artifacts on a OnePlus 9 Pro and Windows 11 PC.
+Captured from earlier v0.1.5 artifacts on a OnePlus 9 Pro and Windows 11 PC. These screenshots do not show the newer Available PCs list or QR address selector.
 
 ## Build on Windows 11
 
 Requirements:
 
 - Android Studio with Android SDK Platform 36
+- Android NDK `27.2.12479018` and CMake `3.22.1`, installed through SDK Manager
 - Android Studio's bundled JBR or another JDK 17+
 - .NET 8 SDK
 - Python 3 (optional — verification scripts)
@@ -69,23 +74,24 @@ From the repo root:
 ```powershell
 Set-ExecutionPolicy -Scope Process Bypass
 
+.\scripts\setup-libopus.ps1
 .\scripts\build-android.ps1
 .\scripts\publish-windows.ps1
 ```
 
-The Android script uses the committed Gradle wrapper. Its default path runs the JVM unit tests, Android lint, and the requested APK build.
+Run `setup-libopus.ps1` once to download and verify the pinned libopus source used by the Android native build. The Android build script uses the committed Gradle wrapper and runs JVM unit tests, Android lint, and the requested APK build by default. The Windows publish script creates a self-contained x64 package; it does not run tests or supply the native Opus DLL.
 
 Expected outputs:
 
 ```text
-release\app-debug.apk
+release\PocketMic-v0.1.5-debug.apk
 release\PocketMicReceiver-win-x64.zip
 ```
 
 Install or update the Android app:
 
 ```powershell
-adb install -r .\release\app-debug.apk
+adb install -r .\release\PocketMic-v0.1.5-debug.apk
 ```
 
 ### Faster rebuilds
@@ -98,8 +104,8 @@ adb install -r .\release\app-debug.apk
 
 ## How it works
 
-1. **Start the receiver.** Run `PocketMicReceiver.exe`. It shows your IP and a pairing key.
-2. **Scan the QR code.** Open PocketMic on Android, tap "Scan QR", and point at the PC screen. IP, port, and key fill in automatically. Manual entry still works as a fallback.
+1. **Open the receiver.** Extract the Windows ZIP and run `PocketMicReceiver.exe`. Current source generates and saves a pairing key on first run, then starts listening automatically. The automatic-listening preference can be changed in Advanced settings. Existing settings are preserved, including an earlier choice to disable auto-listen.
+2. **Pair the phone.** Open PocketMic on Android and tap "Scan QR". Allow camera access, then scan the PC's "Show QR for phone" code. IP, port, and key fill in automatically. If the PC has several network addresses, choose the one on the phone's LAN in the QR dialog. "Available PCs" lists receivers that answer discovery; select a PC to fill its address, then scan its QR or enter its pairing key if needed. "Refresh PCs" retries discovery, and manual fields remain available when automatic connection fails. A `pmic://` link opened on Android can also fill the connection details while idle.
 3. **Select the destination.** Choose speakers for a test, or `CABLE Input` for routing into Discord/Teams/OBS.
 4. **Tap Start.** The phone captures at 48 kHz, encrypts every 10 ms frame with AES-256-GCM, and streams over UDP.
 
@@ -109,20 +115,44 @@ adb install -r .\release\app-debug.apk
 2. Select `CABLE Input` in PocketMic Receiver.
 3. Select `CABLE Output` as the microphone in the target application.
 
-The receiver has a "Use PocketMic as Windows microphone" button that repoints the system default recording device.
+The receiver has a "Use PocketMic as Windows microphone" button that selects the available cable recording endpoint as the system default. A virtual cable must already be installed; PocketMic does not install its own microphone driver.
+
+### If discovery or QR pairing fails
+
+- Keep both devices on the same LAN. Guest Wi-Fi, client isolation, and firewall rules can prevent PCs from appearing in the list.
+- Confirm the receiver is listening. For an existing installation with auto-listen disabled, start it manually or enable the preference.
+- Use "Refresh PCs", select the intended PC, and confirm its pairing key. Discovery can display a receiver whose key differs from the phone's key; audio still requires the correct key.
+- If the list stays empty, enter the PC's LAN IPv4 address, audio port, and pairing key manually. For QR pairing, select the corresponding LAN address in the desktop dialog and allow camera permission on the phone.
+- Current source binds phone sockets to a local Wi-Fi or Ethernet network when available, including when a VPN is the default route. Changing networks during a stream still needs device testing.
 
 ## Windows Firewall
 
-Allow the selected UDP port on **Private networks** only. Default: `49500`.
+Allow the selected audio UDP port, its control port (`audioPort + 1`), and standard discovery port `49501` on **Private networks** only. Default audio port: `49500`. A receiver using a custom audio port also answers probes on `49501`, so a fresh phone can find it. Older receivers require their custom port to be entered or scanned.
 
 ```powershell
 .\scripts\allow-firewall.ps1
-.\scripts\allow-firewall.ps1 -Port 49501
+.\scripts\allow-firewall.ps1 -Port 49520
 ```
 
 ## Verification
 
-The Android build runs Kotlin/JVM tests and lint by default. The Windows build runs 146 xUnit tests (100 existing + 6 Opus smoke + 21 protocol fixtures + 19 jitter buffer). Standalone protocol checks:
+The Android build runs Kotlin/JVM tests and lint by default. Run Windows tests separately:
+
+```powershell
+dotnet test .\windows-receiver-tests\PocketMicReceiver.Tests.csproj --filter "FullyQualifiedName!~OpusSmokeTest"
+```
+
+Omit the filter when a compatible `opus.dll` is available to the test process. The native Opus smoke tests require that DLL; excluding them does not validate Opus playback.
+
+Verification for the October 2026 connection changes:
+
+- Android: 90 JVM tests, lint, and debug APK build passed.
+- Windows: 142 managed tests and the receiver build passed; six native Opus smoke tests failed because `opus.dll` was unavailable.
+- Local Windows packaging passed. Real UDP probes verified default and custom-port discovery, key matching, and stop/rebind behavior.
+- An Android emulator verified opening a pairing link, displaying a responding PC, requesting camera permission, and opening the scanner preview.
+- Physical QR decoding, phone-to-PC audio, roaming/reconnect, and sustained locked-screen operation remain acceptance checks.
+
+Standalone checks are available:
 
 ```powershell
 python .\tools\verify_protocol.py
@@ -131,11 +161,11 @@ python .\tools\verify_source.py
 python .\tools\verify_web.py
 ```
 
-See `PERFORMANCE_AUDIT.md` for the completed and pending verification scope.
+`verify_source.py` checks an older version/checksum baseline and needs release maintenance before it can validate current source. See [PERFORMANCE_AUDIT.md](PERFORMANCE_AUDIT.md) and [STABILIZATION-PLAN.md](STABILIZATION-PLAN.md) for historical evidence and pending acceptance work.
 
 ## Performance profile
 
-These numbers come from real-device testing on a OnePlus 9 Pro and Windows 11 PC over 5 GHz Wi-Fi:
+These are source configuration values and PCM payload calculations, not new end-to-end latency measurements:
 
 | Metric | Value | Notes |
 |--------|-------|-------|
@@ -151,7 +181,7 @@ Additional performance characteristics:
 - Input meter at 10 Hz, not per packet
 - Wi-Fi lock policy re-evaluated every 10 s against live network
 
-See `PERFORMANCE_AUDIT.md` for measured jitter, loss, and the Wi-Fi lock A/B results.
+Adaptive policies can alter effective buffering. See [PERFORMANCE_AUDIT.md](PERFORMANCE_AUDIT.md) for the historical device audit and open jitter, loss, latency, and Wi-Fi lock acceptance checks.
 
 ## Security and network boundary
 
@@ -160,8 +190,9 @@ See `PERFORMANCE_AUDIT.md` for measured jitter, loss, and the Wi-Fi lock A/B res
 | Key | `SHA-256(UTF-8(pairing key))` |
 | Cipher | AES-256-GCM |
 | Nonce | Random 64-bit session ID + unsigned 32-bit sequence |
-| AAD | Complete 24-byte protocol header |
-| Key at rest | Android Keystore (EncryptedSharedPreferences) |
+| AAD | Complete header: 24 bytes for v1, 28 bytes for v2 |
+| Android key at rest | EncryptedSharedPreferences backed by Android Keystore |
+| Windows key at rest | Plaintext user settings in `%APPDATA%\PocketMic\receiver.json` |
 | Control channel | HMAC-SHA256, domain-separated key |
 | Scope | Trusted private LAN only |
 
@@ -172,7 +203,8 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 - Windows receiver only — no macOS or Linux yet
 - LAN discovery with manual IPv4 fallback and QR pairing
 - PCM uses more bandwidth than Opus (~768 kbit/s)
-- v0.1.5 adds Opus and adaptive jitter handling; end-to-end device validation remains open
+- Opus source support requires a compatible native Windows DLL; the default UI/package uses PCM and does not offer a validated Opus setup
+- Auto-reconnect is implemented, but receiver address/port changes and network roaming still require acceptance testing
 - No production-signed Android release, Windows installer, or auto-updater
 - No internet relay — both devices must be on the same LAN
 - Designed for voice, not real-time music monitoring
@@ -183,14 +215,15 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 android/                 Kotlin Android transmitter
 windows-receiver/        C# WinForms receiver UI
 windows-receiver-core/   C# shared engine, audio pipeline, protocol
-windows-receiver-tests/  C# xUnit tests (100 tests)
+windows-receiver-tests/  C# xUnit and native codec tests
 scripts/                 PowerShell build, publish, and firewall helpers
 tools/                   Python protocol, logic, source, and web verification
 web/                     Static marketing site (HTML/CSS/JS, zero deps)
-docs/                    Project documentation
 CHANGELOG.md             Version history
 PROTOCOL.md              Wire format and encryption spec
 PERFORMANCE_AUDIT.md     Audit findings, fixes, and measured data
+STABILIZATION-PLAN.md    Release validation and acceptance gates
+ROADMAP.md               Product direction (historical; reconcile with current source)
 ```
 
 ## License

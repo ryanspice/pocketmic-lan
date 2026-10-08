@@ -95,6 +95,8 @@ These receiver rules do not alter the wire format.
 
 Carried on UDP `audioPort + 1`, separate from the audio stream. Every datagram is exactly 256 bytes, zero padded, so a reply can never exceed the request that triggered it and the discovery responder cannot be used as a traffic amplifier.
 
+Receivers also answer PROBE on the standard discovery port `49501` when their audio port is custom. This listener accepts only discovery probes; CONFIG and STATS remain on `audioPort + 1`. The ANNOUNCE payload carries the actual audio port. Phones probe both the configured control port and `49501`, plus the saved or scanned address directly, and retain a bounded list of receivers that have replied within five seconds. A QR or manually selected endpoint is pinned; automatic discovery prefers an authenticated, compatible receiver. Unauthenticated replies expose only the sender address and a key-mismatch notice. If audio itself occupies `49501`, the extra discovery listener cannot be opened and QR/manual pairing is required.
+
 | Offset | Bytes | Field |
 |---:|---:|---|
 | 0 | 5 | ASCII `PMCTL` |

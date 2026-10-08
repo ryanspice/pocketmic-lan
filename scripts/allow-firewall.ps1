@@ -13,7 +13,8 @@ $Rule = 'PocketMic UDP Receiver'
 # receiver statistics, and DSP config push — always sits one port above it. Opening only the
 # audio port leaves the phone unable to find the PC at all, which reads as "nothing works".
 $ControlPort = $Port + 1
-$wanted = @($Port, $ControlPort) | ForEach-Object { $_.ToString() }
+$DiscoveryPort = 49501
+$wanted = @($Port, $ControlPort, $DiscoveryPort) | Select-Object -Unique | ForEach-Object { $_.ToString() }
 $wantedSet = ($wanted | Sort-Object) -join ','
 
 $existing = Get-NetFirewallRule -DisplayName $Rule -ErrorAction SilentlyContinue
@@ -21,7 +22,7 @@ if ($existing) {
     $currentPorts = @($existing | Get-NetFirewallPortFilter | Select-Object -ExpandProperty LocalPort)
     $currentSet = ($currentPorts | Sort-Object) -join ','
     if ($currentSet -eq $wantedSet) {
-        Write-Host "Firewall rule already allows UDP $Port and $ControlPort on private networks."
+        Write-Host "Firewall rule already allows UDP $($wanted -join ', ') on private networks."
         exit 0
     }
 
@@ -38,4 +39,4 @@ New-NetFirewallRule `
     -LocalPort $wanted `
     -Profile Private | Out-Null
 
-Write-Host "Allowed inbound UDP $Port (audio) and $ControlPort (control) on private networks."
+Write-Host "Allowed inbound UDP $($wanted -join ', ') (audio, control, discovery) on private networks."

@@ -3,6 +3,8 @@ package com.ryanspice.pocketmic
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.LinkAddress
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.os.SystemClock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -82,6 +84,13 @@ object ControlChannel {
     private val random = SecureRandom()
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val sentProbeNonces = ProbeNonceRing(FRESH_NONCE_WINDOW)
+    private val directory = ReceiverDirectory()
+    private val mutableReceivers = MutableStateFlow<List<PeerState.Found>>(emptyList())
+    val receivers: StateFlow<List<PeerState.Found>> = mutableReceivers.asStateFlow()
+    @Volatile private var preferredHost = ""
+    @Volatile private var preferredPort = DEFAULT_PORT
+    @Volatile private var allowPeerFallback = true
+    const val DISCOVERY_PORT = DEFAULT_PORT + 1
 
     private val mutablePeer = MutableStateFlow<PeerState>(PeerState.NotFound)
     val peer: StateFlow<PeerState> = mutablePeer.asStateFlow()
@@ -112,9 +121,25 @@ object ControlChannel {
     private var startedPort = 0
 
     @Synchronized
-    fun start(context: Context, pairingKey: String, audioPort: Int, probe: Boolean) {
+    fun start(context: Context, pairingKey: String, audioPort: Int, probe: Boolean, host: String = "",
+        allowFallback: Boolean = true) {
         val port = ControlProtocol.controlPort(audioPort)
-        controlKey = ControlProtocol.deriveControlKey(pairingKey)
+        if (preferredHost != host.trim() || preferredPort != audioPort) {
+            mutableStats.value = null
+            mutableStatsAt.value = 0L
+        }
+        val nextKey = ControlProtocol.deriveControlKey(pairingKey)
+        if (controlKey?.contentEquals(nextKey) != true) {
+            directory.clear()
+            mutableReceivers.value = emptyList()
+            mutablePeer.value = PeerState.Searching
+            mutableStats.value = null
+            mutableStatsAt.value = 0L
+        }
+        controlKey = nextKey
+        preferredHost = host.trim()
+        preferredPort = audioPort
+        allowPeerFallback = allowFallback
         probing = probe
 
         if (socket != null && startedPort == port) {
@@ -125,13 +150,16 @@ object ControlChannel {
         stopInternal()
         startedPort = port
 
+        val candidate = DatagramSocket(null)
         val bound = runCatching {
-            DatagramSocket(null).apply {
+            candidate.apply {
                 reuseAddress = true
                 broadcast = true
                 bind(InetSocketAddress(port))
+                lanNetwork(context)?.bindSocket(this)
             }
         }.getOrElse { error ->
+            candidate.close()
             mutableBindError.value =
                 "Could not open control port $port (${error.message ?: "unknown"}). " +
                     "Discovery and delivery confirmation are unavailable."
@@ -164,7 +192,7 @@ object ControlChannel {
     fun sendConfig(dsp: DspSettings, audioPort: Int) {
         val key = controlKey ?: return
         val active = socket ?: return
-        val target = (peer.value as? PeerState.Found)?.address ?: return
+        val target = (peer.value as? PeerState.Found)?.takeIf { it.keyMatches }?.address ?: return
 
         scope.launch {
             runCatching {
@@ -192,6 +220,8 @@ object ControlChannel {
         mutableStats.value = null
         mutableStatsAt.value = 0L
         mutableStaleAnnounces.value = 0L
+        directory.clear()
+        mutableReceivers.value = emptyList()
     }
 
     private fun stopInternal() {
@@ -213,7 +243,12 @@ object ControlChannel {
             val active = socket
             if (key == null || active == null) break
 
-            val targets = broadcastTargets(context)
+            val targets = broadcastTargets(context).toMutableList()
+            // QR/saved addresses get a unicast probe too: APs may drop broadcasts even
+            // when ordinary phone-to-PC traffic works.
+            runCatching { InetAddress.getByName(preferredHost) as? Inet4Address }
+                .getOrNull()?.takeIf { preferredHost.isNotBlank() }?.let { targets.add(it) }
+            publishReceivers(SystemClock.elapsedRealtime())
             if (targets.isEmpty()) {
                 mutablePeer.value = PeerState.NotFound
             } else {
@@ -225,10 +260,12 @@ object ControlChannel {
                     ControlProtocol.TYPE_PROBE,
                     ControlProtocol.probePayload(nonce),
                 )
-                val controlPort = ControlProtocol.controlPort(audioPort)
+                val ports = setOf(ControlProtocol.controlPort(audioPort), DISCOVERY_PORT)
                 for (target in targets) {
-                    runCatching {
-                        active.send(DatagramPacket(frame, frame.size, target, controlPort))
+                    for (controlPort in ports) {
+                        runCatching {
+                            active.send(DatagramPacket(frame, frame.size, target, controlPort))
+                        }
                     }
                 }
             }
@@ -277,7 +314,7 @@ object ControlChannel {
                     }
 
                     val address = packet.address?.hostAddress ?: continue
-                    mutablePeer.value = PeerState.Found(
+                    val found = PeerState.Found(
                         address = address,
                         // An unauthenticated announce cannot be trusted to carry a name.
                         hostName = if (authentic) announce.hostName else "",
@@ -291,10 +328,24 @@ object ControlChannel {
                         frontEnd = if (authentic) announce.frontEndName else "",
                         buildVersion = if (authentic) announce.buildVersion else "",
                     )
+                    if (controlKey !== key || socket !== active) continue
+                    directory.record(found, SystemClock.elapsedRealtime())
+                    publishReceivers(SystemClock.elapsedRealtime())
                 }
 
                 ControlProtocol.TYPE_STATS -> {
                     if (!authentic) continue
+                    if (controlKey !== key || socket !== active) continue
+                    // Automatic recovery may select a receiver at a new address. Keep the
+                    // source check aligned with that authenticated selection; manual/QR
+                    // connections remain pinned to their configured endpoint.
+                    val selected = (peer.value as? PeerState.Found)
+                        ?.takeIf { allowPeerFallback && it.keyMatches }
+                    val statsHost = selected?.address ?: preferredHost
+                    val statsPort = selected?.audioPort ?: preferredPort
+                    if (statsHost.isNotBlank() &&
+                        runCatching { InetAddress.getByName(statsHost) }.getOrNull() != packet.address) continue
+                    if (packet.port != ControlProtocol.controlPort(statsPort)) continue
                     val stats = ControlProtocol.readStats(message.payload) ?: continue
                     mutableStats.value = stats
                     // Monotonic, not wall clock: a backward NTP jump must not make a stale
@@ -323,6 +374,26 @@ object ControlChannel {
     }
 
     private fun currentScopeActive(): Boolean = scope.isActive
+
+    private fun publishReceivers(now: Long) {
+        val results = directory.snapshot(now)
+        mutableReceivers.value = results
+        val selected = ReceiverDirectory.select(results, preferredHost, preferredPort, allowPeerFallback)
+        if (selected != null) mutablePeer.value = selected
+        else if (mutablePeer.value is PeerState.Found) mutablePeer.value = PeerState.NotFound
+    }
+
+    /** Prefer the physical LAN over a VPN or cellular default network. */
+    @Suppress("DEPRECATION")
+    internal fun lanNetwork(context: Context): Network? {
+        val manager = context.getSystemService(ConnectivityManager::class.java) ?: return null
+        return manager.allNetworks.firstOrNull { network ->
+            val caps = manager.getNetworkCapabilities(network) ?: return@firstOrNull false
+            caps.hasCapability(NetworkCapabilities.NET_CAPABILITY_NOT_VPN) &&
+                (caps.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                    caps.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET))
+        } ?: manager.activeNetwork
+    }
 
     /**
      * Remembers the last few probe nonces so an announce can prove it answers a probe this
@@ -361,7 +432,7 @@ object ControlChannel {
      */
     private fun broadcastTargets(context: Context): List<InetAddress> {
         val manager = context.getSystemService(ConnectivityManager::class.java) ?: return emptyList()
-        val network = manager.activeNetwork ?: return emptyList()
+        val network = lanNetwork(context) ?: return emptyList()
         val properties = manager.getLinkProperties(network) ?: return emptyList()
         return properties.linkAddresses.mapNotNull(::broadcastFor)
     }
@@ -381,7 +452,7 @@ object ControlChannel {
         if (target.isLoopbackAddress) return null
 
         val manager = context.getSystemService(ConnectivityManager::class.java) ?: return null
-        val network = manager.activeNetwork ?: return null
+        val network = lanNetwork(context) ?: return null
         val properties = manager.getLinkProperties(network) ?: return null
 
         val ipv4 = properties.linkAddresses.filter { it.address is Inet4Address }

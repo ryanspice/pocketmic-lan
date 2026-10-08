@@ -266,7 +266,7 @@ internal sealed class MainForm : Form
         root.Controls.Add(_addressesText);
         root.Controls.Add(_copyIpButton);
         root.Controls.Add(_showQrButton);
-        _advancedControls.AddRange(new Control[] { addressSection, _addressesText, _copyIpButton, _showQrButton });
+        _advancedControls.AddRange(new Control[] { addressSection, _addressesText, _copyIpButton });
         _copyIpButton.Margin = new Padding(0, 6, 6, 18);
         _showQrButton.Margin = new Padding(0, 6, 0, 18);
         _copyIpButton.Click += (_, _) =>
@@ -522,6 +522,7 @@ internal sealed class MainForm : Form
 
     private void ApplySettings()
     {
+        if (_settings.EnsurePairingKey()) _settings.Save();
         _portText.Text = _settings.Port.ToString();
         _keyText.Text = _settings.PairingKey;
         _autoListenCheck.Checked = _settings.AutoListen;
@@ -587,6 +588,7 @@ internal sealed class MainForm : Form
             {
                 await ToggleReceiverAsync();
             }
+            if (_engine.IsRunning && _settings.StartMinimized && _settings.MinimizeToTray) HideToTray();
         };
     }
 
@@ -1132,7 +1134,8 @@ internal sealed class MainForm : Form
     /// </summary>
     private void ShowQrCode()
     {
-        var first = GetLocalIpv4Addresses().FirstOrDefault();
+        var addresses = GetLocalIpv4Addresses();
+        var first = addresses.FirstOrDefault();
         if (first is null)
         {
             MessageBox.Show(this, "No active IPv4 address was found.", "PocketMic",
@@ -1158,11 +1161,11 @@ internal sealed class MainForm : Form
         var uri = $"pmic://{first}:{port}/{key}";
 
         using var qrGen = new QRCodeGenerator();
-        var qrData = qrGen.CreateQrCode(uri, QRCodeGenerator.ECCLevel.M);
+        using var qrData = qrGen.CreateQrCode(uri, QRCodeGenerator.ECCLevel.M);
         using var qrCode = new QRCode(qrData);
-        using var bitmap = qrCode.GetGraphic(20);
+        using var bitmap = qrCode.GetGraphic(8);
 
-        var form = new Form
+        using var form = new Form
         {
             Text = "PocketMic — Scan with phone",
             StartPosition = FormStartPosition.CenterParent,
@@ -1190,7 +1193,29 @@ internal sealed class MainForm : Form
         };
         form.Controls.Add(label);
 
+        // VPNs, VMs and multiple adapters can put the phone on a different subnet from
+        // the first address. Let the user generate a QR for the LAN they are actually on.
+        using var addressChoice = new ComboBox { Dock = DockStyle.Top,
+            DropDownStyle = ComboBoxStyle.DropDownList };
+        addressChoice.Items.AddRange(addresses.Cast<object>().ToArray());
+        addressChoice.SelectedIndex = 0;
+        Image? selectedImage = null;
+        addressChoice.SelectedIndexChanged += (_, _) =>
+        {
+            var selectedUri = $"pmic://{addressChoice.SelectedItem}:{port}/{key}";
+            using var data = qrGen.CreateQrCode(selectedUri, QRCodeGenerator.ECCLevel.M);
+            using var code = new QRCode(data);
+            var nextImage = code.GetGraphic(8);
+            pictureBox.Image = nextImage;
+            selectedImage?.Dispose();
+            selectedImage = nextImage;
+            label.Text = $"Scan this QR code with PocketMic on your phone\n{selectedUri}";
+        };
+        form.Controls.Add(addressChoice);
+
         form.ShowDialog(this);
+        pictureBox.Image = null;
+        selectedImage?.Dispose();
     }
 
     private static string FormatStats(EngineStats stats) =>
