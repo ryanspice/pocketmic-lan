@@ -3,6 +3,7 @@ package com.canopydigital.pocketmic
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 /**
@@ -12,6 +13,43 @@ import org.junit.Test
  * a recorded announce (same key) was accepted as fresh discovery.
  */
 class ControlChannelTest {
+    @Test
+    fun configurationKeepsTheAdoptedTargetAfterDiscoveryStops() {
+        val target = ControlChannel.ConfigTarget("192.168.1.20", 50_000)
+
+        ControlChannel.stopProbing()
+
+        assertEquals(PeerState.NotFound, ControlChannel.peer.value)
+        assertEquals(target, ControlChannel.resolveConfigTarget(target.host, target.audioPort,
+            ControlChannel.peer.value))
+    }
+
+    @Test
+    fun configurationUsesTheRecoveredPortInsteadOfAnOldDiscoveryResult() {
+        val previous = PeerState.Found("192.168.1.20", "PC", DEFAULT_PORT, true)
+
+        assertEquals(ControlChannel.ConfigTarget("192.168.1.20", 50_000),
+            ControlChannel.resolveConfigTarget(previous.address, 50_000, previous))
+    }
+
+    @Test
+    fun configurationFallbackUsesTheAuthenticatedAdvertisedPort() {
+        val discovered = PeerState.Found("192.168.1.30", "PC", 51_000, true)
+
+        assertEquals(ControlChannel.ConfigTarget(discovered.address, discovered.audioPort),
+            ControlChannel.resolveConfigTarget("", DEFAULT_PORT, discovered))
+        assertNull(ControlChannel.resolveConfigTarget("", DEFAULT_PORT, discovered.copy(keyMatches = false)))
+        assertNull(ControlChannel.resolveConfigTarget("", DEFAULT_PORT, PeerState.NotFound))
+        assertNull(ControlChannel.resolveConfigTarget("", DEFAULT_PORT, discovered.copy(audioPort = MAX_PORT + 1)))
+    }
+
+    @Test
+    fun anInvalidAdoptedPortDoesNotRedirectConfigurationToAnotherReceiver() {
+        val discovered = PeerState.Found("192.168.1.30", "Other PC", DEFAULT_PORT, true)
+
+        assertNull(ControlChannel.resolveConfigTarget("192.168.1.20", MAX_PORT + 1, discovered))
+    }
+
     @Test
     fun stoppingDiscoveryAfterRecoveryKeepsDeliveryConfirmationUntilItExpires() {
         val stats = ReceiverStats(20, 0, 0, 0, 0, 60, true)

@@ -239,7 +239,7 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
         if (captureMode != CaptureMode.CUSTOM) return@LaunchedEffect
         delay(DSP_PUSH_DEBOUNCE_MS)
         AppPrefs.saveDsp(context, dsp)
-        ControlChannel.sendConfig(dsp, port)
+        ControlChannel.sendConfig(dsp)
     }
 
     var linkAlive by remember { mutableStateOf(false) }

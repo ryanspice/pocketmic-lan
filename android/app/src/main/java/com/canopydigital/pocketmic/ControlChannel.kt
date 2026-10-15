@@ -211,28 +211,55 @@ object ControlChannel {
      * are continuous, so a dropped update is corrected by the next one within a moment, and
      * retrying would be more complexity than the problem deserves.
      */
-    fun sendConfig(dsp: DspSettings, audioPort: Int) {
-        val key = controlKey ?: return
-        val active = socket ?: return
-        val target = (peer.value as? PeerState.Found)?.takeIf { it.keyMatches }?.address ?: return
+    fun sendConfig(dsp: DspSettings) {
+        val pending = synchronized(this) {
+            val key = controlKey ?: return
+            val active = socket ?: return
+            val target = resolveConfigTarget(preferredHost, preferredPort, peer.value) ?: return
+            ConfigDispatch(key, active, target)
+        }
 
         scope.launch {
             runCatching {
                 val frame = ControlProtocol.build(
-                    key,
+                    pending.key,
                     ControlProtocol.TYPE_CONFIG,
                     ControlProtocol.configPayload(dsp),
                 )
-                active.send(
-                    DatagramPacket(
-                        frame,
-                        frame.size,
-                        InetAddress.getByName(target),
-                        ControlProtocol.controlPort(audioPort),
-                    ),
+                val packet = DatagramPacket(
+                    frame,
+                    frame.size,
+                    InetAddress.getByName(pending.target.host),
+                    ControlProtocol.controlPort(pending.target.audioPort),
                 )
+                synchronized(this@ControlChannel) {
+                    // DNS/frame preparation may outlive a reconnect, key change or stop.
+                    // Keep validation and send under start()/stop()'s monitor so a queued
+                    // update cannot go to the previous receiver or use a replaced socket.
+                    if (controlKey === pending.key && socket === pending.socket &&
+                        resolveConfigTarget(preferredHost, preferredPort, peer.value) == pending.target
+                    ) {
+                        pending.socket.send(packet)
+                    }
+                }
             }
         }
+    }
+
+    internal data class ConfigTarget(val host: String, val audioPort: Int)
+
+    private data class ConfigDispatch(val key: ByteArray, val socket: DatagramSocket, val target: ConfigTarget)
+
+    internal fun resolveConfigTarget(host: String, audioPort: Int, discovered: PeerState): ConfigTarget? {
+        // start() owns the endpoint adopted by the service, including a recovered custom port.
+        // Discovery is deliberately cleared during healthy capture and is not that authority.
+        if (host.isNotBlank()) {
+            return if (audioPort in MIN_PORT..MAX_PORT) ConfigTarget(host.trim(), audioPort) else null
+        }
+        val found = (discovered as? PeerState.Found)?.takeIf { it.keyMatches } ?: return null
+        return if (found.address.isNotBlank() && found.audioPort in MIN_PORT..MAX_PORT) {
+            ConfigTarget(found.address, found.audioPort)
+        } else null
     }
 
     @Synchronized
