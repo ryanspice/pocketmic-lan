@@ -183,12 +183,22 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
         AppPrefs.save(context, MicConfig(data.host, data.port, data.pairingKey, captureMode, gain, codec))
     }
 
-    LaunchedEffect(incomingPairing, isActive) {
-        // A pairing link may configure the next call, but must not repoint an active one.
-        if (!isActive) incomingPairing?.let {
-            applyPairing(it)
-            onPairingLinkHandled()
-        }
+    if (!isActive && incomingPairing != null) {
+        // Links can originate in any browser or app. Persist a new destination only after consent.
+        AlertDialog(
+            onDismissRequest = onPairingLinkHandled,
+            title = { Text(stringResource(R.string.pairing_link_title)) },
+            text = { Text(stringResource(R.string.pairing_link_message, incomingPairing.host, incomingPairing.port)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    applyPairing(incomingPairing)
+                    onPairingLinkHandled()
+                }) { Text(stringResource(R.string.pairing_link_confirm)) }
+            },
+            dismissButton = {
+                TextButton(onClick = onPairingLinkHandled) { Text(stringResource(R.string.pairing_link_cancel)) }
+            },
+        )
     }
 
     // Probe while idle, and again while reconnecting. During healthy capture the receiver's own
@@ -196,13 +206,12 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
     // on the hot path — but once that feed stops, probing is the only way back, which is exactly
     // why suppressing it unconditionally left the app unable to heal itself.
     //
-    // MicStreamingService drives the same switch, because reconnect has to work with this
-    // activity destroyed. Both derive it from one status, so they cannot disagree.
-    val shouldProbe = !isActive || snapshot.status == StreamStatus.RECONNECTING
-    DisposableEffect(pairingKey, port, host, autoConnect, shouldProbe) {
-        ControlChannel.start(context, pairingKey, port, probe = shouldProbe, host = host,
+    // MicStreamingService owns probing during capture, including with this activity destroyed.
+    DisposableEffect(pairingKey, port, host, autoConnect, isActive) {
+        // The service owns the active endpoint, including any rediscovered port. An activity
+        // recomposition must not put its old form values back over a recovered connection.
+        if (!isActive) ControlChannel.start(context, pairingKey, port, probe = true, host = host,
             allowFallback = autoConnect)
-        ControlChannel.setProbing(context, port, enabled = shouldProbe)
         onDispose { }
     }
 
@@ -875,8 +884,9 @@ private fun ConnectionCard(
             }
             if (enabled) {
                 Text("Available PCs", fontWeight = FontWeight.SemiBold)
-                TextButton(onClick = { ControlChannel.setProbing(context, portText.toIntOrNull()
-                    ?.takeIf { it in MIN_PORT..MAX_PORT } ?: DEFAULT_PORT, enabled = true) }) {
+                TextButton(onClick = { ControlChannel.start(context, pairingKey, portText.toIntOrNull()
+                    ?.takeIf { it in MIN_PORT..MAX_PORT } ?: DEFAULT_PORT, probe = true,
+                    host = host, allowFallback = autoConnect) }) {
                     Text("Refresh PCs")
                 }
                 if (receivers.isEmpty()) {

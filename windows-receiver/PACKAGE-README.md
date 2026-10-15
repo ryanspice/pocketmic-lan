@@ -5,7 +5,7 @@ This x64 Windows preview receives encrypted audio from PocketMic over your priva
 ## Try audio through your speakers
 
 1. Extract every file from the ZIP into one folder.
-2. Run `PocketMicReceiver.exe`.
+2. Run `Install-PocketMic.cmd` to install for your Windows account and create Desktop and Start Menu shortcuts. Settings are preserved, and an existing install is retained in a timestamped backup folder. You can also run `PocketMicReceiver.exe --show` directly for portable use.
 3. On Android, scan the QR code shown by the receiver. On iOS, enter the receiver's IP address, audio port, and pairing key in the app; iOS QR pairing is not included in this preview.
 4. Select your speakers in PocketMic Receiver, then start the mobile app's microphone stream.
 
@@ -25,5 +25,6 @@ VB-CABLE is third-party software and is not included in this ZIP. The receiver's
 - If the phone cannot discover the PC, start the receiver first, verify its displayed IP and port, and use manual entry.
 - Select the PC speakers first to separate receiver playback issues from VB-CABLE or target-app routing issues.
 - `opus.dll` enables Opus v2 reception. PCM v1 remains available if the native decoder is unavailable.
+- Windows 11 22H2 and newer can display Mica in the title bar and outer gutter. WinForms controls remain opaque for readable text; older Windows and high contrast use the standard frame.
 
 For current project information and source, visit [PocketMic LAN on GitHub](https://github.com/ryanspice/pocketmic-lan). License notices are in the accompanying `PocketMic-LICENSE.txt` and `THIRD-PARTY-NOTICES.txt`; `OPUS-COPYING.txt` is also included when `opus.dll` is present.

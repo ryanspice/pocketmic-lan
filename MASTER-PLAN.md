@@ -1,5 +1,8 @@
 # PocketMic LAN — Master Product and Release Plan
 
+> **2026-10-15 sequence update:** The owner's current release request supersedes the historical v0.1.6 sequence below. Consolidate existing branches/workspaces into `main`, archive the previous candidate as `v0.1.6`, and release **1.7.0** for Windows/Android after all candidate builds pass. Preserve Apple implementation and build coverage; target **1.7.1** for macOS/iOS development delivery and physical acceptance. Signing, store distribution, fluent locale review, long-duration audio, and website deployment remain separate open gates. [Current scope, evidence, and reviewer disposition](RELEASE-1.7.0.md).
+
+
 > Reviewed: 2026-09-25
 > Current published release: **v0.1.5**
 > Next candidate: **v0.1.6 (unreleased)**

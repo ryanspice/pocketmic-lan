@@ -16,8 +16,8 @@ from pathlib import Path, PurePosixPath
 
 EXPECTED_APP_ID = "com.canopydigital.pocketmic.mac"
 EXPECTED_DRIVER_ID = "com.canopydigital.pocketmic.virtual-mic"
-EXPECTED_VERSION = "0.1.6"
-EXPECTED_BUILD = "6"
+EXPECTED_VERSION = "1.7.0"
+EXPECTED_BUILD = "10700"
 EXPECTED_ARCHES = {"arm64", "x86_64"}
 REQUIRED_SUPPORT_FILES = {
     "README.md",

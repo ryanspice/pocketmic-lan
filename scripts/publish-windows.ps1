@@ -39,6 +39,23 @@ $Publish = [System.IO.Path]::GetFullPath($Publish)
 $Archive = [System.IO.Path]::GetFullPath($Archive)
 $Executable = Join-Path $Publish 'PocketMicReceiver.exe'
 
+# Publishing clears generated output. Restrict cleanup to known build roots, never the
+# repository root, an installed app, or an arbitrary caller-supplied directory.
+$allowedRoots = @((Join-Path $Root 'release'), (Join-Path $Root 'windows-receiver\bin'))
+foreach ($target in @($Publish, $Archive)) {
+    if (-not ($allowedRoots | Where-Object {
+        $target.StartsWith([IO.Path]::GetFullPath($_).TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase)
+    })) { throw "Publish target is outside the generated build directories: $target" }
+    $ancestor = $target
+    while ($ancestor -and $ancestor.Length -gt $Root.Length) {
+        if ((Test-Path -LiteralPath $ancestor) -and
+            ((Get-Item -LiteralPath $ancestor).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+            throw "Publish target traverses a link: $ancestor"
+        }
+        $ancestor = [IO.Path]::GetDirectoryName($ancestor)
+    }
+}
+
 function Test-DotnetHasSdk {
     param([string] $Path)
     if (-not $Path -or -not (Test-Path $Path)) { return $false }
@@ -67,8 +84,8 @@ if (-not (Test-Path $ReceiverProject)) {
     throw "Windows receiver project not found at $ReceiverProject"
 }
 
-Remove-Item $Publish -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item $Archive -Force -ErrorAction SilentlyContinue
+if (Test-Path -LiteralPath $Publish) { Remove-Item -LiteralPath $Publish -Recurse -Force }
+if (Test-Path -LiteralPath $Archive) { Remove-Item -LiteralPath $Archive -Force }
 New-Item -ItemType Directory -Path (Split-Path -Parent $Archive) -Force | Out-Null
 
 & $dotnet.Source publish $ReceiverProject `
@@ -106,7 +123,14 @@ if ($OpusDllPath) {
     }
     Copy-Item -LiteralPath $OpusDllPath -Destination (Join-Path $Publish 'opus.dll') -Force
     Copy-Item -LiteralPath $OpusLicense -Destination (Join-Path $Publish 'OPUS-COPYING.txt') -Force
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Install-PocketMic.ps1') -Destination $Publish
+    Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'Install-PocketMic.cmd') -Destination $Publish
 }
+
+$checksums = Get-ChildItem -LiteralPath $Publish -File | Sort-Object Name | ForEach-Object {
+    '{0}  {1}' -f (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant(), $_.Name
+}
+$checksums | Set-Content -LiteralPath (Join-Path $Publish 'SHA256SUMS.txt') -Encoding ascii
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 [System.IO.Compression.ZipFile]::CreateFromDirectory(

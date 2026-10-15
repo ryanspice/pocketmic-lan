@@ -2,6 +2,7 @@ package com.canopydigital.pocketmic
 
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import org.junit.Assert.assertEquals
 import org.junit.Test
 
 /**
@@ -11,6 +12,20 @@ import org.junit.Test
  * a recorded announce (same key) was accepted as fresh discovery.
  */
 class ControlChannelTest {
+    @Test
+    fun stoppingDiscoveryAfterRecoveryKeepsDeliveryConfirmationUntilItExpires() {
+        val stats = ReceiverStats(20, 0, 0, 0, 0, 60, true)
+        ControlChannel.recordDeliveryStats(stats, 10_000L)
+
+        ControlChannel.stopProbing()
+
+        assertEquals(stats, ControlChannel.stats.value)
+        assertEquals(LinkAction.CONTINUE, ReconnectPolicy.evaluate(true, 10_100L,
+            1_000L, ControlChannel.lastStatsAtMillis.value, 0L))
+        assertEquals(LinkAction.ENTER_RECONNECTING, ReconnectPolicy.evaluate(true, 12_001L,
+            1_000L, ControlChannel.lastStatsAtMillis.value, 0L))
+    }
+
     private fun nonce(seed: Byte): ByteArray = ByteArray(ControlProtocol.NONCE_SIZE) { (it + seed).toByte() }
 
     @Test

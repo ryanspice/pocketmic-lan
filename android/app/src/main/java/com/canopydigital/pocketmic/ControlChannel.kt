@@ -173,25 +173,29 @@ object ControlChannel {
     }
 
     @Synchronized
-    fun setProbing(context: Context, audioPort: Int, enabled: Boolean) {
-        if (probing == enabled) return
-        probing = enabled
-        resetDiscoveryState(searching = enabled)
-        if (enabled) {
-            restartProbeLoop(context, audioPort)
-        } else {
-            probeJob?.cancel()
-            probeJob = null
-        }
+    fun stopProbing() {
+        probing = false
+        // A confirmed recovery turns probes off. Keep that confirmation until its normal
+        // timeout, otherwise the next service tick immediately re-enters reconnecting.
+        resetDiscoveryState(searching = false, preserveStats = true)
+        probeJob?.cancel()
+        probeJob = null
     }
 
-    private fun resetDiscoveryState(searching: Boolean) {
+    internal fun recordDeliveryStats(stats: ReceiverStats, receivedAtMillis: Long) {
+        mutableStats.value = stats
+        mutableStatsAt.value = receivedAtMillis
+    }
+
+    private fun resetDiscoveryState(searching: Boolean, preserveStats: Boolean = false) {
         directory.clear()
         mutableReceivers.value = emptyList()
         sentProbeNonces.clear()
         mutablePeer.value = if (searching) PeerState.Searching else PeerState.NotFound
-        mutableStats.value = null
-        mutableStatsAt.value = 0L
+        if (!preserveStats) {
+            mutableStats.value = null
+            mutableStatsAt.value = 0L
+        }
         mutableStaleAnnounces.value = 0L
         mutableBindError.value = null
     }
@@ -359,21 +363,17 @@ object ControlChannel {
                 ControlProtocol.TYPE_STATS -> {
                     if (!authentic) continue
                     if (controlKey !== key || socket !== active) continue
-                    // Automatic recovery may select a receiver at a new address. Keep the
-                    // source check aligned with that authenticated selection; manual/QR
-                    // connections remain pinned to their configured endpoint.
-                    val selected = (peer.value as? PeerState.Found)
-                        ?.takeIf { allowPeerFallback && it.keyMatches }
-                    val statsHost = selected?.address ?: preferredHost
-                    val statsPort = selected?.audioPort ?: preferredPort
+                    // Discovery is only a candidate. Delivery confirmation must come from
+                    // the endpoint that the activity/service actually adopted with start().
+                    val statsHost = preferredHost
+                    val statsPort = preferredPort
                     if (statsHost.isNotBlank() &&
                         runCatching { InetAddress.getByName(statsHost) }.getOrNull() != packet.address) continue
                     if (packet.port != ControlProtocol.controlPort(statsPort)) continue
                     val stats = ControlProtocol.readStats(message.payload) ?: continue
-                    mutableStats.value = stats
                     // Monotonic, not wall clock: a backward NTP jump must not make a stale
                     // statistics frame look fresh, or the link would never be declared lost.
-                    mutableStatsAt.value = SystemClock.elapsedRealtime()
+                    recordDeliveryStats(stats, SystemClock.elapsedRealtime())
                 }
             }
         }

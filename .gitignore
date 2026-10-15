@@ -6,6 +6,7 @@ pocketmic-lan-v0.1.4/
 # .NET build artifacts
 **/bin/
 **/obj/
+**/TestResults/
 
 # Gradle build artifacts
 android/.gradle/

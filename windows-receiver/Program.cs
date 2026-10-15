@@ -19,10 +19,12 @@ internal static class Program
     /// receiver start while this one is still holding the sockets.
     /// </summary>
     private static Mutex? _instanceLock;
+    internal static bool ShowWindow { get; private set; }
 
     [STAThread]
-    private static void Main()
+    private static void Main(string[] args)
     {
+        ShowWindow = args.Contains("--show", StringComparer.OrdinalIgnoreCase);
         ApplicationConfiguration.Initialize();
 
         // Before any window exists, because a receiver that fails to bind reports a socket error
@@ -214,7 +216,8 @@ internal sealed class MainForm : MicaForm
         Text = "Link: —",
         AutoSize = true,
     };
-    private readonly TextBox _addressesText = new() { Multiline = true, ReadOnly = true, Height = 78, Dock = DockStyle.Fill };
+    private readonly TextBox _addressesText = new() { Multiline = true, ReadOnly = true, Height = 78,
+        Dock = DockStyle.Top, ScrollBars = ScrollBars.Vertical, WordWrap = false };
 
     private readonly AnalyticsPanel _analyticsPanel = new()
     {
@@ -286,8 +289,16 @@ internal sealed class MainForm : MicaForm
             var first = GetLocalIpv4Addresses().FirstOrDefault();
             if (first is not null)
             {
-                try { Clipboard.SetText(first.ToString()); }
-                catch (ExternalException) { }
+                try
+                {
+                    Clipboard.SetText(first.ToString());
+                    _copyIpButton.Text = "Copied first IP";
+                }
+                catch (ExternalException)
+                {
+                    MessageBox.Show(this, "The clipboard is busy. Try copying the IP again.",
+                        "Could not copy IP", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
             }
         };
         _showQrButton.Click += (_, _) => ShowQrCode();
@@ -663,7 +674,14 @@ internal sealed class MainForm : MicaForm
             {
                 await ToggleReceiverAsync();
             }
-            if (_engine.IsRunning && _settings.StartMinimized && _settings.MinimizeToTray) HideToTray();
+            // Explicit desktop/Start-menu launches remain visible. A failed auto-start also
+            // remains visible so the user can correct the error instead of losing the window.
+            if (!Program.ShowWindow && _settings.StartMinimized &&
+                (!_autoListenCheck.Checked || _engine.IsRunning))
+            {
+                if (_settings.MinimizeToTray) HideToTray();
+                else WindowState = FormWindowState.Minimized;
+            }
         };
     }
 
@@ -1078,6 +1096,8 @@ internal sealed class MainForm : MicaForm
     private void RefreshLocalAddresses()
     {
         var addresses = GetLocalIpv4Addresses();
+        _copyIpButton.Enabled = addresses.Count > 0;
+        _copyIpButton.Text = "Copy first IP";
         _addressesText.Text = addresses.Count > 0
             ? string.Join(Environment.NewLine, addresses)
             : "No active private IPv4 address was found.";

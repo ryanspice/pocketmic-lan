@@ -1,6 +1,6 @@
 # PocketMic LAN
 
-[![Version](https://img.shields.io/badge/version-v0.1.5-b88a3b)](https://github.com/ryanspice/pocketmic-lan/releases)
+[![Version](https://img.shields.io/badge/version-v1.7.0-b88a3b)](https://github.com/ryanspice/pocketmic-lan/releases)
 [![CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml)
 [![iOS CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ios.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ios.yml)
 [![macOS CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/macos.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/macos.yml)
@@ -8,15 +8,17 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Android%20%7C%20Windows-blue)]()
 
-**v0.1.5** · Encrypted wireless microphone for your PC
+**v1.7.0** · Encrypted wireless microphone for your PC
 
-PocketMic turns an Android phone into an encrypted wireless microphone for a Windows PC on the same private LAN. It sends 48 kHz mono audio over UDP, with AES-256-GCM on every audio packet. No account or cloud relay is required. PCM16 is the default working path; Opus support exists in source but still needs native Windows packaging and end-to-end validation.
+PocketMic turns an Android phone into an encrypted wireless microphone for a Windows PC on the same private LAN. It sends 48 kHz mono audio over UDP, with AES-256-GCM on every audio packet. No account or cloud relay is required. PCM16 is the default working path; The Windows package includes the native Opus decoder; physical end-to-end Opus and prolonged-session acceptance remain separate from automated tests.
 
 **Live site:** [canopydigital.ca/sites/pocketmic-lan/](https://canopydigital.ca/sites/pocketmic-lan/)
 
 ### Release and source status
 
-The latest published release is **v0.1.5**. Its downloadable assets predate the October 2026 connection fixes described below. Build the current `master` source for first-run auto-listen, the Available PCs list, the updated QR permission flow, and discovery of receivers using custom ports. The source still uses version `0.1.5`; a source update or CI artifact does not replace the published release downloads.
+The consolidated `main` source is **1.7.0**, covering Windows and Android fixes, native Opus packaging, a per-user Windows installer, and a Windows 11 Mica frame. The previous development candidate is archived as `v0.1.6`. A release tag is created only after the candidate workflows pass; consult GitHub Releases for published download availability. See [the 1.7 release plan and verification record](RELEASE-1.7.0.md).
+
+The Android application ID is now `com.canopydigital.pocketmic`: it installs separately from v0.1.5 (`com.ryanspice.pocketmic`) and does not migrate its pairing settings. Android builds are debug-signed; Windows packages are unsigned. Apple source is retained and checked in CI, with macOS/iOS development acceptance targeted for **1.7.1**. These are not App Store, TestFlight, or notarized installers.
 
 ## Project links
 
@@ -42,7 +44,7 @@ Additional capabilities:
 - LAN receiver discovery with an Available PCs list, refresh, and manual IPv4 fallback
 - VB-CABLE routing for Windows app audio; an installable PocketMic virtual device remains planned
 - Adaptive receiver buffering and Android Wi-Fi lock policies
-- Opus encoding/decoding implementation; the Windows package currently does not bundle `opus.dll`
+- Opus encoding/decoding with bundled Windows `opus.dll` and its licence
 - Clean, voice-processed, and custom Android capture modes; Windows voice processing is controlled separately
 - Adjustable input gain and live input level meter
 - Selectable Windows playback device (speakers, VB-CABLE, VoiceMeeter)
@@ -148,11 +150,11 @@ The Android build runs Kotlin/JVM tests and lint by default. The Windows receive
 ```powershell
 python .\tools\verify_protocol.py
 python .\tools\verify_receiver_logic.py
-python .\tools\verify_source.py
+python .\scripts\verify_release_versions.py
 python .\tools\verify_web.py
 ```
 
-`verify_source.py` checks an older version/checksum baseline and needs release maintenance before it can validate current source. See [PERFORMANCE_AUDIT.md](PERFORMANCE_AUDIT.md) and [STABILIZATION-PLAN.md](STABILIZATION-PLAN.md) for historical evidence and pending acceptance work.
+`verify_release_versions.py` checks current platform versions and build numbers. The legacy `tools/verify_source.py` and `SOURCE_SHA256SUMS.txt` describe an older baseline and are not current release checks. See [PERFORMANCE_AUDIT.md](PERFORMANCE_AUDIT.md) and [STABILIZATION-PLAN.md](STABILIZATION-PLAN.md) for historical evidence and pending acceptance work.
 
 ## Performance profile
 

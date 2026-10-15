@@ -173,6 +173,9 @@ class MicStreamingService : Service() {
         var opusEncoder: OpusEncoder? = null
 
         try {
+            val allowFallback = AppPrefs.loadUi(this).autoConnect
+            ControlChannel.start(this, config.pairingKey, config.port, probe = false,
+                host = config.host, allowFallback = allowFallback)
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 error(getString(R.string.error_microphone_permission))
             }
@@ -188,10 +191,10 @@ class MicStreamingService : Service() {
             // Keep the UDP socket unconnected. A connected DatagramSocket can surface an ICMP
             // port-unreachable error when the PC receiver starts after the phone; unconnected
             // sends allow the stream to keep running until the receiver is ready.
-            socket = DatagramSocket().apply {
-                sendBufferSize = UDP_SEND_BUFFER_BYTES
-                ControlChannel.lanNetwork(this@MicStreamingService)?.bindSocket(this)
-            }
+            // Take ownership before configuration so finally closes it even if binding fails.
+            socket = DatagramSocket()
+            socket.sendBufferSize = UDP_SEND_BUFFER_BYTES
+            ControlChannel.lanNetwork(this@MicStreamingService)?.bindSocket(socket)
 
             val samplesPerPacket = SAMPLE_RATE / PACKETS_PER_SECOND
             val pcmBytes = ByteArray(samplesPerPacket * Short.SIZE_BYTES)
@@ -326,8 +329,7 @@ class MicStreamingService : Service() {
                     nextSendTime += PACING_INTERVAL_MS
 
                     senderDatagram.setData(packet, 0, packet.size)
-                    senderDatagram.address = sendTarget.address
-                    senderDatagram.port = sendTarget.port
+                    senderDatagram.socketAddress = sendTarget.endpoint
                     val sendStarted = SystemClock.elapsedRealtime()
                     runCatching { socket?.send(senderDatagram) }
                     val sendMs = (SystemClock.elapsedRealtime() - sendStarted).toInt()
@@ -460,10 +462,10 @@ class MicStreamingService : Service() {
                             // Probing is suppressed during capture to keep broadcast traffic off
                             // the hot path, and that suppression is precisely why the app could
                             // never heal itself. Turn it back on: a receiver that restarted or
-                            // moved cannot be found any other way. The configured port is used,
-                            // not any rediscovered one, because that is the port the control
-                            // socket is bound to and therefore the only one it can probe on.
-                            ControlChannel.setProbing(this@MicStreamingService, config.port, enabled = true)
+                            // moved cannot be found any other way. Use the active endpoint;
+                            // a previous recovery may already have changed its port.
+                            ControlChannel.start(this@MicStreamingService, config.pairingKey,
+                                targetPort, probe = true, host = targetHost, allowFallback = allowFallback)
                             StreamingState.update {
                                 it.copy(status = StreamStatus.RECONNECTING, reconnectingSinceMillis = now)
                             }
@@ -473,7 +475,7 @@ class MicStreamingService : Service() {
                             streaming = true
                             reconnects += 1
                             reconnectStartedAt = 0L
-                            ControlChannel.setProbing(this@MicStreamingService, config.port, enabled = false)
+                            ControlChannel.stopProbing()
                             StreamingState.update {
                                 it.copy(
                                     status = StreamStatus.STREAMING,
@@ -507,8 +509,10 @@ class MicStreamingService : Service() {
                             if (resolved != null) {
                                 targetHost = found.address
                                 targetPort = found.audioPort
-                                sendTarget.address = resolved
-                                sendTarget.port = targetPort
+                                // Move control/liveness ownership together with the audio target.
+                                ControlChannel.start(this@MicStreamingService, config.pairingKey,
+                                    targetPort, probe = true, host = targetHost, allowFallback = allowFallback)
+                                sendTarget.endpoint = java.net.InetSocketAddress(resolved, targetPort)
                                 redirectTo(config.copy(host = targetHost, port = targetPort), found.hostName)
                             }
                         }
@@ -966,4 +970,7 @@ private class SenderTelemetry {
  * a discovery redirect can repoint the sender without touching the socket; @Volatile because
  * the redirect happens on the capture coroutine.
  */
-private class SendTarget(@Volatile var address: InetAddress, @Volatile var port: Int)
+private class SendTarget(address: InetAddress, port: Int) {
+    // One volatile reference prevents the sender observing a new host with the previous port.
+    @Volatile var endpoint = java.net.InetSocketAddress(address, port)
+}

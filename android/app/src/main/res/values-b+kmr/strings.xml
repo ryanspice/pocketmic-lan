@@ -126,4 +126,8 @@
     <string name="notification_stop">Bisekine</string>
     <string name="notification_channel_name">Şandina dengê mîkrofonê</string>
     <string name="notification_channel_description">Dema ku PocketMic deng digire û dişîne tê nîşandan.</string>
+    <string name="pairing_link_title">Use this receiver?</string>
+    <string name="pairing_link_message">Pair with %1$s:%2$d? This replaces the saved receiver and pairing key. Only accept a link from a PC you trust.</string>
+    <string name="pairing_link_confirm">Use receiver</string>
+    <string name="pairing_link_cancel">Cancel</string>
 </resources>
