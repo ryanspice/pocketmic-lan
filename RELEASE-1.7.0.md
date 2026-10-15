@@ -20,6 +20,7 @@ Release scope approved by the owner on 2026-10-14; prepared 2026-10-15.
 - Refresh PCs restarts probing and retries failed control-socket initialization. Audio-socket ownership is established before network binding so failure cleanup closes it.
 - During capture, the service owns the active receiver: reconnect changes the control port and audio endpoint together, uses an atomic host/port snapshot, and accepts statistics from the adopted endpoint. Stopping discovery after recovery preserves delivery confirmation until its normal timeout.
 - Windows address lists scroll, and copying the first IP reports success or a busy clipboard instead of silently failing.
+- Empty diagnostics correctly say they are waiting for audio, including when the receiver is already listening.
 - Shared platform-version validation runs in CI. Legacy source-checksum/static-string checks remain historical and are not counted as current verification.
 
 ## Reviewer disposition

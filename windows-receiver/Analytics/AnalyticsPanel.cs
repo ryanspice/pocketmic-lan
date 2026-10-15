@@ -120,7 +120,7 @@ public sealed class AnalyticsPanel : UserControl
 
         if (current is null)
         {
-            g.DrawString("PocketMic diagnostics — waiting for the receiver to start", headerFont, mutedBrush, 8, 6);
+            g.DrawString("PocketMic diagnostics — waiting for audio data", headerFont, mutedBrush, 8, 6);
             return;
         }
 
