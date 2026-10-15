@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Security.Cryptography;
 
 namespace PocketMicReceiver;
 
@@ -56,6 +57,19 @@ public sealed class ReceiverSettings
     public string MonitorDevice { get; set; } = string.Empty;
 
     public bool AdvancedMode { get; set; }
+
+    /// <summary>Initialize first-run pairing before auto-listen, preserving an existing key.</summary>
+    public bool EnsurePairingKey()
+    {
+        if (!string.IsNullOrWhiteSpace(PairingKey)) return false;
+        const string alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+        PairingKey = string.Create(12, alphabet, (chars, symbols) =>
+        {
+            for (var i = 0; i < chars.Length; i++)
+                chars[i] = symbols[RandomNumberGenerator.GetInt32(symbols.Length)];
+        });
+        return true;
+    }
 
     private static readonly JsonSerializerOptions Options = new() { WriteIndented = true };
 

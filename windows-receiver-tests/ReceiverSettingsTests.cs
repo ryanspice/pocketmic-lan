@@ -12,6 +12,28 @@ namespace PocketMicReceiver.Tests;
 public class ReceiverSettingsTests
 {
     [Fact]
+    public void FirstRunGeneratesPairingKeyBeforeAutomaticListening()
+    {
+        var settings = new ReceiverSettings();
+        Assert.True(settings.AutoListen);
+        Assert.True(settings.EnsurePairingKey());
+        Assert.Equal(12, settings.PairingKey.Length);
+        Assert.All(settings.PairingKey, c => Assert.Contains(c, "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"));
+        var restored = JsonSerializer.Deserialize<ReceiverSettings>(JsonSerializer.Serialize(settings))!;
+        Assert.Equal(settings.PairingKey, restored.PairingKey);
+        Assert.False(restored.EnsurePairingKey());
+        Assert.True(restored.AutoListen);
+    }
+
+    [Fact]
+    public void InitializationPreservesExistingPairingAndStartupPreference()
+    {
+        var settings = new ReceiverSettings { PairingKey = "POCKETMIC-TEST", AutoListen = false };
+        Assert.False(settings.EnsurePairingKey());
+        Assert.Equal("POCKETMIC-TEST", settings.PairingKey);
+        Assert.False(settings.AutoListen);
+    }
+    [Fact]
     public void DefaultValuesAreCorrect()
     {
         var settings = new ReceiverSettings();

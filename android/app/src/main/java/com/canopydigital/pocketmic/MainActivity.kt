@@ -74,13 +74,25 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
+    private var incomingPairing by mutableStateOf<QrPairingData?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        incomingPairing = intent.dataString?.let(::parseQrPairingData)
         setContent {
             PocketMicTheme {
-                PocketMicScreen()
+                PocketMicScreen(incomingPairing) {
+                    incomingPairing = null
+                    intent.data = null
+                }
             }
         }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        incomingPairing = intent.dataString?.let(::parseQrPairingData)
     }
 }
 
@@ -124,12 +136,13 @@ private fun PocketMicTheme(content: @Composable () -> Unit) {
 }
 
 @Composable
-private fun PocketMicScreen() {
+private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLinkHandled: () -> Unit = {}) {
     val context = LocalContext.current
     val initial = remember { AppPrefs.load(context) }
     val initialUi = remember { AppPrefs.loadUi(context) }
     val snapshot by StreamingState.state.collectAsState()
     val peer by ControlChannel.peer.collectAsState()
+    val receivers by ControlChannel.receivers.collectAsState()
     val stats by ControlChannel.stats.collectAsState()
     val lastStatsAt by ControlChannel.lastStatsAtMillis.collectAsState()
 
@@ -159,6 +172,25 @@ private fun PocketMicScreen() {
         ?.takeIf { it in MIN_PORT..MAX_PORT }
         ?: DEFAULT_PORT
 
+    fun applyPairing(data: QrPairingData) {
+        host = data.host
+        portText = data.port.toString()
+        pairingKey = data.pairingKey
+        autoConnect = false
+        AppPrefs.saveAutoConnect(context, false)
+        showQrScanner = false
+        validationError = null
+        AppPrefs.save(context, MicConfig(data.host, data.port, data.pairingKey, captureMode, gain, codec))
+    }
+
+    LaunchedEffect(incomingPairing, isActive) {
+        // A pairing link may configure the next call, but must not repoint an active one.
+        if (!isActive) incomingPairing?.let {
+            applyPairing(it)
+            onPairingLinkHandled()
+        }
+    }
+
     // Probe while idle, and again while reconnecting. During healthy capture the receiver's own
     // statistics feed answers everything a probe would, so broadcasting then is pure radio cost
     // on the hot path — but once that feed stops, probing is the only way back, which is exactly
@@ -166,9 +198,10 @@ private fun PocketMicScreen() {
     //
     // MicStreamingService drives the same switch, because reconnect has to work with this
     // activity destroyed. Both derive it from one status, so they cannot disagree.
-    val shouldProbe = autoConnect && (!isActive || snapshot.status == StreamStatus.RECONNECTING)
-    DisposableEffect(pairingKey, port, shouldProbe) {
-        ControlChannel.start(context, pairingKey, port, probe = shouldProbe)
+    val shouldProbe = !isActive || snapshot.status == StreamStatus.RECONNECTING
+    DisposableEffect(pairingKey, port, host, autoConnect, shouldProbe) {
+        ControlChannel.start(context, pairingKey, port, probe = shouldProbe, host = host,
+            allowFallback = autoConnect)
         ControlChannel.setProbing(context, port, enabled = shouldProbe)
         onDispose { }
     }
@@ -224,6 +257,14 @@ private fun PocketMicScreen() {
         } else {
             validationError = "Microphone permission is required."
         }
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { granted ->
+        showQrScanner = granted
+        if (!granted) validationError =
+            "Camera permission is required to scan a QR code. Allow it in Android app settings, or enter the PC address and key below."
     }
 
     fun attemptStart() {
@@ -345,24 +386,40 @@ private fun PocketMicScreen() {
                         AppPrefs.saveAutoConnect(context, it)
                     },
                     peer = peer,
+                    receivers = receivers,
+                    onReceiverSelected = { receiver ->
+                        host = receiver.address
+                        val selectedPort = if (receiver.keyMatches) receiver.audioPort else port
+                        portText = selectedPort.toString()
+                        autoConnect = false
+                        AppPrefs.saveAutoConnect(context, false)
+                        AppPrefs.save(context, MicConfig(host, selectedPort, pairingKey, captureMode, gain, codec))
+                        validationError = if (receiver.keyMatches) null else
+                            "Scan this PC's QR code or enter its pairing key to connect."
+                    },
                     snapshot = snapshot,
                     linkAlive = linkAlive,
                     host = host,
-                    onHostChange = { host = it },
+                    onHostChange = {
+                        host = it
+                        autoConnect = false
+                        AppPrefs.saveAutoConnect(context, false)
+                    },
                     portText = portText,
                     onPortChange = { portText = it.filter(Char::isDigit).take(PORT_INPUT_MAX_DIGITS) },
                     pairingKey = pairingKey,
                     onKeyChange = { pairingKey = it.take(PAIRING_KEY_MAX_CHARS) },
                     enabled = !isActive,
                     showQrScanner = showQrScanner,
-                    onShowQrScannerChange = { showQrScanner = it },
-                    onQrScanned = { data ->
-                        host = data.host
-                        portText = data.port.toString()
-                        pairingKey = data.pairingKey
-                        showQrScanner = false
-                        AppPrefs.save(context, MicConfig(data.host, data.port, data.pairingKey, captureMode, gain, codec))
+                    onShowQrScannerChange = { show ->
+                        validationError = null
+                        if (!show) showQrScanner = false
+                        else if (ContextCompat.checkSelfPermission(context, Manifest.permission.CAMERA) ==
+                            PackageManager.PERMISSION_GRANTED
+                        ) showQrScanner = true
+                        else cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
                     },
+                    onQrScanned = ::applyPairing,
                 )
 
                 CaptureCard(
@@ -654,6 +711,8 @@ private fun ConnectionCard(
     autoConnect: Boolean,
     onAutoConnectChange: (Boolean) -> Unit,
     peer: PeerState,
+    receivers: List<PeerState.Found>,
+    onReceiverSelected: (PeerState.Found) -> Unit,
     snapshot: StreamingSnapshot,
     linkAlive: Boolean,
     host: String,
@@ -813,7 +872,33 @@ private fun ConnectionCard(
                     }
                 }
                 Text(message, color = colour, style = MaterialTheme.typography.bodyMedium)
-            } else {
+            }
+            if (enabled) {
+                Text("Available PCs", fontWeight = FontWeight.SemiBold)
+                TextButton(onClick = { ControlChannel.setProbing(context, portText.toIntOrNull()
+                    ?.takeIf { it in MIN_PORT..MAX_PORT } ?: DEFAULT_PORT, enabled = true) }) {
+                    Text("Refresh PCs")
+                }
+                if (receivers.isEmpty()) {
+                    Text("Looking for running receivers on this network…", color = TextMuted,
+                        style = MaterialTheme.typography.bodySmall)
+                }
+                for (receiver in receivers) {
+                    OutlinedButton(onClick = { onReceiverSelected(receiver) }, modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text(receiver.hostName.ifBlank { "PC at ${receiver.address}" })
+                            Text(if (receiver.keyMatches) "${receiver.address}:${receiver.audioPort}" else
+                                "${receiver.address} · Scan QR or enter this PC's key",
+                                style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+                OutlinedButton(onClick = { onShowQrScannerChange(!showQrScanner) }) {
+                    Text(if (showQrScanner) "Hide camera" else "Scan QR")
+                }
+                if (showQrScanner) QrScannerView(onScanned = onQrScanned)
+            }
+            if (enabled && (!autoConnect || peer !is PeerState.Found || !peer.keyMatches)) {
                 OutlinedTextField(
                     value = host,
                     onValueChange = onHostChange,
@@ -851,13 +936,6 @@ private fun ConnectionCard(
                         onClick = { onKeyChange(AppPrefs.generatePairingKey()) },
                         enabled = enabled,
                     ) { Text(stringResource(R.string.action_generate)) }
-                    OutlinedButton(
-                        onClick = { onShowQrScannerChange(!showQrScanner) },
-                        enabled = enabled,
-                    ) { Text(stringResource(if (showQrScanner) R.string.action_hide_camera else R.string.action_scan_qr)) }
-                }
-                if (showQrScanner) {
-                    QrScannerView(onScanned = onQrScanned)
                 }
             }
         }

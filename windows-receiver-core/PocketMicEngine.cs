@@ -95,6 +95,8 @@ public sealed class PocketMicEngine
     private CancellationTokenSource? _cts;
     private UdpClient? _udp;
     private UdpClient? _control;
+    private UdpClient? _discovery;
+    private Task? _discoveryReceiveTask;
     private byte[]? _controlKey;
     private AesGcm? _aes;
     private WaveOutEvent? _waveOut;
@@ -481,6 +483,8 @@ public sealed class PocketMicEngine
         var control = _control;
         var controlReceive = _controlReceiveTask;
         var controlStats = _controlStatsTask;
+        var discovery = _discovery;
+        var discoveryReceive = _discoveryReceiveTask;
 
         _cts = null;
         _udp = null;
@@ -489,14 +493,17 @@ public sealed class PocketMicEngine
         _controlReceiveTask = null;
         _controlStatsTask = null;
         _controlKey = null;
+        _discovery = null;
+        _discoveryReceiveTask = null;
         _phoneAddress = null;
 
         cts?.Cancel();
         udp?.Close();
         control?.Close();
+        discovery?.Close();
         StopMonitorOutput();
 
-        foreach (var task in new[] { controlReceive, controlStats })
+        foreach (var task in new[] { controlReceive, controlStats, discoveryReceive })
         {
             if (task is null) continue;
             try { await task.ConfigureAwait(false); }
@@ -524,6 +531,8 @@ public sealed class PocketMicEngine
         StopAnalytics();
 
         udp?.Dispose();
+        control?.Dispose();
+        discovery?.Dispose();
         _playbackStarted = false;
         if (_waveOut is not null)
         {
@@ -939,6 +948,26 @@ public sealed class PocketMicEngine
             _controlKey = ControlProtocol.DeriveControlKey(options.PairingKey);
             _controlReceiveTask = Task.Run(() => ControlReceiveLoopAsync(control, options, token, runId), token);
             _controlStatsTask = Task.Run(() => ControlStatsLoopAsync(control, audioPort, token, runId), token);
+
+            // A fresh phone knows only this fixed discovery port. Announce the actual audio
+            // port here as well, so custom-port receivers remain discoverable.
+            if (controlPort != ControlProtocol.DiscoveryPort && audioPort != ControlProtocol.DiscoveryPort)
+            {
+                var discovery = new UdpClient(AddressFamily.InterNetwork);
+                try
+                {
+                    discovery.Client.Bind(new IPEndPoint(IPAddress.Any, ControlProtocol.DiscoveryPort));
+                    _discovery = discovery;
+                    _discoveryReceiveTask = Task.Run(
+                        () => ControlReceiveLoopAsync(discovery, options, token, runId, discoveryOnly: true), token);
+                }
+                catch (SocketException exception)
+                {
+                    discovery.Dispose();
+                    RaiseStatus(EngineStatus.ControlChannelUnavailable,
+                        $"Listening on UDP {audioPort}; standard discovery port unavailable ({exception.Message}). Use QR or manual address.");
+                }
+            }
         }
         catch (Exception exception)
         {
@@ -951,7 +980,8 @@ public sealed class PocketMicEngine
         }
     }
 
-    private async Task ControlReceiveLoopAsync(UdpClient control, EngineOptions options, CancellationToken token, long runId)
+    private async Task ControlReceiveLoopAsync(UdpClient control, EngineOptions options, CancellationToken token, long runId,
+        bool discoveryOnly = false)
     {
         var audioPort = options.Port;
         var hostName = Environment.MachineName;
@@ -996,6 +1026,7 @@ public sealed class PocketMicEngine
             // honour one from a peer that cannot prove it shares the pairing key.
             if (type == ControlProtocol.TypeConfig)
             {
+                if (discoveryOnly) continue;
                 if (!ControlProtocol.Verify(key, result.Buffer)) continue;
                 if (!ControlProtocol.TryReadConfig(payload, out var dsp)) continue;
                 if (runId != _runId) continue;

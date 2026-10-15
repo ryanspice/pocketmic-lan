@@ -10,6 +10,19 @@ import org.junit.Test
  * key-length floor, and the port range ceiling.
  */
 class QrParserTest {
+    @Test fun rejectsMalformedExplicitPortInsteadOfSilentlyUsingDefault() {
+        assertNull(parseQrPairingData("pmic://10.0.0.2:abc/POCKETMIC-TEST"))
+        assertNull(parseQrPairingData("pmic://10.0.0.2:/POCKETMIC-TEST"))
+    }
+
+    @Test fun acceptsWhitespaceAndCaseInsensitiveSchemeFromScanner() {
+        assertEquals(QrPairingData("10.0.0.2", 49520, "POCKETMIC-TEST"),
+            parseQrPairingData("  PMIC://10.0.0.2:49520/POCKETMIC-TEST\n"))
+    }
+
+    @Test fun rejectsWhitespaceOnlyHost() {
+        assertNull(parseQrPairingData("pmic:// :49500/POCKETMIC-TEST"))
+    }
 
     @Test
     fun parseValidPmicUriWithHostPortAndKey() {
