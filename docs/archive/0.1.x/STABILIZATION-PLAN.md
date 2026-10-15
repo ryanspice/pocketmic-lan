@@ -1,3 +1,5 @@
+> **Historical snapshot — not an active task list.** Archived 2026-10-15 from `3ef192e` (`STABILIZATION-PLAN.md`). Original dates, findings, commands and claims below describe that earlier work; they are not current approvals or verification. See the [current roadmap](../../plans/roadmap.md), [testing guide](../../testing.md) and [1.7.0 release record](../../releases/1.7.0/release.md). Relative Markdown links have been rebased; inline source paths and line numbers retain their historical meaning.
+
 # PocketMic LAN v0.1.5 — Stabilization Plan (v2)
 
 > Updated 2026-09-11 after Astra 6 Pro second review.

@@ -145,7 +145,7 @@ class Relay:
     A single unconnected socket handles both directions, exactly like PocketMic's own
     sockets: a datagram from the configured target address is a reply (reverse direction);
     anything else is treated as the client (forward direction) and its address is remembered
-    so replies have somewhere to go. This mirrors PROTOCOL.md's own receiver, which likewise
+    so replies have somewhere to go. This mirrors docs/protocol.md's receiver, which likewise
     identifies a peer by arrival socket/address rather than a self-declared field.
     """
 

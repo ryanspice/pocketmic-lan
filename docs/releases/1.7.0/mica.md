@@ -1,5 +1,7 @@
 # Windows Mica in 1.7.0
 
+Status: release-specific investigation and acceptance record, 2026-10-15, source `3ef192e`. Use [the current Windows guide](../../windows-ui.md) for ongoing implementation work. Paths below are repository-relative; historical failures described here were corrected in the release unless explicitly listed as open.
+
 ## Modern interface and fallback
 
 Windows 11 22H2 and newer use `windows-receiver-winui`, an unpackaged WinUI 3 application with Windows App SDK 2.5.1. `MainWindow.SystemBackdrop` is a `MicaBackdrop`; the root grid, scrolling surface and page stack have transparent backgrounds. Native Fluent controls and theme-resource card brushes sit above that canvas. Text, controls, scrollbars, light/dark appearance and high-contrast behavior follow WinUI resources.

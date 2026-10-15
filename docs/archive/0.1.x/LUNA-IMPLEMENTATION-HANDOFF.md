@@ -1,3 +1,5 @@
+> **Historical snapshot — not an active task list.** Archived 2026-10-15 from `3ef192e` (`LUNA-IMPLEMENTATION-HANDOFF.md`). Original dates, findings, commands and claims below describe that earlier work; they are not current approvals or verification. See the [current roadmap](../../plans/roadmap.md), [testing guide](../../testing.md) and [1.7.0 release record](../../releases/1.7.0/release.md). Relative Markdown links have been rebased; inline source paths and line numbers retain their historical meaning.
+
 # PocketMic correctness and desktop controls — Luna implementation handoff
 
 Version: 1.1.0. Prepared 2026-09-24 from commit `ddc8f38`; includes user-requested fresh discovery and pre-Start handshake behavior.

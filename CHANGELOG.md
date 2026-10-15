@@ -13,7 +13,7 @@
 - Published WinUI XAML resources, preventing a startup crash caused by omitted app XBF/PRI files.
 - Activation recovery after disconnected clients or callback errors, bounded installer shutdown and native Opus packaging.
 
-See [release evidence and remaining acceptance gates](RELEASE-1.7.0.md). Android is debug-signed and Windows is unsigned; Apple physical development acceptance targets 1.7.1.
+See [release evidence and remaining acceptance gates](docs/releases/1.7.0/release.md). Android is debug-signed and Windows is unsigned; Apple physical development acceptance targets 1.7.1.
 
 ## [0.1.6] - Archived development baseline
 
@@ -96,7 +96,7 @@ See [release evidence and remaining acceptance gates](RELEASE-1.7.0.md). Android
 ## [0.1.4] - 2026-09-09
 
 ### Added
-- Protocol v1 specification (PROTOCOL.md)
+- Protocol v1 specification ([current location](docs/protocol.md))
 - Jitter buffer formal verification (JITTER-VERIFICATION.md)
 - Security hardening documentation (SECURITY-AUDIT.md, SECURITY-HARDENING.md)
 - Performance benchmarks and audit

@@ -30,3 +30,6 @@ android/app/.cxx/
 android/app/build/
 publish/
 release/
+
+# Task-local scratch work; existing worktrees and release receipts stay preserved.
+workspaces/

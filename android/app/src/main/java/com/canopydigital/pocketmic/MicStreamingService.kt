@@ -774,7 +774,8 @@ class MicStreamingService : Service() {
     /**
      * Which lock mode the current network warrants.
      *
-     * Provisional thresholds, decided from the project's own A/B data (ROADMAP.md:190-206):
+     * Historical policy rationale: docs/archive/0.1.x/ROADMAP.md.
+     * These provisional thresholds do not establish a current physical A/B measurement:
      * LOW_LATENCY fixed clumping and improved p99 on the owner's clean 5 GHz link but left the
      * tail unchanged, and on a weak or crowded radio its aggregation-free per-packet
      * contention is the wrong trade. The band/RSSI rule and the loss gate below encode that;

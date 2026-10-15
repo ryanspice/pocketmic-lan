@@ -1,3 +1,5 @@
+> **Historical snapshot — not an active task list.** Archived 2026-10-15 from `3ef192e` (`MANUAL-TESTING-0.1.6.md`). Original dates, findings, commands and claims below describe that earlier work; they are not current approvals or verification. See the [current roadmap](../../plans/roadmap.md), [testing guide](../../testing.md) and [1.7.0 release record](../../releases/1.7.0/release.md). Relative Markdown links have been rebased; inline source paths and line numbers retain their historical meaning.
+
 # PocketMic LAN 0.1.6 — Manual Pre-Tag Test Plan
 
 > Candidate code commit: `58366868b4fb6c511ef40caa385b084ea76483f2`.
@@ -62,7 +64,7 @@ Use a real stream, not only an idle window. For microphone routing changes, reco
 
 ## C. macOS virtual microphone (tester with a physical Mac)
 
-Follow the bundled [macOS setup guide](macos/README.md) and fill out its [tester report](macos/TESTER-REPORT.md). Use these release-critical checks:
+Follow the bundled [macOS setup guide](../../../macos/README.md) and fill out its [tester report](../../../macos/TESTER-REPORT.md). Use these release-critical checks:
 
 | Check | Result | Notes |
 |---|---|---|

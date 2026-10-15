@@ -1,3 +1,5 @@
+> **Historical snapshot — not an active task list.** Archived 2026-10-15 from `3ef192e` (`DESKTOP-CONTROL-REVIEW.md`). Original dates, findings, commands and claims below describe that earlier work; they are not current approvals or verification. See the [current roadmap](../../plans/roadmap.md), [testing guide](../../testing.md) and [1.7.0 release record](../../releases/1.7.0/release.md). Relative Markdown links have been rebased; inline source paths and line numbers retain their historical meaning.
+
 # Desktop control review — 2026-09-24
 
 Reviewed source: `ddc8f38` (clean before review). This extends the audio/protocol review begun from `REVIEW-HANDOFF-ASTRA.md`. It reviews the current WinForms application, its shared engine, settings, routing helper, and diagnostics. The handoff's historical build/test claims are not treated as current proof.

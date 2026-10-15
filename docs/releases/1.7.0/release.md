@@ -1,5 +1,11 @@
 # PocketMic LAN 1.7.0
 
+Status: completed development prerelease, published 2026-10-15 at `3ef192ebbffa34229b4227e7aeeca5141557aa09`. [Published release and assets](https://github.com/ryanspice/pocketmic-lan/releases/tag/v1.7.0).
+
+This record preserves that candidate's work and evidence. The eight associated hosted workflow runs passed; desktop/Android installation receipts and owner Mica/tray/Start confirmations were recorded. Later cancelled continuation requests and a failed optional review do not reopen the completed release. Physical acceptance limitations below remain explicit. Commands and code/output paths in this record are repository-relative.
+
+For future work use the [current roadmap](../../plans/roadmap.md) and [Apple plan](../../plans/1.7.1-apple.md). The sequence below records the release work; it is not an instruction to repeat merges, tagging, installation or publication.
+
 Release scope approved by the owner on 2026-10-14; prepared 2026-10-15.
 
 ## Sequence and preserved work
@@ -52,7 +58,7 @@ Fresh, bounded reviews examined the 1.7.0 candidate at `5fc174e`, including the 
 
 ## Windows Mica
 
-[Dedicated implementation, defect reproduction and verification record](WINDOWS-MICA-1.7.0.md). The final modern interface uses a native WinUI Mica backdrop across the window canvas. Native Fluent controls and translucent theme-resource cards replace the earlier WinForms body. The classic fallback retains its bounded native Mica gutter and opaque controls.
+[Dedicated implementation, defect reproduction and verification record](mica.md). The final modern interface uses a native WinUI Mica backdrop across the window canvas. Native Fluent controls and translucent theme-resource cards replace the earlier WinForms body. The classic fallback retains its bounded native Mica gutter and opaque controls.
 
 Owner feedback on `29e7ae9` identified readable controls but no visible Mica despite successful API tests. A native 32-bit DIB reproduction found the gutter was painted opaque by GDI+, masking the material. Native zero-alpha gutter painting corrected that fallback; sixteen Mica cases exercise the actual native paint boundary. The owner then requested a full native Mica canvas, leading to the WinUI front end. Its first installed launch exposed missing published XAML resources; explicit app XBF/PRI publishing and fail-fast package checks corrected the crash. The owner confirmed the corrected appearance and subsequently confirmed that closing leaves the tray icon and Start Menu activation restores the window.
 
