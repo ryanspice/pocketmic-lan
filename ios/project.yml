@@ -21,7 +21,7 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.canopydigital.pocketmic
         INFOPLIST_KEY_CFBundleDevelopmentRegion: en-CA
-        MARKETING_VERSION: "1.7.0"
+        MARKETING_VERSION: "0.1.7"
         CURRENT_PROJECT_VERSION: "10700"
         PRODUCT_NAME: PocketMic
         INFOPLIST_KEY_CFBundleDisplayName: PocketMic

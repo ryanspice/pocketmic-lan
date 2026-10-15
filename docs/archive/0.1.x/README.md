@@ -1,6 +1,6 @@
 # Historical plans, reviews and evidence
 
-Status: archived 2026-10-15 from release source `3ef192e`. These files preserve earlier work; their prompts, release prohibitions, checkboxes, line numbers and model instructions are not current task authority. Read the [current roadmap](../../plans/roadmap.md), [testing guide](../../testing.md) and [1.7.0 record](../../releases/1.7.0/release.md) first.
+Status: archived 2026-10-15 from release source `3ef192e`. These files preserve earlier work; their prompts, release prohibitions, checkboxes, line numbers and model instructions are not current task authority. Read the [current roadmap](../../plans/roadmap.md), [testing guide](../../testing.md) and [1.7.0 record](../../releases/0.1.7/release.md) first.
 
 ## Planning and implementation proposals
 
@@ -18,4 +18,4 @@ Status: archived 2026-10-15 from release source `3ef192e`. These files preserve 
 - [RESEARCH-PROMPT.md](RESEARCH-PROMPT.md) and [RESEARCH-SYNTHESIS.md](RESEARCH-SYNTHESIS.md): research context, speculative changes and older conclusions requiring source revalidation.
 - [Retired source verifier and checksum manifest](legacy-verification/README.md).
 
-The relocation preserves content with a historical notice and rebased relative Markdown links. Original source paths in prose/code samples retain their historical meaning. Exact original bytes remain in the `v1.7.0` Git tree; do not change that tag to follow these moves.
+The relocation preserves content with a historical notice and rebased relative Markdown links. Original source paths in prose/code samples retain their historical meaning. Exact original bytes remain in Git commit `3ef192e` (originally tagged `v1.7.0`, corrected to `v0.1.7` after the owner identified the version mistake).

@@ -7,8 +7,8 @@
 - [Wire and control protocol](protocol.md)
 - [Windows interface, Mica, activation and fallback](windows-ui.md)
 - [Current roadmap and dispositions](plans/roadmap.md)
-- [1.7.1 Apple development plan](plans/1.7.1-apple.md)
-- [1.7.0 release record](releases/1.7.0/release.md) and [Mica investigation](releases/1.7.0/mica.md)
+- [0.1.8 Apple development plan](plans/0.1.8-apple.md)
+- [0.1.7 release record](releases/0.1.7/release.md) and [Mica investigation](releases/0.1.7/mica.md)
 - [Version history](../CHANGELOG.md)
 - [Historical plans, research and evidence](archive/0.1.x/README.md)
 

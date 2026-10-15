@@ -1,6 +1,6 @@
 # PocketMic LAN
 
-[![Version](https://img.shields.io/badge/version-v1.7.0-b88a3b)](https://github.com/ryanspice/pocketmic-lan/releases/tag/v1.7.0)
+[![Version](https://img.shields.io/badge/version-v0.1.7-b88a3b)](https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.7)
 [![CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ci.yml)
 [![iOS CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ios.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/ios.yml)
 [![macOS CI](https://github.com/ryanspice/pocketmic-lan/actions/workflows/macos.yml/badge.svg)](https://github.com/ryanspice/pocketmic-lan/actions/workflows/macos.yml)
@@ -11,15 +11,15 @@ PocketMic turns a phone into an encrypted microphone for a desktop application o
 
 ## Release and downloads
 
-**[1.7.0 is a published development prerelease](https://github.com/ryanspice/pocketmic-lan/releases/tag/v1.7.0).** It includes the WinUI 3 Mica receiver, classic fallback, persistent tray and single-instance activation, Android-derived desktop icons, connection fixes and a complete Windows package with native Opus. The earlier source baseline is preserved as `v0.1.6`.
+**[0.1.7 is a published development prerelease](https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.7).** It includes the WinUI 3 Mica receiver, classic fallback, persistent tray and single-instance activation, Android-derived desktop icons, connection fixes and a complete Windows package with native Opus. The earlier source baseline is preserved as `v0.1.6`.
 
-- [Android APK — debug-signed](https://github.com/ryanspice/pocketmic-lan/releases/download/v1.7.0/app-debug.apk)
-- [Windows x64 receiver and per-user installer — unsigned](https://github.com/ryanspice/pocketmic-lan/releases/download/v1.7.0/PocketMicReceiver-win-x64.zip)
-- [Release checksums](https://github.com/ryanspice/pocketmic-lan/releases/download/v1.7.0/SHA256SUMS.txt)
-- [Release evidence and remaining acceptance gates](docs/releases/1.7.0/release.md)
+- [Android APK — debug-signed](https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.7/app-debug.apk)
+- [Windows x64 receiver and per-user installer — unsigned](https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.7/PocketMicReceiver-win-x64.zip)
+- [Release checksums](https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.7/SHA256SUMS.txt)
+- [Release evidence and remaining acceptance gates](docs/releases/0.1.7/release.md)
 - [Short technical walkthrough: Mica, desktop polish and Apple builds](https://blog.ryanspice.com/2026/10/15/pocketmic-lan-1-7-mica-and-apple-builds/)
 
-Android/Windows is the established development-release path. The iOS sender and macOS receiver/virtual microphone are **unsigned development previews**, with simulator, protocol and packaging checks in [GitHub Actions](https://github.com/ryanspice/pocketmic-lan/actions). Apple currently uses PCM v1 and manual pairing; physical-device acceptance and distribution decisions are in the [1.7.1 plan](docs/plans/1.7.1-apple.md). These are not App Store, TestFlight or notarized installers.
+Android/Windows is the established development-release path. The iOS sender and macOS receiver/virtual microphone are **unsigned development previews**, with simulator, protocol and packaging checks in [GitHub Actions](https://github.com/ryanspice/pocketmic-lan/actions). Apple currently uses PCM v1 and manual pairing; physical-device acceptance and distribution decisions are in the [0.1.8 plan](docs/plans/0.1.8-apple.md). These are not App Store, TestFlight or notarized installers.
 
 ## Install and connect
 

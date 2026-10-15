@@ -14,8 +14,9 @@ android {
         applicationId = "com.canopydigital.pocketmic"
         minSdk = 26
         targetSdk = 36
+        // Preserve the published build number while correcting the marketing version.
         versionCode = 10700
-        versionName = "1.7.0"
+        versionName = "0.1.7"
 
         ndk {
             abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")

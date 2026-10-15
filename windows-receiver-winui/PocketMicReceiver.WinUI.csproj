@@ -18,7 +18,7 @@
     <DefineConstants>$(DefineConstants);DISABLE_XAML_GENERATED_MAIN</DefineConstants>
     <AssemblyName>PocketMicReceiver.WinUI</AssemblyName>
     <RootNamespace>PocketMicReceiver.WinUI</RootNamespace>
-    <Version>1.7.0</Version>
+    <Version>0.1.7</Version>
     <ApplicationIcon>..\windows-receiver\Assets\PocketMic.ico</ApplicationIcon>
     <ApplicationManifest>app.manifest</ApplicationManifest>
   </PropertyGroup>

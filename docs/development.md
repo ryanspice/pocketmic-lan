@@ -11,7 +11,7 @@ Use Android SDK Platform 36, NDK `27.2.12479018`, CMake `3.22.1`, and Android St
 .\scripts\build-android.ps1
 ```
 
-Setup downloads and verifies pinned libopus 1.5.2 source. The build helper normally runs JVM tests and lint as well as the APK build. Its versioned output is `release/PocketMic-v<versionName>-debug.apk`; the published 1.7.0 asset is named `app-debug.apk`.
+Setup downloads and verifies pinned libopus 1.5.2 source. The build helper normally runs JVM tests and lint as well as the APK build. Its versioned output is `release/PocketMic-v<versionName>-debug.apk`; the published 0.1.7 asset is named `app-debug.apk`.
 
 ```powershell
 .\scripts\build-android.ps1 -SkipClean
@@ -39,7 +39,7 @@ dotnet test windows-receiver-tests/PocketMicReceiver.Tests.csproj -c Release --n
 .\scripts\test-windows-installer.ps1
 ```
 
-The publisher builds the modern and compatibility interfaces and produces `release/PocketMicReceiver-win-x64.zip`. It does not run the test suite. Without `-OpusDllPath`, a locally published package does not acquire a decoder automatically; do not claim release-equivalent Opus packaging. The 1.7.0 download includes the pinned decoder and notices.
+The publisher builds the modern and compatibility interfaces and produces `release/PocketMicReceiver-win-x64.zip`. It does not run the test suite. Without `-OpusDllPath`, a locally published package does not acquire a decoder automatically; do not claim release-equivalent Opus packaging. The 0.1.7 download includes the pinned decoder and notices.
 
 `-ClassicOnly` is for explicit compatibility builds, not the default release. The modern payload must include app XBF/PRI resources, runtime dependencies and notices. Package hashing and nested-path validation must cover the complete payload.
 
@@ -49,7 +49,7 @@ Keep [PACKAGE-README.md](../windows-receiver/PACKAGE-README.md), [THIRD-PARTY-NO
 
 Windows contributors can edit the Apple source and use [iOS CI](../.github/workflows/ios.yml) and [macOS CI](../.github/workflows/macos.yml). XcodeGen generates projects on the hosted Mac runner. Ordinary iOS source builds exercise the simulator; tag/release builds produce an unsigned archive. Mac CI builds the universal app and virtual microphone driver, packages tester files and verifies the archives.
 
-See [Mac setup](../macos/README.md), [localization status](../localization/README.md) and the [1.7.1 plan](plans/1.7.1-apple.md). Signing and store upload are not configured by those unsigned workflows; do not invent a supported secret-name contract or put credentials in documentation.
+See [Mac setup](../macos/README.md), [localization status](../localization/README.md) and the [0.1.8 plan](plans/0.1.8-apple.md). Signing and store upload are not configured by those unsigned workflows; do not invent a supported secret-name contract or put credentials in documentation.
 
 ## Website ownership
 
@@ -68,4 +68,4 @@ node scripts/validate-site-release.mjs
 
 Use existing ignored output directories. `release/` can contain backups and audit receipts as well as generated packages; never clean it wholesale. Temporary workspaces belong under ignored `workspaces/` when needed. The old version copies and registered worktrees are preservation boundaries until inspected.
 
-Run `python scripts/verify_release_versions.py` when preparing a candidate. Keep app versions unchanged for documentation-only work, and never move an existing release tag. [Testing](testing.md) defines evidence boundaries; the [1.7.0 record](releases/1.7.0/release.md) preserves that release's results.
+Run `python scripts/verify_release_versions.py` when preparing a candidate. Keep app versions unchanged for documentation-only work, and never move an existing release tag. [Testing](testing.md) defines evidence boundaries; the [0.1.7 record](releases/0.1.7/release.md) preserves that release's results.

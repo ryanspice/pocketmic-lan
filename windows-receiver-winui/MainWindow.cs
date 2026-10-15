@@ -134,7 +134,7 @@ public sealed class MainWindow : Window
         SetTitleBar(titleBar);
         var body = new StackPanel { Spacing = 16, MaxWidth = 860, HorizontalAlignment = HorizontalAlignment.Stretch };
         body.Children.Add(new TextBlock { Text = "Your phone. Your microphone.", Style = (Style)Application.Current.Resources["TitleTextBlockStyle"], TextWrapping = TextWrapping.Wrap });
-        body.Children.Add(Text("Encrypted microphone audio over your local network. PocketMic 1.7.0", caption: true));
+        body.Children.Add(Text("Encrypted microphone audio over your local network. PocketMic 0.1.7", caption: true));
         body.Children.Add(_notice);
         var status = new StackPanel { Spacing = 6 };
         _status.Style = (Style)Application.Current.Resources["SubtitleTextBlockStyle"];

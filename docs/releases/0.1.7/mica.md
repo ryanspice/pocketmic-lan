@@ -1,4 +1,4 @@
-# Windows Mica in 1.7.0
+# Windows Mica in 0.1.7
 
 Status: release-specific investigation and acceptance record, 2026-10-15, source `3ef192e`. Use [the current Windows guide](../../windows-ui.md) for ongoing implementation work. Paths below are repository-relative; historical failures described here were corrected in the release unless explicitly listed as open.
 

@@ -1,6 +1,6 @@
 # Verification and acceptance
 
-Status: current guide, reconciled 2026-10-15. Counts and receipts belong to exact candidates in [release records](releases/1.7.0/release.md); the checklists below are not assertions that tests have just run.
+Status: current guide, reconciled 2026-10-15. Counts and receipts belong to exact candidates in [release records](releases/0.1.7/release.md); the checklists below are not assertions that tests have just run.
 
 ## Choose checks by change
 
@@ -10,7 +10,7 @@ Status: current guide, reconciled 2026-10-15. Counts and receipts belong to exac
 - **Android:** use `scripts/build-android.ps1` for build, lint and JVM tests; add device checks for permission/service/network behaviour.
 - **Windows engine/UI:** run the Release test suite with pinned native Opus staged as described in [development.md](development.md). Exercise the changed installed UI behaviour separately.
 - **Windows packaging/installer:** complete modern/classic publish, resource/ZIP/hash checks and `scripts/test-windows-installer.ps1`. Install or update a user machine only within the authorized task.
-- **Apple:** existing hosted simulator/protocol/build/localization/package jobs; see the [Apple plan](plans/1.7.1-apple.md) for physical acceptance.
+- **Apple:** existing hosted simulator/protocol/build/localization/package jobs; see the [Apple plan](plans/0.1.8-apple.md) for physical acceptance.
 - **Website:** `node scripts/validate-site-release.mjs`, affected JavaScript syntax checks and exact-payload desktop/mobile review. `tools/verify_web.py` applies only to the legacy demo.
 - **Localization:** use the validators in [localization/](../localization/README.md) for the affected platform, followed by fluent/layout review before support claims.
 
@@ -24,7 +24,7 @@ Record candidate commit, app/build versions, artifact hashes, sender/receiver mo
 2. **Delivery and lifecycle:** audible input/metering in the named destination app, repeated start/stop, supported background behaviour, disconnect/reconnect and a sustained session. Listening sockets, packet counts and a readiness indicator are separate from audible success.
 3. **Codec and timing:** verify the codec actually used; test Windows PCM and Opus, Apple PCM and Mac's Opus incompatibility warning. Measure end-to-end latency, loss/jitter recovery, clock drift and power behaviour with a stated method before publishing performance claims.
 4. **Windows controls:** manual buffer ownership versus adaptive effective target; live monitor-device changes and failed-open retention; explicit desktop DSP preset versus phone Custom settings; matching cable endpoints and all Windows default roles; restoration that preserves another user's/app's later changes; report export during active packets, cancel and error paths.
-5. **Desktop lifecycle and appearance:** Start/second-launch activation, persistent tray, X hiding and explicit Exit; modern/classic selection; light/dark, high contrast, disabled transparency, older Windows, keyboard access and mixed-DPI layouts. Owner confirmations from 1.7.0 establish only their recorded scenarios.
+5. **Desktop lifecycle and appearance:** Start/second-launch activation, persistent tray, X hiding and explicit Exit; modern/classic selection; light/dark, high contrast, disabled transparency, older Windows, keyboard access and mixed-DPI layouts. Owner confirmations from 0.1.7 establish only their recorded scenarios.
 6. **Apple driver and routing:** use [Mac setup](../macos/README.md) and the [tester report](../macos/TESTER-REPORT.md) for install, registration, selected-app input, underrun, reconnect, guarded uninstall and recovery.
 
 Protocol tampering/replay rejection belongs to deterministic fixtures unless a dedicated physical test procedure is explicitly approved. Do not improvise packet injection into an ordinary user session.

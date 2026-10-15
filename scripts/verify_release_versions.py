@@ -23,8 +23,11 @@ def main() -> None:
     android = read("android/app/build.gradle.kts")
     version = value(r'versionName = "(\d+\.\d+\.\d+)"', android)
     major, minor, patch = map(int, version.split("."))
-    build = str(major * 10000 + minor * 100 + patch)
-    assert value(r'versionCode = (\d+)', android) == build, "Android build number differs"
+    # Build numbers remain independent of marketing versions: 0.1.7 corrects
+    # the mislabeled 1.7.0 release without downgrading its published build 10700.
+    build = value(r'versionCode = (\d+)', android)
+    minimum_build = max(major * 10000 + minor * 100 + patch, 10700)
+    assert int(build) >= minimum_build, "Android build number would downgrade a published build"
     for project in ("windows-receiver/PocketMicReceiver.csproj",
                     "windows-receiver-core/PocketMicReceiver.Core.csproj",
                     "windows-receiver-winui/PocketMicReceiver.WinUI.csproj"):

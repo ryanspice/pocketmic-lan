@@ -26,4 +26,4 @@ Make a phone useful as a microphone for a desktop application over a trusted pri
 
 ## Change control
 
-The [roadmap](docs/plans/roadmap.md) owns sequencing and deferred ideas; the [Apple plan](docs/plans/1.7.1-apple.md) owns the next bounded milestone. Preserve historical rationale in [the archive](docs/archive/0.1.x/README.md), but reconcile it against current source before adopting it. Update this document when the owner changes product direction, not for every implementation detail or test run.
+The [roadmap](docs/plans/roadmap.md) owns sequencing and deferred ideas; the [Apple plan](docs/plans/0.1.8-apple.md) owns the next bounded milestone. Preserve historical rationale in [the archive](docs/archive/0.1.x/README.md), but reconcile it against current source before adopting it. Update this document when the owner changes product direction, not for every implementation detail or test run.

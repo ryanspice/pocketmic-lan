@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.7.0] - 2026-10-15
+## [0.1.7] - 2026-10-15
 
 ### Added
 - WinUI 3 receiver with a full Mica canvas and native Fluent controls on Windows 11 22H2+, with a classic WinForms fallback.
@@ -13,7 +13,7 @@
 - Published WinUI XAML resources, preventing a startup crash caused by omitted app XBF/PRI files.
 - Activation recovery after disconnected clients or callback errors, bounded installer shutdown and native Opus packaging.
 
-See [release evidence and remaining acceptance gates](docs/releases/1.7.0/release.md). Android is debug-signed and Windows is unsigned; Apple physical development acceptance targets 1.7.1.
+See [release evidence and remaining acceptance gates](docs/releases/0.1.7/release.md). Android is debug-signed and Windows is unsigned; Apple physical development acceptance targets 0.1.8.
 
 ## [0.1.6] - Archived development baseline
 

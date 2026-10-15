@@ -1,6 +1,6 @@
 # Windows interface and lifecycle
 
-Status: current implementation guide based on 1.7.0. Detailed reproduction history and dated acceptance remain in the [Mica release record](releases/1.7.0/mica.md).
+Status: current implementation guide based on 0.1.7. Detailed reproduction history and dated acceptance remain in the [Mica release record](releases/0.1.7/mica.md).
 
 ## Modern canvas and compatibility
 
@@ -24,4 +24,4 @@ The Windows package includes the Android-derived multi-size icon for executable,
 
 ## Verification boundary
 
-The release owner confirmed the corrected Mica appearance, close-to-tray and Start-menu reactivation for 1.7.0. Native paint/activation tests and the full suite provide separate deterministic evidence. High contrast, older Windows, mixed DPI, accessibility, scrolling/theme transitions and prolonged sessions require the relevant [manual checks](testing.md); do not expand a source or unit-test pass into visual acceptance.
+The release owner confirmed the corrected Mica appearance, close-to-tray and Start-menu reactivation for 0.1.7. Native paint/activation tests and the full suite provide separate deterministic evidence. High contrast, older Windows, mixed DPI, accessibility, scrolling/theme transitions and prolonged sessions require the relevant [manual checks](testing.md); do not expand a source or unit-test pass into visual acceptance.
