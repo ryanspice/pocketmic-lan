@@ -1,6 +1,21 @@
 # Changelog
 
-## [0.1.6] - Unreleased
+## [1.7.0] - 2026-10-15
+
+### Added
+- WinUI 3 receiver with a full Mica canvas and native Fluent controls on Windows 11 22H2+, with a classic WinForms fallback.
+- Android-derived Windows icon, persistent tray presence, single-instance window activation and graceful updater shutdown.
+- Per-user installer with nested-payload checksums, previous-version backup, rollback and Desktop/Start Menu shortcuts.
+
+### Fixed
+- Android authenticated same-host port recovery, control-socket network-bind failure handling and DSP destination ownership after reconnect.
+- Native Windows Mica alpha painting and failure cleanup in the compatibility interface.
+- Published WinUI XAML resources, preventing a startup crash caused by omitted app XBF/PRI files.
+- Activation recovery after disconnected clients or callback errors, bounded installer shutdown and native Opus packaging.
+
+See [release evidence and remaining acceptance gates](RELEASE-1.7.0.md). Android is debug-signed and Windows is unsigned; Apple physical development acceptance targets 1.7.1.
+
+## [0.1.6] - Archived development baseline
 
 ### Added
 - Experimental iOS PCM streaming client and GitHub Actions simulator build artifact.

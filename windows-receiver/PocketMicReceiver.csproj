@@ -9,6 +9,7 @@
     <RootNamespace>PocketMicReceiver</RootNamespace>
     <Version>1.7.0</Version>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\PocketMic.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>

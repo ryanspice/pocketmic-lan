@@ -12,7 +12,8 @@ Release scope approved by the owner on 2026-10-14; prepared 2026-10-15.
 
 ## Changes
 
-- Windows 11 22H2+ Mica title bar and gutter with high-contrast/older-Windows fallback; opaque native controls remain readable.
+- Windows 11 22H2+ WinUI 3 receiver with a Mica canvas, transparent page containers, native Fluent controls and system theme resources. Older Windows retains the classic interface; `--classic --show` selects it explicitly.
+- Android-derived Windows executable, tray and shortcut icons. The tray stays present; X hides the window, and subsequent launches restore the same receiver through current-user/session activation. Explicit Exit stops audio and restores owned microphone assignments.
 - Per-user Windows installer checks package hashes, preserves settings and the previous installation, and creates Desktop/Start Menu shortcuts. Explicit opening uses `--show`; configured minimized startup remains supported.
 - Windows package includes pinned Opus 1.5.2 and licence notices. Receiver shutdown waits for its receive tasks before disposing the decoder.
 - Combined Available PCs, QR permission flow, custom-port discovery, fresh authenticated announcements, persisted codec choice and the newer control/audio fixes.
@@ -51,21 +52,27 @@ Fresh, bounded reviews examined the 1.7.0 candidate at `5fc174e`, including the 
 
 ## Windows Mica
 
-[Dedicated implementation, defect reproduction and verification record](WINDOWS-MICA-1.7.0.md). Mica covers the Windows 11 title bar and a bounded DPI-scaled gutter. Opaque controls, high-contrast/older-Windows policy, repeated native failures and handle recreation are tested separately. Actual compositor appearance and real multi-monitor/accessibility settings remain distinct from injected policy coverage.
+[Dedicated implementation, defect reproduction and verification record](WINDOWS-MICA-1.7.0.md). The final modern interface uses a native WinUI Mica backdrop across the window canvas. Native Fluent controls and translucent theme-resource cards replace the earlier WinForms body. The classic fallback retains its bounded native Mica gutter and opaque controls.
 
-Owner feedback on `29e7ae9` identified readable controls but no visible Mica despite successful API tests. A native 32-bit DIB reproduction found the gutter was painted opaque by GDI+, masking the material. The final correction uses native zero-alpha gutter painting, preserves an explicit opaque center, follows the native caption dark-mode policy and reapplies on activation. Sixteen Mica cases now exercise the actual native paint boundary; the earlier managed-bitmap checks did not prove correct alpha. Final installed appearance remains a separate receipt.
+Owner feedback on `29e7ae9` identified readable controls but no visible Mica despite successful API tests. A native 32-bit DIB reproduction found the gutter was painted opaque by GDI+, masking the material. Native zero-alpha gutter painting corrected that fallback; sixteen Mica cases exercise the actual native paint boundary. The owner then requested a full native Mica canvas, leading to the WinUI front end. Its first installed launch exposed missing published XAML resources; explicit app XBF/PRI publishing and fail-fast package checks corrected the crash. The owner confirmed the corrected appearance and subsequently confirmed that closing leaves the tray icon and Start Menu activation restores the window.
+
+## Final Windows review and integration
+
+- The native Windows implementation agent and a separate independent reviewer examined startup, SHOW/EXIT dispatch, stop coordination, monitor transitions, reversible routing and stale queued updates. The current native review agents used the inherited Astra runtime; these rounds are not claimed as additional Sol or Opus runs.
+- Root review corrected clipboard/QR failure handling, explicit SHOW during auto-start, successful monitor-device persistence, queued updates after stop and restart during teardown. The independent source pass found no further actionable defect; installed execution then exposed and verified the publish-resource correction.
+- Activation tests reproduced disconnected-client listener poisoning and callback-failure lock handling. Both are corrected; the full Windows suite now has 211 passing tests. Live SHOW returned the exact OK acknowledgement, a second installed launch retained the existing process, and graceful EXIT completed before replacing the development preview.
+- The package includes the modern runtime recursively, verifies hashes and safe relative paths, retains the previous installation, and requests graceful installed-app shutdown before bounded legacy handling. Fault injection covers nested staging, unsafe paths, corruption, rollback and shutdown behavior.
 
 ## Build and installation evidence
 
-Local Windows Release tests: 194 passed, including native Opus and 16 Mica lifecycle/fallback/painting cases. Local Android JVM tests: 105 passed; lint and all three native ABI builds passed with the transport and DSP fixes. Installer fault injection confirmed rollback and staging cleanup after failed activation, tolerance of an inaccessible unrelated process, bounded shutdown before any existing installation is moved, and corrupt-payload rejection. Version, locale, protocol and website checks passed. The release tag is gated on all hosted workflows passing at the final commit; the GitHub release records that commit and its build receipts. Local logs and artifacts are under the ignored `release/audit-1.7/` and `release/` directories.
+Local Windows Release tests: 211 passed, including native Opus, activation lifecycle and 16 classic Mica cases. Local Android JVM tests: 105 passed; lint and all three native ABI builds passed with the transport and DSP fixes. Full modern/classic publishing and installer fault-injection checks passed. Version, locale, protocol and website checks passed. The release tag is gated on all hosted workflows passing at the final commit; the GitHub release records that commit and its build receipts. Local logs and artifacts are under the ignored `release/audit-1.7/` and `release/` directories.
 
 The Windows install preserves `%APPDATA%\PocketMic\receiver.json`. Extract the Windows ZIP and run `Install-PocketMic.cmd`; the installer creates Desktop and Start Menu shortcuts. Android uses `com.canopydigital.pocketmic`, which installs separately from v0.1.5's `com.ryanspice.pocketmic`; stop the old transmitter and pair the new app because settings are not migrated automatically. The release APK is debug-signed: independently built debug APKs may use different signing certificates and cannot necessarily update it. The Windows receiver is unsigned. Hashes detect corruption; they do not replace code signing.
 
 ## Open acceptance gates
 
-- Physical end-to-end PCM/Opus audio, target-app/VB-CABLE routing, prolonged screen-locked sessions, reconnect behavior and measured latency require device receipts. Installation, process startup and unit tests do not establish those outcomes.
+- Authenticated PCM packet delivery and phone delivery confirmation were observed on the connected OnePlus and Windows receiver. Audible target-app/VB-CABLE routing, sustained Opus audio, prolonged screen-locked sessions and measured latency still require physical receipts.
 - Apple simulator/build/protocol/package checks do not establish physical installation or live virtual-microphone routing. TestFlight, App Store and notarization remain unconfigured.
 - Kurdish drafts and newly added English fallback pairing text require fluent review; Windows localization is not implemented.
 - The marketing site still describes the previous published release. This app release does not claim a website deployment or translated-site acceptance.
-- A full WinUI/Fluent redesign is outside the targeted Mica correction; keep further UI improvements bounded by live visual/accessibility acceptance.
-
+- Real high contrast, transparency-disabled settings, older Windows, mixed-DPI monitors and keyboard/screen-reader acceptance remain manual Windows checks. Mica and tray/Start behavior were confirmed by the owner; no automated final screenshot is claimed after Computer Use was stopped with Escape.

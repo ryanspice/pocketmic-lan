@@ -1,0 +1,22 @@
+<Application x:Class="PocketMicReceiver.WinUI.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Application.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <XamlControlsResources xmlns="using:Microsoft.UI.Xaml.Controls" />
+      </ResourceDictionary.MergedDictionaries>
+      <Style x:Key="ReceiverCardStyle" TargetType="Border">
+        <Setter Property="Background" Value="{ThemeResource CardBackgroundFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{ThemeResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
+      </Style>
+      <Style x:Key="ReceiverChartLineStyle" TargetType="Polyline">
+        <Setter Property="Stroke" Value="{ThemeResource TextFillColorPrimaryBrush}" />
+        <Setter Property="StrokeThickness" Value="2" />
+      </Style>
+    </ResourceDictionary>
+  </Application.Resources>
+</Application>

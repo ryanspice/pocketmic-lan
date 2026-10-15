@@ -22,13 +22,13 @@ public sealed class AnalyticsPanel : UserControl
     // unbounded amount of data for a receiver that might run for hours.
     private const int HistoryCapacity = 180;
 
-    private static readonly Color PanelBackground = Color.FromArgb(242, 245, 247);
-    private static readonly Color GridColor = Color.FromArgb(220, 224, 227);
-    private static readonly Color LossColor = Color.FromArgb(214, 69, 69);
-    private static readonly Color JitterColor = Color.FromArgb(53, 116, 209);
-    private static readonly Color BufferColor = Color.FromArgb(56, 158, 107);
-    private static readonly Color TextColor = Color.FromArgb(38, 42, 46);
-    private static readonly Color MutedColor = Color.FromArgb(118, 126, 134);
+    private ReceiverTheme _theme = ReceiverTheme.FromSystem();
+    private Color GridColor => _theme.Border;
+    private Color LossColor => _theme.Error;
+    private Color JitterColor => _theme.ChartBlue;
+    private Color BufferColor => _theme.Success;
+    private Color TextColor => _theme.Text;
+    private Color MutedColor => _theme.Muted;
 
     private readonly List<WindowStats> _history = new(HistoryCapacity);
     private WindowStats? _latestOneMinute;
@@ -37,9 +37,17 @@ public sealed class AnalyticsPanel : UserControl
     public AnalyticsPanel()
     {
         DoubleBuffered = true;
-        BackColor = PanelBackground;
+        BackColor = _theme.Surface;
         MinimumSize = new Size(360, 220);
         Font = new Font("Segoe UI", 9F);
+    }
+
+    internal void ApplyTheme(ReceiverTheme theme)
+    {
+        _theme = theme;
+        BackColor = theme.Surface;
+        ForeColor = theme.Text;
+        Invalidate();
     }
 
     /// <summary>

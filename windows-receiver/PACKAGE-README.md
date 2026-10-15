@@ -1,6 +1,6 @@
 # PocketMic LAN — Windows receiver
 
-This x64 Windows preview receives encrypted audio from PocketMic over your private local network. The ZIP is self-contained; you do not need to install .NET separately. The Windows preview is not code-signed.
+This x64 Windows preview receives encrypted audio from PocketMic over your private local network. The ZIP includes .NET and the Windows App SDK; you do not need to install either runtime separately. The Windows preview is not code-signed.
 
 ## Try audio through your speakers
 
@@ -25,6 +25,8 @@ VB-CABLE is third-party software and is not included in this ZIP. The receiver's
 - If the phone cannot discover the PC, start the receiver first, verify its displayed IP and port, and use manual entry.
 - Select the PC speakers first to separate receiver playback issues from VB-CABLE or target-app routing issues.
 - `opus.dll` enables Opus v2 reception. PCM v1 remains available if the native decoder is unavailable.
-- Windows 11 22H2 and newer can display Mica in the title bar and outer gutter. WinForms controls remain opaque for readable text; older Windows and high contrast use the standard frame.
+- Windows 11 22H2 and newer open the WinUI 3 interface with Mica as the window canvas and native Fluent controls. Windows manages its light/dark, accessibility and material fallback policy. Older Windows opens the classic interface; `PocketMicReceiver.exe --classic --show` explicitly selects it for troubleshooting.
+- Keep the `modern` directory with the main executable. It contains the modern interface and its runtime.
+- Opening PocketMic again brings the existing receiver forward. Closing the window leaves it running in the notification area; choose **Exit** from the PocketMic tray menu to stop it. The tray icon remains present while the window is visible too.
 
 For current project information and source, visit [PocketMic LAN on GitHub](https://github.com/ryanspice/pocketmic-lan). License notices are in the accompanying `PocketMic-LICENSE.txt` and `THIRD-PARTY-NOTICES.txt`; `OPUS-COPYING.txt` is also included when `opus.dll` is present.

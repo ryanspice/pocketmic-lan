@@ -2,6 +2,14 @@
 
 The Windows receiver includes the following third-party components:
 
+## Microsoft Windows App SDK 2.5.1 and .NET 8
+
+The modern Windows interface includes the self-contained Windows App SDK runtime. Its Microsoft software license terms and third-party notices are included in `modern/WINDOWS-APP-SDK-LICENSE.txt` and `modern/WINDOWS-APP-SDK-NOTICE.txt`.
+Project: https://github.com/microsoft/WindowsAppSDK
+
+The package includes the .NET 8 runtime. Its license and notices are included in `modern/` with the `Microsoft.NETCore.App-` and `Microsoft.WindowsDesktop.App-` filename prefixes.
+Project: https://github.com/dotnet/runtime
+
 ## NAudio 2.3.0
 
 Copyright 2020 Mark Heath. Licensed under the MIT License.

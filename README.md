@@ -16,7 +16,7 @@ PocketMic turns an Android phone into an encrypted wireless microphone for a Win
 
 ### Release and source status
 
-The consolidated `main` source is **1.7.0**, covering Windows and Android fixes, native Opus packaging, a per-user Windows installer, and a Windows 11 Mica frame. The previous development candidate is archived as `v0.1.6`. A release tag is created only after the candidate workflows pass; consult GitHub Releases for published download availability. See [the 1.7 release plan and verification record](RELEASE-1.7.0.md).
+The consolidated `main` source is **1.7.0**, covering Windows and Android fixes, native Opus packaging, a per-user Windows installer, and a WinUI 3 receiver with a Windows 11 Mica canvas. The previous development candidate is archived as `v0.1.6`. A release tag is created only after the candidate workflows pass; consult GitHub Releases for published download availability. See [the 1.7 release plan and verification record](RELEASE-1.7.0.md).
 
 The Android application ID is now `com.canopydigital.pocketmic`: it installs separately from v0.1.5 (`com.ryanspice.pocketmic`) and does not migrate its pairing settings. Android builds are debug-signed; Windows packages are unsigned. Apple source is retained and checked in CI, with macOS/iOS development acceptance targeted for **1.7.1**. These are not App Store, TestFlight, or notarized installers.
 
@@ -34,7 +34,7 @@ The Android application ID is now `com.canopydigital.pocketmic`: it installs sep
 | Component | Stack | Description |
 |-----------|-------|-------------|
 | Android transmitter | Kotlin, Jetpack Compose | Foreground microphone service with QR pairing |
-| Windows receiver | C#/.NET 8, WinForms, NAudio 2.3 | Audio playback with voice processing |
+| Windows receiver | C#/.NET 8, WinUI 3 with WinForms fallback, NAudio 2.3 | Audio playback with voice processing |
 | macOS receiver preview | SwiftUI, CoreAudio Audio Server Plug-in | Unsigned PCM v1 receiver and virtual microphone under physical-Mac testing; see [macOS preview setup](macos/README.md) |
 | Wire protocol | UDP, AES-256-GCM | v1: PCM16 (768 kbit/s), v2: Opus (~106 kbit/s), 10 ms packets |
 | Control channel | HMAC-SHA256 | Discovery, statistics, DSP config on `audioPort + 1` |
@@ -53,6 +53,8 @@ Additional capabilities:
 - Wi-Fi lock policy (LOW_LATENCY / HIGH_PERF) fed by live network state
 - Pairing key encrypted at rest on Android (EncryptedSharedPreferences)
 - Session diagnostics with exportable Markdown reports
+- Windows 11 22H2+ Mica canvas and native Fluent controls, with a classic interface on older Windows
+- Persistent notification-area icon; opening the app again restores its existing window
 - Build, firewall, protocol, and source verification tools
 
 ## Screenshots
@@ -218,7 +220,8 @@ An active Apple Developer Program membership and an App Store Connect app record
 
 ```text
 android/                 Kotlin Android transmitter
-windows-receiver/        C# WinForms receiver UI
+windows-receiver/        C# launcher and WinForms compatibility UI
+windows-receiver-winui/  C# WinUI 3 receiver and Mica canvas
 windows-receiver-core/   C# shared engine, audio pipeline, protocol
 windows-receiver-tests/  C# xUnit and native codec tests
 scripts/                 PowerShell build, publish, and firewall helpers

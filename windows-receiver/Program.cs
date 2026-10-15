@@ -13,81 +13,56 @@ namespace PocketMicReceiver;
 
 internal static class Program
 {
-    /// <summary>
-    /// Held for as long as this process intends to be the one running receiver. Kept in a static
-    /// so the garbage collector cannot finalize it — releasing the mutex would let a second
-    /// receiver start while this one is still holding the sockets.
-    /// </summary>
-    private static Mutex? _instanceLock;
-    internal static bool ShowWindow { get; private set; }
+    private static int _showWindow;
+    internal static bool ShowWindow => Volatile.Read(ref _showWindow) != 0;
 
     [STAThread]
     private static void Main(string[] args)
     {
-        ShowWindow = args.Contains("--show", StringComparer.OrdinalIgnoreCase);
+        _showWindow = args.Contains("--show", StringComparer.OrdinalIgnoreCase) ? 1 : 0;
+        if (args.Contains("--exit-for-update", StringComparer.OrdinalIgnoreCase))
+        {
+            var accepted = ReceiverActivation.RequestExitAsync(installationDirectory: AppContext.BaseDirectory).GetAwaiter().GetResult();
+            Environment.ExitCode = accepted ? 0 : 3;
+            return;
+        }
         ApplicationConfiguration.Initialize();
+        if (ModernReceiverLauncher.TryLaunch(args)) return;
 
-        // Before any window exists, because a receiver that fails to bind reports a socket error
-        // that says nothing about the real cause. Two front ends sharing one settings file and
-        // one pair of UDP ports cost a live debugging session: the second silently lost the
-        // bind, and the phone reported "no reply from PC" with nothing actually wrong.
-        if (!EnsureSoleReceiver()) return;
-
-        Application.Run(new MainForm());
-    }
-
-    /// <summary>
-    /// Makes sure no other receiver is holding the sockets before this one tries to bind them.
-    ///
-    /// The other instance is asked about rather than closed silently — it may be mid-call — and
-    /// declining exits, because two receivers on one machine is the situation this prevents.
-    /// <see cref="ReceiverSettings.SilentTakeover"/> skips the question for the launcher path,
-    /// where the user has already chosen which front end they want.
-    /// </summary>
-    /// <returns>False when the user chose to leave the other instance running and exit.</returns>
-    private static bool EnsureSoleReceiver()
-    {
-        var settings = ReceiverSettings.Load();
-        var others = SingleInstance.FindOthers();
-
-        if (others.Count == 0)
+        MainForm? window = null;
+        var activation = ReceiverActivation.StartOrActivateAsync(() =>
         {
-            // Nothing to negotiate with. If the run lock was refused anyway, its holder is a
-            // receiver this build cannot see, and the port bind will describe that far more
-            // accurately than a guess would.
-            _instanceLock = SingleInstance.TryAcquire();
-            return true;
+            Volatile.Write(ref _showWindow, 1);
+            var current = Volatile.Read(ref window);
+            if (current is { IsHandleCreated: true, IsDisposed: false })
+            {
+                try { current.BeginInvoke(new Action(current.RestoreFromTray)); }
+                catch (InvalidOperationException) { /* The UI is closing. */ }
+            }
+        }, requestExit: () =>
+        {
+            var current = Volatile.Read(ref window);
+            if (current is { IsHandleCreated: true, IsDisposed: false })
+            {
+                try { current.BeginInvoke(new Action(current.RequestExit)); }
+                catch (InvalidOperationException) { /* The UI is already closing. */ }
+            }
+        }).GetAwaiter().GetResult();
+        using var lifetime = activation.Instance;
+        if (activation.Status != ReceiverActivationStatus.Primary)
+        {
+            if (activation.Status == ReceiverActivationStatus.ExistingUnresponsive)
+                MessageBox.Show("PocketMic is already running but is not responding yet. Try opening it again shortly.",
+                    "PocketMic", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
         }
 
-        if (!settings.SilentTakeover)
-        {
-            var answer = MessageBox.Show(
-                others.Any(instance => !instance.IsClassic)
-                    ? "The new PocketMic receiver is already running and is holding the network ports this app needs.\r\n\r\nClose it and continue?"
-                    : "Another copy of PocketMic Receiver is already running and is holding the network ports this app needs.\r\n\r\nClose it and continue?",
-                "PocketMic is already running",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question,
-                MessageBoxDefaultButton.Button1);
-
-            if (answer != DialogResult.Yes) return false;
-        }
-
-        if (!SingleInstance.CloseOthersAsync(settings.Port).GetAwaiter().GetResult())
-        {
-            MessageBox.Show(
-                "The other receiver did not release the network ports.\r\n\r\n" +
-                "Close it from its own window or the notification area, then start this one again.",
-                "PocketMic",
-                MessageBoxButtons.OK,
-                MessageBoxIcon.Warning);
-        }
-
-        _instanceLock = SingleInstance.TryAcquire();
-        return true;
+        using var form = new MainForm();
+        Volatile.Write(ref window, form);
+        Application.Run(form);
+        Volatile.Write(ref window, null);
     }
 }
-
 /// <summary>
 /// The WinForms front end. It owns layout, device selection, settings and the tray icon, and
 /// nothing else: the sockets, audio devices and counters live in <see cref="PocketMicEngine"/>
@@ -100,6 +75,7 @@ internal static class Program
 internal sealed class MainForm : MicaForm
 {
     private const int DefaultPrebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
+    private ReceiverTheme _theme = ReceiverTheme.FromSystem();
 
     private readonly PocketMicEngine _engine = new();
     private readonly CaptureDefaultRouting _captureRouting = DefaultDeviceSwitcher.CreateRoutingController();
@@ -133,13 +109,6 @@ internal sealed class MainForm : MicaForm
     };
     private readonly Label _bufferLabel = new() { AutoSize = true };
     private readonly Label _effectiveBufferLabel = new() { AutoSize = true };
-    private readonly CheckBox _minimizeToTrayCheck = new()
-    {
-        Text = "Close to tray instead of exiting",
-        AutoSize = true,
-        Checked = true,
-    };
-
     private readonly NotifyIcon _trayIcon = new() { Visible = false };
     private bool _exitRequested;
 
@@ -201,7 +170,7 @@ internal sealed class MainForm : MicaForm
     };
 
     private readonly ReceiverSettings _settings = ReceiverSettings.Load();
-    private readonly Button _startButton = new() { Text = "Start receiver", AutoSize = true };
+    private readonly Button _startButton = new() { Text = "Start receiver", AutoSize = true, Tag = ThemeRole.Primary };
     private readonly Button _copyIpButton = new() { Text = "Copy first IP", AutoSize = true };
     private readonly Button _showQrButton = new() { Text = "Show QR for phone", AutoSize = true };
     private readonly Label _statusLabel = new() { Text = "Stopped", AutoSize = true };
@@ -239,6 +208,7 @@ internal sealed class MainForm : MicaForm
     public MainForm()
     {
         Text = "PocketMic Receiver";
+        Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? SystemIcons.Application;
         MinimumSize = new Size(860, 540);
         StartPosition = FormStartPosition.CenterScreen;
         Font = new Font("Segoe UI", 10F);
@@ -258,7 +228,7 @@ internal sealed class MainForm : MicaForm
         {
             Text = "PocketMic Receiver",
             Font = new Font(Font.FontFamily, 21F, FontStyle.Bold),
-            ForeColor = GoldInk,
+            Tag = ThemeRole.Accent,
             AutoSize = true,
             Margin = new Padding(0, 0, 0, 4),
         };
@@ -268,7 +238,7 @@ internal sealed class MainForm : MicaForm
         {
             Text = "Receives encrypted microphone audio from the Android app over your local network.",
             AutoSize = true,
-            ForeColor = Color.DimGray,
+            Tag = ThemeRole.Muted,
             Margin = new Padding(0, 0, 0, 18),
         });
 
@@ -279,11 +249,19 @@ internal sealed class MainForm : MicaForm
         root.Controls.Add(addressSection);
         RefreshLocalAddresses();
         root.Controls.Add(_addressesText);
-        root.Controls.Add(_copyIpButton);
-        root.Controls.Add(_showQrButton);
+        var pairingActions = new FlowLayoutPanel
+        {
+            AutoSize = true,
+            Dock = DockStyle.Top,
+            WrapContents = true,
+            Margin = new Padding(0, 6, 0, 18),
+        };
+        pairingActions.Controls.Add(_copyIpButton);
+        pairingActions.Controls.Add(_showQrButton);
+        root.Controls.Add(pairingActions);
         _advancedControls.AddRange(new Control[] { addressSection, _addressesText, _copyIpButton });
-        _copyIpButton.Margin = new Padding(0, 6, 6, 18);
-        _showQrButton.Margin = new Padding(0, 6, 0, 18);
+        _copyIpButton.Margin = new Padding(0, 0, 8, 0);
+        _showQrButton.Margin = Padding.Empty;
         _copyIpButton.Click += (_, _) =>
         {
             var first = GetLocalIpv4Addresses().FirstOrDefault();
@@ -327,8 +305,7 @@ internal sealed class MainForm : MicaForm
         _makeDefaultMicButton.Click += (_, _) => MakeVirtualCableDefaultMicrophone();
         _outputCombo.SelectedIndexChanged += (_, _) => DescribeRouting(_outputCombo.SelectedItem as DeviceItem);
         root.Controls.Add(_autoListenCheck);
-        root.Controls.Add(_minimizeToTrayCheck);
-        _advancedControls.AddRange(new Control[] { connectionGrid, _autoListenCheck, _minimizeToTrayCheck });
+        _advancedControls.AddRange(new Control[] { connectionGrid, _autoListenCheck });
 
         var bufferSection = SectionLabel("Jitter buffer");
         root.Controls.Add(bufferSection);
@@ -374,10 +351,10 @@ internal sealed class MainForm : MicaForm
             WrapContents = false,
             Padding = new Padding(12),
             Margin = new Padding(0, 16, 0, 16),
-            BackColor = WarmPaper,
+            Tag = ThemeRole.Surface,
         };
         _statusLabel.Font = new Font(Font.FontFamily, 11F, FontStyle.Bold);
-        _statusLabel.ForeColor = GoldInk;
+        _statusLabel.Tag = ThemeRole.Accent;
         statusPanel.Controls.Add(_statusLabel);
         statusPanel.Controls.Add(_sourceLabel);
         statusPanel.Controls.Add(_statsLabel);
@@ -396,7 +373,7 @@ internal sealed class MainForm : MicaForm
             Text = "For Discord, Teams, OBS, or games: select CABLE Input as the playback output here, then select CABLE Output as the microphone in the target app. For a quick test, select your speakers instead.",
             AutoSize = true,
             MaximumSize = new Size(780, 0),
-            ForeColor = Color.DimGray,
+            Tag = ThemeRole.Muted,
             Margin = new Padding(0, 12, 0, 0),
         });
 
@@ -405,7 +382,24 @@ internal sealed class MainForm : MicaForm
         // or it would stay on screen in Basic mode until the checkbox was next toggled.
         ApplyAdvancedMode();
 
+        SystemAppearanceChanged += (_, _) => ApplyContentTheme();
+        ApplyContentTheme();
+
         FormClosing += HandleFormClosing;
+    }
+
+    private void ApplyContentTheme()
+    {
+        _theme = ReceiverTheme.FromSystem();
+        SuspendLayout();
+        try { _theme.Apply(this); }
+        finally { ResumeLayout(true); }
+    }
+
+    private void SetTone(Label label, ThemeRole role)
+    {
+        label.Tag = role;
+        label.ForeColor = _theme.Foreground(role);
     }
 
     /// <summary>
@@ -429,7 +423,7 @@ internal sealed class MainForm : MicaForm
         if (_activeCaptureRoute is not null)
         {
             _routingLabel.Text = $"Windows default microphone remains \"{_activeCaptureRouteName ?? "the previously selected virtual endpoint"}\". If playback now goes somewhere else, destination apps will not receive PocketMic audio. Restore before routing a different cable.";
-            _routingLabel.ForeColor = Color.DarkGreen;
+            SetTone(_routingLabel, ThemeRole.Success);
             _makeDefaultMicButton.Enabled = true;
             _makeDefaultMicButton.Text = "Restore previous Windows microphone";
             return;
@@ -444,7 +438,7 @@ internal sealed class MainForm : MicaForm
             if (resolution.Endpoint is { } endpoint)
             {
                 _routingLabel.Text = $"\"{renderName}\" maps to the matching microphone endpoint \"{endpoint.FriendlyName}\". You can route Windows defaults to that microphone.";
-                _routingLabel.ForeColor = Color.DarkGreen;
+                SetTone(_routingLabel, ThemeRole.Success);
                 _makeDefaultMicButton.Enabled = true;
                 _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
                 return;
@@ -456,14 +450,14 @@ internal sealed class MainForm : MicaForm
                 : resolution.Matches.Count > 1
                     ? $"More than one microphone endpoint is named \"{expected}\". Automatic routing is disabled; choose the correct microphone manually."
                     : $"The matching microphone endpoint \"{expected}\" is not active. Automatic routing is disabled; select a microphone manually in Windows Sound settings.";
-            _routingLabel.ForeColor = Color.DarkOrange;
+            SetTone(_routingLabel, ThemeRole.Warning);
             _makeDefaultMicButton.Enabled = false;
             _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
             return;
         }
 
         _routingLabel.Text = "No active playback output could be identified. Select a microphone manually in the destination app.";
-        _routingLabel.ForeColor = Color.DarkOrange;
+        SetTone(_routingLabel, ThemeRole.Warning);
         _makeDefaultMicButton.Enabled = false;
         _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
     }
@@ -507,7 +501,7 @@ internal sealed class MainForm : MicaForm
                 _makeDefaultMicButton.Text = "Use PocketMic as Windows microphone";
                 DescribeRouting(_outputCombo.SelectedItem as DeviceItem);
                 _routingLabel.Text = "The previous Windows microphone assignment has been restored for each role.";
-                _routingLabel.ForeColor = Color.DimGray;
+                SetTone(_routingLabel, ThemeRole.Muted);
             }
             else
             {
@@ -535,7 +529,7 @@ internal sealed class MainForm : MicaForm
             _activeCaptureRoute = route;
             _activeCaptureRouteName = endpoint.FriendlyName;
             _routingLabel.Text = $"\"{endpoint.FriendlyName}\" is now the Windows default microphone for all three roles. Apps using System Default can receive PocketMic audio.";
-            _routingLabel.ForeColor = Color.DarkGreen;
+            SetTone(_routingLabel, ThemeRole.Success);
             _makeDefaultMicButton.Text = "Restore previous Windows microphone";
             _makeDefaultMicButton.Enabled = true;
         }
@@ -555,16 +549,10 @@ internal sealed class MainForm : MicaForm
     {
         Text = text,
         Font = new Font("Segoe UI", 11F, FontStyle.Bold),
-        ForeColor = GoldInk,
+        Tag = ThemeRole.Accent,
         AutoSize = true,
         Margin = new Padding(0, 0, 0, 6),
     };
-
-    // Warm paper + gold, matching the design system used by the Android app and the web
-    // surface (rgba(184,138,59) accent on a paper background).
-    private static readonly Color GoldInk = Color.FromArgb(138, 101, 35);
-    private static readonly Color Gold = Color.FromArgb(184, 138, 59);
-    private static readonly Color WarmPaper = Color.FromArgb(246, 241, 231);
 
     private void ApplySettings()
     {
@@ -572,7 +560,6 @@ internal sealed class MainForm : MicaForm
         _portText.Text = _settings.Port.ToString();
         _keyText.Text = _settings.PairingKey;
         _autoListenCheck.Checked = _settings.AutoListen;
-        _minimizeToTrayCheck.Checked = _settings.MinimizeToTray;
         var savedBuffer = Math.Clamp(_settings.PrebufferMilliseconds, _bufferSlider.Minimum, _bufferSlider.Maximum);
         var savedAutomaticBuffering = _settings.AutomaticBuffering;
         _automaticBufferingCheck.Checked = savedAutomaticBuffering;
@@ -679,8 +666,7 @@ internal sealed class MainForm : MicaForm
             if (!Program.ShowWindow && _settings.StartMinimized &&
                 (!_autoListenCheck.Checked || _engine.IsRunning))
             {
-                if (_settings.MinimizeToTray) HideToTray();
-                else WindowState = FormWindowState.Minimized;
+                HideToTray();
             }
         };
     }
@@ -699,7 +685,7 @@ internal sealed class MainForm : MicaForm
             {
                 if (runId != _runId || !_engine.IsRunning) return;
                 _statusLabel.Text = update.Message;
-                _statusLabel.ForeColor = StatusColor(update.Status);
+                SetTone(_statusLabel, StatusTone(update.Status));
             });
         };
 
@@ -770,14 +756,14 @@ internal sealed class MainForm : MicaForm
             {
                 if (runId != _runId) return;
                 _linkQualityLabel.Text = text;
-                _linkQualityLabel.ForeColor = assessment.Tier switch
+                SetTone(_linkQualityLabel, assessment.Tier switch
                 {
-                    LinkQualityPolicy.LinkTier.Excellent => System.Drawing.Color.DarkGreen,
-                    LinkQualityPolicy.LinkTier.Good => Gold,
-                    LinkQualityPolicy.LinkTier.Degraded => System.Drawing.Color.DarkOrange,
-                    LinkQualityPolicy.LinkTier.Poor => System.Drawing.Color.Firebrick,
-                    _ => SystemColors.ControlText,
-                };
+                    LinkQualityPolicy.LinkTier.Excellent => ThemeRole.Success,
+                    LinkQualityPolicy.LinkTier.Good => ThemeRole.Accent,
+                    LinkQualityPolicy.LinkTier.Degraded => ThemeRole.Warning,
+                    LinkQualityPolicy.LinkTier.Poor => ThemeRole.Error,
+                    _ => ThemeRole.Default,
+                });
             });
         };
 
@@ -807,19 +793,19 @@ internal sealed class MainForm : MicaForm
         };
     }
 
-    private static Color StatusColor(EngineStatus status) => status switch
+    private static ThemeRole StatusTone(EngineStatus status) => status switch
     {
         // Listening and buffering are "active but waiting": gold, the brand accent, not yet
         // green. Receiving is the live state, and stays green.
-        EngineStatus.Listening or EngineStatus.Buffering => Gold,
-        EngineStatus.Receiving => Color.DarkGreen,
-        EngineStatus.ControlChannelUnavailable or EngineStatus.DatagramRejected => Color.DarkOrange,
+        EngineStatus.Listening or EngineStatus.Buffering => ThemeRole.Accent,
+        EngineStatus.Receiving => ThemeRole.Success,
+        EngineStatus.ControlChannelUnavailable or EngineStatus.DatagramRejected => ThemeRole.Warning,
 
         // A paused phone is amber and a lost one is red: the first is waited out, the second
         // means going and looking at the phone.
-        EngineStatus.PhonePaused => Color.DarkOrange,
-        EngineStatus.PhoneLost => Color.Firebrick,
-        _ => SystemColors.ControlText,
+        EngineStatus.PhonePaused => ThemeRole.Warning,
+        EngineStatus.PhoneLost => ThemeRole.Error,
+        _ => ThemeRole.Default,
     };
 
     /// <summary>
@@ -858,9 +844,7 @@ internal sealed class MainForm : MicaForm
     {
         // Closing the window while a stream is live should not silently kill the microphone
         // feed the user is relying on, so X hides to the tray unless Exit was chosen.
-        if (!_exitRequested &&
-            _minimizeToTrayCheck.Checked &&
-            e.CloseReason == CloseReason.UserClosing)
+        if (!_exitRequested && e.CloseReason == CloseReason.UserClosing)
         {
             e.Cancel = true;
             HideToTray();
@@ -953,33 +937,31 @@ internal sealed class MainForm : MicaForm
 
     private void SetUpTrayIcon()
     {
-        _trayIcon.Icon = SystemIcons.Application;
+        _trayIcon.Icon = Icon;
         _trayIcon.Text = "PocketMic Receiver";
 
         var menu = new ContextMenuStrip();
         menu.Items.Add("Show PocketMic", null, (_, _) => RestoreFromTray());
         menu.Items.Add(new ToolStripSeparator());
-        menu.Items.Add("Exit", null, (_, _) =>
-        {
-            _exitRequested = true;
-            Close();
-        });
+        menu.Items.Add("Exit", null, (_, _) => RequestExit());
         _trayIcon.ContextMenuStrip = menu;
         _trayIcon.DoubleClick += (_, _) => RestoreFromTray();
+        _trayIcon.Visible = true;
 
-        _minimizeToTrayCheck.CheckedChanged += (_, _) =>
-        {
-            _settings.MinimizeToTray = _minimizeToTrayCheck.Checked;
-            _settings.Save();
-        };
     }
 
-    private void RestoreFromTray()
+    internal void RequestExit()
+    {
+        _exitRequested = true;
+        Close();
+    }
+
+    internal void RestoreFromTray()
     {
         Show();
         WindowState = FormWindowState.Normal;
         ShowInTaskbar = true;
-        _trayIcon.Visible = false;
+        _trayIcon.Visible = true;
         Activate();
     }
 
@@ -1228,7 +1210,7 @@ internal sealed class MainForm : MicaForm
             _outputCombo.Enabled = true;
             _startButton.Text = "Start receiver";
             _statusLabel.Text = "Stopped";
-            _statusLabel.ForeColor = SystemColors.ControlText;
+            SetTone(_statusLabel, ThemeRole.Default);
             _sourceLabel.Text = "Phone: —";
             _statsLabel.Text = FormatStats(_engine.Stats);
         }
@@ -1340,14 +1322,14 @@ internal sealed class MainForm : MicaForm
         using var qrCode = new QRCode(qrData);
         using var bitmap = qrCode.GetGraphic(8);
 
-        using var form = new Form
+        using var form = new MicaForm
         {
             Text = "PocketMic — Scan with phone",
             StartPosition = FormStartPosition.CenterParent,
             FormBorderStyle = FormBorderStyle.FixedDialog,
             MaximizeBox = false,
             MinimizeBox = false,
-            ClientSize = new Size(bitmap.Width + 40, bitmap.Height + 80),
+            ClientSize = new Size(bitmap.Width + 64, bitmap.Height + 112),
         };
 
         var pictureBox = new PictureBox
@@ -1388,6 +1370,8 @@ internal sealed class MainForm : MicaForm
         };
         form.Controls.Add(addressChoice);
 
+        form.SystemAppearanceChanged += (_, _) => ReceiverTheme.FromSystem().Apply(form);
+        ReceiverTheme.FromSystem().Apply(form);
         form.ShowDialog(this);
         pictureBox.Image = null;
         selectedImage?.Dispose();

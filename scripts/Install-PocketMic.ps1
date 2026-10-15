@@ -16,12 +16,27 @@ if ($source.TrimEnd('\') -eq $destination.TrimEnd('\')) {
 }
 if (-not (Test-Path -LiteralPath $manifest -PathType Leaf)) { throw 'Package checksums are missing.' }
 $payload = @()
+$seen = [Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 foreach ($line in Get-Content -LiteralPath $manifest) {
-    if ($line -notmatch '^([a-fA-F0-9]{64})  ([^/\\:]+)$') { throw 'Invalid package checksum entry.' }
+    if ($line -notmatch '^([a-fA-F0-9]{64})  (.+)$') { throw 'Invalid package checksum entry.' }
     $hash = $Matches[1]
     $name = $Matches[2]
-    if ($name -in @('.', '..')) { throw 'Invalid package filename.' }
-    $path = Join-Path $source $name
+    # Nested modern-runtime files are allowed; absolute paths, traversal, streams and aliases are not.
+    $segments = $name -split '[/\\]'
+    if ($segments.Where({ $_ -in @('', '.', '..') -or $_ -match '[<>:"|?*\x00-\x1F]' -or $_ -match '[. ]$' }).Count) {
+        throw 'Invalid package filename.'
+    }
+    $name = $segments -join [IO.Path]::DirectorySeparatorChar
+    if (-not $seen.Add($name)) { throw 'Duplicate package filename.' }
+    $path = [IO.Path]::GetFullPath((Join-Path $source $name))
+    if (-not $path.StartsWith($source.TrimEnd('\') + '\', [StringComparison]::OrdinalIgnoreCase)) { throw 'Unsafe package path.' }
+    $ancestor = $path
+    while ($ancestor.Length -gt $source.Length) {
+        if ((Test-Path -LiteralPath $ancestor) -and ((Get-Item -LiteralPath $ancestor).Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+            throw 'Package files must not traverse links.'
+        }
+        $ancestor = [IO.Path]::GetDirectoryName($ancestor)
+    }
     if (-not (Test-Path -LiteralPath $path -PathType Leaf) -or
         (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ne $hash) {
         throw "Package checksum failed: $name"
@@ -42,15 +57,29 @@ $stage = Join-Path $programs ('.PocketMic-install-' + [Guid]::NewGuid().ToString
 New-Item -ItemType Directory -Path $stage | Out-Null
 try {
 foreach ($name in $payload) {
-    Copy-Item -LiteralPath (Join-Path $source $name) -Destination (Join-Path $stage $name)
+    $stagedFile = Join-Path $stage $name
+    New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($stagedFile)) -Force | Out-Null
+    Copy-Item -LiteralPath (Join-Path $source $name) -Destination $stagedFile
 }
 Copy-Item -LiteralPath $manifest -Destination (Join-Path $stage 'SHA256SUMS.txt')
 
 # Only stop the copy being updated. Do not touch a developer's separate receiver process.
-foreach ($process in @(Get-Process PocketMicReceiver -ErrorAction SilentlyContinue)) {
+$gracefulExitRequested = $false
+if ((Test-Path -LiteralPath (Join-Path $destination 'ACTIVATION-V1.txt')) -and
+    (Test-Path -LiteralPath $executable)) {
+    # New receivers hide on X. The explicit update command lets them stop audio and restore
+    # owned recording defaults before exit; legacy builds retain the bounded fallback below.
+    $exitRequest = Start-Process -FilePath $executable -ArgumentList '--exit-for-update' -WindowStyle Hidden -PassThru
+    try {
+        if (-not $exitRequest.WaitForExit(3000)) { $exitRequest.Kill() }
+        else { $gracefulExitRequested = $exitRequest.ExitCode -eq 0 }
+    } finally { $exitRequest.Dispose() }
+}
+foreach ($process in @(Get-Process PocketMicReceiver,PocketMicReceiver.WinUI -ErrorAction SilentlyContinue)) {
     # An unrelated same-named process may be owned by another user or exit during enumeration.
     try { $processPath = $process.Path } catch { continue }
-    if ($processPath -eq $executable) {
+    if ($processPath -eq $executable -or $processPath -eq (Join-Path $destination 'modern\PocketMicReceiver.WinUI.exe')) {
+        if ($gracefulExitRequested -and $process.WaitForExit(6000)) { continue }
         $null = $process.CloseMainWindow()
         if (-not $process.WaitForExit(3000)) {
             $process.Kill()
@@ -93,6 +122,7 @@ foreach ($folder in @([Environment]::GetFolderPath('DesktopDirectory'), [Environ
     $shortcut.Arguments = '--show'
     $shortcut.WorkingDirectory = $destination
     $shortcut.Description = 'PocketMic LAN receiver'
+    $shortcut.IconLocation = "$executable,0"
     $shortcut.Save()
 }
 } catch {

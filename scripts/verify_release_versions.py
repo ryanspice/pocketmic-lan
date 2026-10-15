@@ -26,7 +26,8 @@ def main() -> None:
     build = str(major * 10000 + minor * 100 + patch)
     assert value(r'versionCode = (\d+)', android) == build, "Android build number differs"
     for project in ("windows-receiver/PocketMicReceiver.csproj",
-                    "windows-receiver-core/PocketMicReceiver.Core.csproj"):
+                    "windows-receiver-core/PocketMicReceiver.Core.csproj",
+                    "windows-receiver-winui/PocketMicReceiver.WinUI.csproj"):
         assert ET.fromstring(read(project)).findtext(".//Version") == version, project
     for project in ("ios/project.yml", "macos/project.yml"):
         source = read(project)

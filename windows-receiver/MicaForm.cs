@@ -20,6 +20,8 @@ internal class MicaForm : Form
     private int _nativeGutter;
     private bool _applyingBackdrop;
 
+    internal event EventHandler? SystemAppearanceChanged;
+
     // Keep native policy/calls overridable so failure and platform branches can be exercised
     // without changing the machine's accessibility or display settings.
     protected virtual bool SupportsSystemBackdrop => OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621);
@@ -92,8 +94,10 @@ internal class MicaForm : Form
     {
         base.WndProc(ref m);
         // Windows can change composition, contrast and transparency while the app is open.
-        if (m.Msg is 0x0006 or 0x001A or 0x031A or 0x031E) // WM_ACTIVATE / SETTINGCHANGE / THEMECHANGED / DWMCOMPOSITIONCHANGED
+        if (m.Msg is 0x0006 or 0x0015 or 0x001A or 0x031A or 0x031E) // activation, system colors, settings, theme, composition
             ApplyBackdrop();
+        if (!Disposing && !IsDisposed && (m.Msg is 0x0015 or 0x001A or 0x031A))
+            SystemAppearanceChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void ApplyBackdrop()
