@@ -75,8 +75,13 @@ public sealed class MicaFormTests(ITestOutputHelper output)
         Assert.Equal(SystemColors.Control, content.BackColor);
         Assert.Equal(form.ClientRectangle.Width - form.Padding.Horizontal, content.Width);
         Assert.Equal(form.ClientRectangle.Height - form.Padding.Vertical, content.Height);
+        using var background = new Bitmap(form.ClientSize.Width, form.ClientSize.Height);
+        form.PaintFrameBackground(background);
+        Assert.Equal(form.BackColor.ToArgb(), background.GetPixel(background.Width / 2, background.Height / 2).ToArgb());
         if (hasMica)
         {
+            Assert.Equal(Color.Black.ToArgb(), background.GetPixel(0, 0).ToArgb());
+            Assert.Equal(Color.Black.ToArgb(), background.GetPixel(background.Width - 1, background.Height - 1).ToArgb());
             Assert.True(DwmGetWindowAttribute(form.Handle, 38, out var backdrop, sizeof(int)) >= 0);
             Assert.Equal(2, backdrop);
         }
@@ -85,6 +90,13 @@ public sealed class MicaFormTests(ITestOutputHelper output)
     private sealed class FrameFixture : MicaForm
     {
         public void RecreateFrameHandle() => RecreateHandle();
+
+        public void PaintFrameBackground(Bitmap bitmap)
+        {
+            using var graphics = Graphics.FromImage(bitmap);
+            using var args = new PaintEventArgs(graphics, ClientRectangle);
+            OnPaintBackground(args);
+        }
 
         public void Notify(int message)
         {

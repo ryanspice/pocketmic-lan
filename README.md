@@ -24,9 +24,9 @@ The Android application ID is now `com.canopydigital.pocketmic`: it installs sep
 
 - Source: <https://github.com/ryanspice/pocketmic-lan>
 - Releases: <https://github.com/ryanspice/pocketmic-lan/releases>
-- Android APK (debug signed): <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/app-debug.apk>
-- Windows receiver: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/PocketMicReceiver-win-x64.zip>
-- Release checksums: <https://github.com/ryanspice/pocketmic-lan/releases/latest/download/SHA256SUMS.txt>
+- Android APK (debug signed): <https://github.com/ryanspice/pocketmic-lan/releases/download/v1.7.0/app-debug.apk>
+- Windows receiver: <https://github.com/ryanspice/pocketmic-lan/releases/download/v1.7.0/PocketMicReceiver-win-x64.zip>
+- Release checksums: <https://github.com/ryanspice/pocketmic-lan/releases/download/v1.7.0/SHA256SUMS.txt>
 - Marketing site: <https://canopydigital.ca/sites/pocketmic-lan/>
 
 ## What is included
@@ -88,19 +88,19 @@ Run `setup-libopus.ps1` once to download and verify the pinned libopus source us
 
 Expected outputs:
 
-The Android helper derives the APK filename from Gradle's `versionName`; on this v0.1.6 candidate it is:
+The Android helper derives the APK filename from Gradle's `versionName`; on 1.7.0 it is:
 
 ```text
-release\PocketMic-v0.1.6-debug.apk
+release\PocketMic-v1.7.0-debug.apk
 release\PocketMicReceiver-win-x64.zip
 ```
 
 Install or update the Android app:
 
-The v0.1.6 candidate uses the new application ID `com.canopydigital.pocketmic`. It installs separately from the published v0.1.5 app (`com.ryanspice.pocketmic`); Android does not automatically move the old app's settings or pairing key. Keep v0.1.5 installed until the new app is working, then pair the v0.1.6 app again. `adb install -r` updates only an app with the same application ID.
+Version 1.7.0 uses the new application ID `com.canopydigital.pocketmic`. It installs separately from v0.1.5 (`com.ryanspice.pocketmic`); Android does not automatically move the old app's settings or pairing key. Stop any stream in the old app, open the new app, and pair it again. The old app can remain installed until the new one is working. `adb install -r` updates only an app with the same application ID and signing certificate. Use the release APK consistently: a locally built or CI debug APK can have a different certificate and may not update an existing installation.
 
 ```powershell
-adb install -r .\release\PocketMic-v0.1.6-debug.apk
+adb install -r .\release\PocketMic-v1.7.0-debug.apk
 ```
 
 ### Faster rebuilds
@@ -197,7 +197,7 @@ Do not port-forward the receiver. Encryption protects packet contents and integr
 - Windows receiver plus an unsigned macOS receiver and CoreAudio virtual-microphone preview; see [macOS tester setup](macos/README.md). No Linux receiver is included yet; Linux is planned after v0.1.6.
 - Android provides LAN discovery, QR pairing, and manual IPv4 fallback for Windows. The current iOS and macOS previews use manual pairing; iOS QR pairing and Mac receiver discovery are not implemented.
 - Windows supports PCM v1 and Opus v2 when `opus.dll` is present. The Mac receiver and initial iOS client use PCM v1; Opus is optional on Android. Physical codec/interoperability checks remain open.
-- Android, iOS, and macOS builds are unsigned previews; there is no Windows installer or automatic updater.
+- Android is a debug-signed development build; Windows, iOS, and macOS packages are unsigned. Windows includes a per-user installer in its ZIP; there is no automatic updater.
 - No internet relay — both devices must be on the same LAN
 - Designed for voice, not real-time music monitoring
 

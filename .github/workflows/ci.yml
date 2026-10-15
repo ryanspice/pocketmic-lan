@@ -146,6 +146,10 @@ jobs:
             -ArchivePath 'windows-receiver/bin/Release/net8.0-windows/PocketMicReceiver-win-x64.zip' `
             -OpusDllPath $env:POCKETMIC_OPUS_DLL
 
+      - name: Verify installer rollback and corrupt-package rejection
+        shell: pwsh
+        run: .\scripts\test-windows-installer.ps1
+
       - name: Upload receiver
         if: success()
         uses: actions/upload-artifact@v4

@@ -38,15 +38,17 @@ internal class MicaForm : Form
 
     protected override void OnPaintBackground(PaintEventArgs e)
     {
+        base.OnPaintBackground(e);
         if (_micaFrameEnabled)
         {
-            // Black pixels in the extended DWM frame expose the system backdrop. Only the
-            // outer gutter is uncovered; the child content panel paints its normal surface.
-            e.Graphics.Clear(Color.Black);
-            return;
+            // Expose Mica only inside the bounded frame. Painting the entire client black
+            // or extending glass with -1 makes GDI text participate in DWM alpha blending,
+            // even when its containing WinForms panel has an opaque BackColor.
+            e.Graphics.FillRectangle(Brushes.Black, 0, 0, ClientSize.Width, Padding.Top);
+            e.Graphics.FillRectangle(Brushes.Black, 0, ClientSize.Height - Padding.Bottom, ClientSize.Width, Padding.Bottom);
+            e.Graphics.FillRectangle(Brushes.Black, 0, 0, Padding.Left, ClientSize.Height);
+            e.Graphics.FillRectangle(Brushes.Black, ClientSize.Width - Padding.Right, 0, Padding.Right, ClientSize.Height);
         }
-
-        base.OnPaintBackground(e);
     }
 
     protected override void WndProc(ref Message m)
@@ -65,6 +67,7 @@ internal class MicaForm : Form
         try
         {
             var enabled = false;
+            var gutter = (int)Math.Round(GutterWidth * DeviceDpi / 96.0);
             // The documented system-backdrop attribute starts at Windows 11 22H2. Do not
             // substitute the undocumented, version-dependent Mica attribute used on 21H2.
             if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22621))
@@ -72,7 +75,9 @@ internal class MicaForm : Form
                 var backdrop = SystemInformation.HighContrast ? NoBackdrop : MainWindowBackdrop;
                 if (DwmSetWindowAttribute(Handle, SystemBackdropType, ref backdrop, sizeof(int)) >= 0)
                 {
-                    var margins = new Margins(backdrop == MainWindowBackdrop ? -1 : 0);
+                    // Keep the client content outside the glass region. A negative margin
+                    // extends glass through every GDI/native control in the window.
+                    var margins = new Margins(backdrop == MainWindowBackdrop ? gutter : 0);
                     enabled = DwmExtendFrameIntoClientArea(Handle, ref margins) >= 0
                         && backdrop == MainWindowBackdrop;
                     if (!enabled)
@@ -85,7 +90,7 @@ internal class MicaForm : Form
 
             _micaFrameEnabled = enabled;
             Padding = enabled
-                ? new Padding((int)Math.Round(GutterWidth * DeviceDpi / 96.0))
+                ? new Padding(gutter)
                 : Padding.Empty;
             Invalidate(true);
         }
