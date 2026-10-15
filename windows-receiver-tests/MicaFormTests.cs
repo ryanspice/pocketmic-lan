@@ -33,6 +33,7 @@ public sealed class MicaFormTests(ITestOutputHelper output)
 
         form.HighContrast = true;
         form.Notify(0x001A);
+        Assert.False(form.HonorsDarkCaption);
         Assert.Equal(Padding.Empty, form.Padding);
         Assert.Equal(0, form.NativeMargin);
         Assert.Equal(1, form.NativeBackdrop);
@@ -40,6 +41,7 @@ public sealed class MicaFormTests(ITestOutputHelper output)
 
         form.HighContrast = false;
         form.Notify(0x001A);
+        Assert.True(form.HonorsDarkCaption);
         Assert.Equal(new Padding(12), form.Padding);
         Assert.Equal(12, form.NativeMargin);
         Assert.Equal(2, form.NativeBackdrop);
@@ -142,9 +144,42 @@ public sealed class MicaFormTests(ITestOutputHelper output)
         AssertSolidCenter(form);
     });
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void CaptionHonorsSystemDarkPolicyWithoutGatingMaterial(bool failCaption) => RunSta(() =>
+    {
+        using var form = new SimulatedFrameFixture { FailCaption = failCaption };
+        _ = form.Handle;
+        Assert.True(form.HonorsDarkCaption);
+        Assert.Equal(2, form.NativeBackdrop);
+        Assert.Equal(12, form.NativeMargin);
+        Assert.Equal(new Padding(12), form.Padding);
+        AssertSolidCenter(form);
+    });
+
+    [Fact]
+    public void NativeDibPaintHasZeroAlphaGutterAndOpaqueCenter() => RunSta(() =>
+    {
+        using var form = new SimulatedFrameFixture { ClientSize = new Size(400, 300) };
+        _ = form.Handle;
+        using var background = new NativeDib(form.ClientSize.Width, form.ClientSize.Height);
+        form.PaintFrameBackground(background);
+
+        var center = background.GetPixel(200, 150);
+        var gutter = background.GetPixel(0, 0);
+        output.WriteLine($"Native DIB: gutter ARGB={gutter.ToArgb():X8}, alpha={gutter.A}; center ARGB={center.ToArgb():X8}, alpha={center.A}");
+        Assert.Equal(0, gutter.ToArgb());
+        Assert.Equal(0, background.GetPixel(399, 0).ToArgb());
+        Assert.Equal(0, background.GetPixel(0, 299).ToArgb());
+        Assert.Equal(0, background.GetPixel(399, 299).ToArgb());
+        Assert.Equal(255, center.A);
+        Assert.Equal(form.BackColor.ToArgb(), center.ToArgb());
+    });
+
     private static void AssertSolidCenter(FrameFixture form, bool exposesMica = true)
     {
-        using var background = new Bitmap(form.ClientSize.Width, form.ClientSize.Height);
+        using var background = new NativeDib(form.ClientSize.Width, form.ClientSize.Height);
         form.PaintFrameBackground(background);
         Assert.Equal(form.BackColor.ToArgb(), background.GetPixel(background.Width / 2, background.Height / 2).ToArgb());
         if (form.Padding == Padding.Empty || !exposesMica)
@@ -152,8 +187,8 @@ public sealed class MicaFormTests(ITestOutputHelper output)
         else
         {
             Assert.Equal(form.BackColor.ToArgb(), background.GetPixel(form.Padding.Left, form.Padding.Top).ToArgb());
-            Assert.Equal(Color.Black.ToArgb(), background.GetPixel(form.Padding.Left - 1, form.Padding.Top).ToArgb());
-            Assert.Equal(Color.Black.ToArgb(), background.GetPixel(form.Padding.Left, form.Padding.Top - 1).ToArgb());
+            Assert.Equal(0, background.GetPixel(form.Padding.Left - 1, form.Padding.Top).ToArgb());
+            Assert.Equal(0, background.GetPixel(form.Padding.Left, form.Padding.Top - 1).ToArgb());
         }
     }
 
@@ -197,7 +232,7 @@ public sealed class MicaFormTests(ITestOutputHelper output)
                 {
                     // Simulate an external/native reset; each notification must restore the
                     // requested backdrop rather than relying only on the initial HWND.
-                    foreach (var message in new[] { 0x001A, 0x031A, 0x031E })
+                    foreach (var message in new[] { 0x0006, 0x001A, 0x031A, 0x031E })
                     {
                         var none = 1;
                         Assert.True(DwmSetWindowAttribute(form.Handle, 38, ref none, sizeof(int)) >= 0);
@@ -237,13 +272,13 @@ public sealed class MicaFormTests(ITestOutputHelper output)
         Assert.Equal(SystemColors.Control, content.BackColor);
         Assert.Equal(form.ClientRectangle.Width - form.Padding.Horizontal, content.Width);
         Assert.Equal(form.ClientRectangle.Height - form.Padding.Vertical, content.Height);
-        using var background = new Bitmap(form.ClientSize.Width, form.ClientSize.Height);
+        using var background = new NativeDib(form.ClientSize.Width, form.ClientSize.Height);
         form.PaintFrameBackground(background);
         Assert.Equal(form.BackColor.ToArgb(), background.GetPixel(background.Width / 2, background.Height / 2).ToArgb());
         if (hasMica)
         {
-            Assert.Equal(Color.Black.ToArgb(), background.GetPixel(0, 0).ToArgb());
-            Assert.Equal(Color.Black.ToArgb(), background.GetPixel(background.Width - 1, background.Height - 1).ToArgb());
+            Assert.Equal(0, background.GetPixel(0, 0).ToArgb());
+            Assert.Equal(0, background.GetPixel(background.Width - 1, background.Height - 1).ToArgb());
             Assert.True(DwmGetWindowAttribute(form.Handle, 38, out var backdrop, sizeof(int)) >= 0);
             Assert.Equal(2, backdrop);
         }
@@ -253,11 +288,12 @@ public sealed class MicaFormTests(ITestOutputHelper output)
     {
         public void RecreateFrameHandle() => RecreateHandle();
 
-        public void PaintFrameBackground(Bitmap bitmap)
+        public void PaintFrameBackground(NativeDib bitmap)
         {
-            using var graphics = Graphics.FromImage(bitmap);
+            using var graphics = Graphics.FromHdc(bitmap.Dc);
             using var args = new PaintEventArgs(graphics, ClientRectangle);
             OnPaintBackground(args);
+            graphics.Flush(System.Drawing.Drawing2D.FlushIntention.Sync);
         }
 
         public void Notify(int message)
@@ -276,6 +312,8 @@ public sealed class MicaFormTests(ITestOutputHelper output)
         public bool FailNextExtend { get; set; }
         public bool FailAllSets { get; set; }
         public bool FailAllExtensions { get; set; }
+        public bool FailCaption { get; set; }
+        public bool HonorsDarkCaption { get; private set; }
         public int NativeBackdrop { get; private set; }
         public int NativeMargin { get; private set; }
         public int NativeCalls { get; private set; }
@@ -283,6 +321,13 @@ public sealed class MicaFormTests(ITestOutputHelper output)
         protected override bool SupportsSystemBackdrop => Supported;
         protected override bool IsHighContrast => HighContrast;
         protected override int FrameDpi => Dpi;
+
+        protected override int SetCaptionTheme(bool honorDarkMode)
+        {
+            NativeCalls++;
+            HonorsDarkCaption = honorDarkMode;
+            return FailCaption ? unchecked((int)0x80004005) : 0;
+        }
 
         protected override int SetSystemBackdrop(int backdrop)
         {
@@ -316,6 +361,86 @@ public sealed class MicaFormTests(ITestOutputHelper output)
             NativeBackdrop = 0;
         }
     }
+
+    // Test the native paint boundary, not Graphics.FromImage/GetHdc: GDI+ can preserve or
+    // restore alpha when copying a managed bitmap's temporary DC, hiding the DWM defect.
+    private sealed class NativeDib : IDisposable
+    {
+        private readonly IntPtr _bitmap;
+        private readonly IntPtr _previous;
+        private readonly IntPtr _pixels;
+        public IntPtr Dc { get; }
+        public int Width { get; }
+        public int Height { get; }
+
+        public NativeDib(int width, int height)
+        {
+            Width = width;
+            Height = height;
+            Dc = CreateCompatibleDC(IntPtr.Zero);
+            Assert.NotEqual(IntPtr.Zero, Dc);
+            var header = new BitmapHeader
+            {
+                Size = (uint)Marshal.SizeOf<BitmapHeader>(), Width = width, Height = -height,
+                Planes = 1, BitCount = 32,
+            };
+            _bitmap = CreateDIBSection(Dc, ref header, 0, out _pixels, IntPtr.Zero, 0);
+            if (_bitmap == IntPtr.Zero)
+            {
+                DeleteDC(Dc);
+                Assert.Fail("Could not create native 32bpp test DIB.");
+            }
+            _previous = SelectObject(Dc, _bitmap);
+        }
+
+        public Color GetPixel(int x, int y)
+        {
+            GdiFlush();
+            return Color.FromArgb(Marshal.ReadInt32(_pixels, (y * Width + x) * sizeof(int)));
+        }
+
+        public void Dispose()
+        {
+            SelectObject(Dc, _previous);
+            DeleteObject(_bitmap);
+            DeleteDC(Dc);
+        }
+    }
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct BitmapHeader
+    {
+        public uint Size;
+        public int Width;
+        public int Height;
+        public ushort Planes;
+        public ushort BitCount;
+        public uint Compression;
+        public uint SizeImage;
+        public int XPelsPerMeter;
+        public int YPelsPerMeter;
+        public uint ClrUsed;
+        public uint ClrImportant;
+    }
+
+    [DllImport("gdi32.dll", ExactSpelling = true)]
+    private static extern IntPtr CreateCompatibleDC(IntPtr dc);
+
+    [DllImport("gdi32.dll", ExactSpelling = true)]
+    private static extern IntPtr CreateDIBSection(IntPtr dc, ref BitmapHeader header, uint usage,
+        out IntPtr pixels, IntPtr section, uint offset);
+
+    [DllImport("gdi32.dll", ExactSpelling = true)]
+    private static extern IntPtr SelectObject(IntPtr dc, IntPtr value);
+
+    [DllImport("gdi32.dll", ExactSpelling = true)]
+    private static extern bool DeleteObject(IntPtr value);
+
+    [DllImport("gdi32.dll", ExactSpelling = true)]
+    private static extern bool DeleteDC(IntPtr dc);
+
+    [DllImport("gdi32.dll", ExactSpelling = true)]
+    private static extern bool GdiFlush();
 
     [DllImport("dwmapi.dll", ExactSpelling = true)]
     private static extern int DwmGetWindowAttribute(IntPtr window, int attribute, out int value, int size);
