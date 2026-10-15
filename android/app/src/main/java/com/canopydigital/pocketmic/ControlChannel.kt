@@ -150,16 +150,9 @@ object ControlChannel {
         stopInternal()
         startedPort = port
 
-        val candidate = DatagramSocket(null)
         val bound = runCatching {
-            candidate.apply {
-                reuseAddress = true
-                broadcast = true
-                bind(InetSocketAddress(port))
-                lanNetwork(context)?.bindSocket(this)
-            }
+            openControlSocket(port) { lanNetwork(context)?.bindSocket(it) }
         }.getOrElse { error ->
-            candidate.close()
             mutableBindError.value =
                 "Could not open control port $port (${error.message ?: "unknown"}). " +
                     "Discovery and delivery confirmation are unavailable."
@@ -170,6 +163,23 @@ object ControlChannel {
         socket = bound
         receiveJob = scope.launch { receiveLoop(bound) }
         if (probe) restartProbeLoop(context, audioPort)
+    }
+
+    internal fun openControlSocket(port: Int, bindToNetwork: (DatagramSocket) -> Unit): DatagramSocket {
+        val candidate = DatagramSocket(null)
+        try {
+            candidate.reuseAddress = true
+            candidate.broadcast = true
+            candidate.bind(InetSocketAddress(port))
+            // A network can disappear between discovery and binding during Wi-Fi handover.
+            // Keep the bound socket on the default route, as the audio sender does, instead
+            // of disabling discovery/stats and misreporting this as a port-bind failure.
+            runCatching { bindToNetwork(candidate) }
+            return candidate
+        } catch (error: Exception) {
+            candidate.close()
+            throw error
+        }
     }
 
     @Synchronized

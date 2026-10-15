@@ -5,6 +5,10 @@ import org.junit.Assert.assertTrue
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import java.net.DatagramPacket
+import java.net.DatagramSocket
+import java.net.InetAddress
+import java.net.SocketException
 
 /**
  * The probe-nonce freshness gate: an announce is only believed when it echoes a probe this
@@ -13,6 +17,35 @@ import org.junit.Test
  * a recorded announce (same key) was accepted as fresh discovery.
  */
 class ControlChannelTest {
+    @Test
+    fun disappearingLanNetworkKeepsControlSocketUsableOnDefaultRoute() {
+        DatagramSocket(0, InetAddress.getLoopbackAddress()).use { receiver ->
+            receiver.soTimeout = 2_000
+            ControlChannel.openControlSocket(0) { throw SocketException("Network disappeared") }.use { sender ->
+                assertTrue(sender.isBound)
+                assertFalse(sender.isClosed)
+                val data = byteArrayOf(1, 7)
+                sender.send(DatagramPacket(data, data.size, receiver.localAddress, receiver.localPort))
+                val received = DatagramPacket(ByteArray(2), 2)
+                receiver.receive(received)
+                assertEquals(sender.localPort, received.port)
+                assertTrue(data.contentEquals(received.data))
+            }
+        }
+    }
+
+    @Test
+    fun occupiedControlPortStillFailsBeforeNetworkBinding() {
+        DatagramSocket(0).use { occupied ->
+            var networkBindCalled = false
+            val error = runCatching {
+                ControlChannel.openControlSocket(occupied.localPort) { networkBindCalled = true }.close()
+            }.exceptionOrNull()
+            assertTrue(error is SocketException)
+            assertFalse(networkBindCalled)
+        }
+    }
+
     @Test
     fun configurationKeepsTheAdoptedTargetAfterDiscoveryStops() {
         val target = ControlChannel.ConfigTarget("192.168.1.20", 50_000)

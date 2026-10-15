@@ -18,6 +18,10 @@ Get-ChildItem -LiteralPath $source -File | Sort-Object Name | ForEach-Object {
 $originalLocalData = $env:LOCALAPPDATA
 try {
     $env:LOCALAPPDATA = $testLocalData
+    $unreadableProcess = New-Object psobject
+    $unreadableProcess | Add-Member -MemberType ScriptProperty -Name Path -Value { throw 'Injected inaccessible process' }
+    $simulatedProcesses = @($unreadableProcess)
+    function Get-Process { param($Name, $ErrorAction) $simulatedProcesses }
     function Move-Item {
         param([string] $LiteralPath, [string] $Destination)
         if ([IO.Path]::GetDirectoryName($LiteralPath) -eq $testPrograms -and
@@ -38,7 +42,34 @@ try {
     if (@(Get-ChildItem -LiteralPath $testPrograms -Directory -Filter '.PocketMic-install-*').Count) {
         throw 'Activation failure left a staging directory.'
     }
-    Write-Host 'PASS: failed activation restores the old install and removes its staging directory.'
+    Write-Host 'PASS: an inaccessible unrelated process is ignored; failed activation restores the old install and removes staging.'
+
+    $stubbornProcess = New-Object psobject -Property @{
+        Path = (Join-Path $installed 'PocketMicReceiver.exe')
+        Waits = [Collections.Generic.List[int]]::new()
+        KillCalled = $false
+    }
+    $stubbornProcess | Add-Member -MemberType ScriptMethod -Name CloseMainWindow -Value { return $false }
+    $stubbornProcess | Add-Member -MemberType ScriptMethod -Name WaitForExit -Value {
+        param([int] $Timeout)
+        $this.Waits.Add($Timeout)
+        return $false
+    }
+    $stubbornProcess | Add-Member -MemberType ScriptMethod -Name Kill -Value { $this.KillCalled = $true }
+    $simulatedProcesses = @($stubbornProcess)
+    $failed = $false
+    try { & "$PSScriptRoot\Install-PocketMic.ps1" -SourceDirectory $source -NoLaunch }
+    catch {
+        if ($_.Exception.Message -notmatch 'could not be stopped') { throw }
+        $failed = $true
+    }
+    if (-not $failed -or -not $stubbornProcess.KillCalled -or
+        ($stubbornProcess.Waits -join ',') -ne '3000,5000' -or
+        -not (Test-Path -LiteralPath (Join-Path $installed 'previous-install.txt')) -or
+        @(Get-ChildItem -LiteralPath $testPrograms -Directory -Filter '.PocketMic-install-*').Count) {
+        throw 'Process-stop timeout did not preserve the old install and clean staging.'
+    }
+    Write-Host 'PASS: a process that cannot terminate is bounded by timeouts before the existing install is moved.'
 
     Add-Content -LiteralPath (Join-Path $source 'PocketMicReceiver.exe') -Value 'tampered'
     $failed = $false
@@ -54,4 +85,5 @@ try {
 } finally {
     $env:LOCALAPPDATA = $originalLocalData
     Remove-Item -LiteralPath Function:\Move-Item -ErrorAction SilentlyContinue
+    Remove-Item -LiteralPath Function:\Get-Process -ErrorAction SilentlyContinue
 }

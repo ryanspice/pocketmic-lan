@@ -9,6 +9,168 @@ namespace PocketMicReceiver.Tests;
 
 public sealed class MicaFormTests(ITestOutputHelper output)
 {
+    [Theory]
+    [InlineData(false, false)]
+    [InlineData(true, true)]
+    public void UnsupportedWindowsAndHighContrastUseSolidBackground(bool supported, bool highContrast) => RunSta(() =>
+    {
+        using var form = new SimulatedFrameFixture { Supported = supported, HighContrast = highContrast };
+        _ = form.Handle;
+
+        Assert.Equal(Padding.Empty, form.Padding);
+        Assert.Equal(0, form.NativeMargin);
+        Assert.Equal(supported ? 1 : 0, form.NativeBackdrop);
+        if (!supported) Assert.Equal(0, form.NativeCalls);
+        AssertSolidCenter(form);
+    });
+
+    [Fact]
+    public void HighContrastChangeClearsExistingFrameAndCanRestoreIt() => RunSta(() =>
+    {
+        using var form = new SimulatedFrameFixture();
+        _ = form.Handle;
+        Assert.Equal(12, form.NativeMargin);
+
+        form.HighContrast = true;
+        form.Notify(0x001A);
+        Assert.Equal(Padding.Empty, form.Padding);
+        Assert.Equal(0, form.NativeMargin);
+        Assert.Equal(1, form.NativeBackdrop);
+        AssertSolidCenter(form);
+
+        form.HighContrast = false;
+        form.Notify(0x001A);
+        Assert.Equal(new Padding(12), form.Padding);
+        Assert.Equal(12, form.NativeMargin);
+        Assert.Equal(2, form.NativeBackdrop);
+    });
+
+    [Theory]
+    [InlineData(96, 12)]
+    [InlineData(120, 15)]
+    [InlineData(144, 18)]
+    [InlineData(192, 24)]
+    public void ReapplicationScalesGlassAndPaddingTogether(int dpi, int expectedGutter) => RunSta(() =>
+    {
+        using var form = new SimulatedFrameFixture { Dpi = 192 };
+        _ = form.Handle;
+        Assert.Equal(24, form.NativeMargin);
+        form.Dpi = dpi;
+        form.Notify(0x001A);
+
+        Assert.Equal(new Padding(expectedGutter), form.Padding);
+        Assert.Equal(expectedGutter, form.NativeMargin);
+        AssertSolidCenter(form);
+    });
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void NativeFailureAfterSuccessClearsPreviouslyAppliedFrame(bool failSet) => RunSta(() =>
+    {
+        using var form = new SimulatedFrameFixture();
+        _ = form.Handle;
+        Assert.Equal(12, form.NativeMargin);
+        form.FailNextSet = failSet;
+        form.FailNextExtend = !failSet;
+
+        form.Notify(0x031E);
+
+        Assert.Equal(Padding.Empty, form.Padding);
+        Assert.Equal(0, form.NativeMargin);
+        Assert.Equal(1, form.NativeBackdrop);
+        AssertSolidCenter(form);
+    });
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void RepeatedResetFailurePreservesKnownGutterUntilCleanupSucceeds(bool failSet) => RunSta(() =>
+    {
+        using var form = new SimulatedFrameFixture();
+        _ = form.Handle;
+        form.FailAllSets = failSet;
+        form.FailAllExtensions = true;
+
+        for (var attempt = 0; attempt < 3; attempt++)
+        {
+            form.Notify(0x031E);
+            Assert.Equal(new Padding(12), form.Padding);
+            Assert.Equal(12, form.NativeMargin);
+            Assert.Equal(failSet ? 2 : 1, form.NativeBackdrop);
+            AssertSolidCenter(form, exposesMica: false);
+        }
+
+        form.FailAllSets = false;
+        form.FailAllExtensions = false;
+        form.HighContrast = true;
+        form.Notify(0x001A);
+        Assert.Equal(Padding.Empty, form.Padding);
+        Assert.Equal(0, form.NativeMargin);
+        Assert.Equal(1, form.NativeBackdrop);
+        AssertSolidCenter(form);
+
+        form.HighContrast = false;
+        form.Notify(0x001A);
+        Assert.Equal(new Padding(12), form.Padding);
+        Assert.Equal(12, form.NativeMargin);
+        Assert.Equal(2, form.NativeBackdrop);
+        AssertSolidCenter(form);
+    });
+
+    [Fact]
+    public void HandleRecreationDoesNotCarryRetainedGutterOntoNewWindow() => RunSta(() =>
+    {
+        using var form = new SimulatedFrameFixture();
+        _ = form.Handle;
+        form.FailAllSets = true;
+        form.FailAllExtensions = true;
+        form.Notify(0x031E);
+        Assert.Equal(new Padding(12), form.Padding);
+
+        form.RecreateFrameHandle();
+
+        Assert.Equal(0, form.NativeMargin);
+        Assert.Equal(Padding.Empty, form.Padding);
+        AssertSolidCenter(form);
+
+        form.FailAllSets = false;
+        form.FailAllExtensions = false;
+        form.Notify(0x031E);
+        Assert.Equal(12, form.NativeMargin);
+        Assert.Equal(new Padding(12), form.Padding);
+        AssertSolidCenter(form);
+    });
+
+    private static void AssertSolidCenter(FrameFixture form, bool exposesMica = true)
+    {
+        using var background = new Bitmap(form.ClientSize.Width, form.ClientSize.Height);
+        form.PaintFrameBackground(background);
+        Assert.Equal(form.BackColor.ToArgb(), background.GetPixel(background.Width / 2, background.Height / 2).ToArgb());
+        if (form.Padding == Padding.Empty || !exposesMica)
+            Assert.Equal(form.BackColor.ToArgb(), background.GetPixel(0, 0).ToArgb());
+        else
+        {
+            Assert.Equal(form.BackColor.ToArgb(), background.GetPixel(form.Padding.Left, form.Padding.Top).ToArgb());
+            Assert.Equal(Color.Black.ToArgb(), background.GetPixel(form.Padding.Left - 1, form.Padding.Top).ToArgb());
+            Assert.Equal(Color.Black.ToArgb(), background.GetPixel(form.Padding.Left, form.Padding.Top - 1).ToArgb());
+        }
+    }
+
+    private static void RunSta(Action action)
+    {
+        Exception? failure = null;
+        var thread = new Thread(() =>
+        {
+            try { action(); }
+            catch (Exception ex) { failure = ex; }
+        }) { IsBackground = true };
+        thread.SetApartmentState(ApartmentState.STA);
+        thread.Start();
+        Assert.True(thread.Join(TimeSpan.FromSeconds(10)), "Window-frame fixture did not finish in 10 seconds.");
+        if (failure is not null) ExceptionDispatchInfo.Capture(failure).Throw();
+    }
+
     [Fact]
     public void FrameSurvivesThemeChangesAndHandleRecreationWithoutMakingControlsTransparent()
     {
@@ -87,7 +249,7 @@ public sealed class MicaFormTests(ITestOutputHelper output)
         }
     }
 
-    private sealed class FrameFixture : MicaForm
+    private class FrameFixture : MicaForm
     {
         public void RecreateFrameHandle() => RecreateHandle();
 
@@ -102,6 +264,56 @@ public sealed class MicaFormTests(ITestOutputHelper output)
         {
             var notification = Message.Create(Handle, message, IntPtr.Zero, IntPtr.Zero);
             WndProc(ref notification);
+        }
+    }
+
+    private sealed class SimulatedFrameFixture : FrameFixture
+    {
+        public bool Supported { get; set; } = true;
+        public bool HighContrast { get; set; }
+        public int Dpi { get; set; } = 96;
+        public bool FailNextSet { get; set; }
+        public bool FailNextExtend { get; set; }
+        public bool FailAllSets { get; set; }
+        public bool FailAllExtensions { get; set; }
+        public int NativeBackdrop { get; private set; }
+        public int NativeMargin { get; private set; }
+        public int NativeCalls { get; private set; }
+
+        protected override bool SupportsSystemBackdrop => Supported;
+        protected override bool IsHighContrast => HighContrast;
+        protected override int FrameDpi => Dpi;
+
+        protected override int SetSystemBackdrop(int backdrop)
+        {
+            NativeCalls++;
+            if (FailNextSet || FailAllSets)
+            {
+                FailNextSet = false;
+                return unchecked((int)0x80004005);
+            }
+            NativeBackdrop = backdrop;
+            return 0;
+        }
+
+        protected override int ExtendFrame(int width)
+        {
+            NativeCalls++;
+            if (FailNextExtend || FailAllExtensions)
+            {
+                FailNextExtend = false;
+                return unchecked((int)0x80004005);
+            }
+            NativeMargin = width;
+            return 0;
+        }
+
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            base.OnHandleDestroyed(e);
+            // A replacement HWND starts without the old window's native DWM attributes.
+            NativeMargin = 0;
+            NativeBackdrop = 0;
         }
     }
 

@@ -48,9 +48,16 @@ Copy-Item -LiteralPath $manifest -Destination (Join-Path $stage 'SHA256SUMS.txt'
 
 # Only stop the copy being updated. Do not touch a developer's separate receiver process.
 foreach ($process in @(Get-Process PocketMicReceiver -ErrorAction SilentlyContinue)) {
-    if ($process.Path -eq $executable) {
+    # An unrelated same-named process may be owned by another user or exit during enumeration.
+    try { $processPath = $process.Path } catch { continue }
+    if ($processPath -eq $executable) {
         $null = $process.CloseMainWindow()
-        if (-not $process.WaitForExit(3000)) { $process.Kill(); $process.WaitForExit() }
+        if (-not $process.WaitForExit(3000)) {
+            $process.Kill()
+            if (-not $process.WaitForExit(5000)) {
+                throw 'The running PocketMic receiver could not be stopped. The existing installation has not been changed.'
+            }
+        }
     }
 }
 $backup = $null

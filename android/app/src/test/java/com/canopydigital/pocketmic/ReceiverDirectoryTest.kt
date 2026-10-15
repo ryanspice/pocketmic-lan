@@ -47,6 +47,24 @@ class ReceiverDirectoryTest {
         assertEquals(moved, ReceiverDirectory.select(listOf(moved), "10.0.0.2", DEFAULT_PORT))
     }
 
+    @Test fun pinnedPcCanRecoverToItsAuthenticatedNewPort() {
+        val moved = pc("10.0.0.2", 49520)
+        assertEquals(moved, ReceiverDirectory.select(listOf(pc("10.0.0.3"), moved),
+            moved.address, DEFAULT_PORT, allowFallback = false))
+    }
+
+    @Test fun pinnedPcDoesNotAdoptAnIncompatibleNewPort() {
+        val incompatible = pc("10.0.0.2", 49520).copy(audioProtocolMatches = false)
+        assertNull(ReceiverDirectory.select(listOf(incompatible), incompatible.address,
+            DEFAULT_PORT, allowFallback = false))
+    }
+
+    @Test fun pinnedPcKeepsWrongKeyDiagnosticsWithoutTrustingTheAdvertisedPort() {
+        val wrongKey = pc("10.0.0.2", 0, false)
+        assertEquals(wrongKey, ReceiverDirectory.select(listOf(wrongKey), wrongKey.address,
+            DEFAULT_PORT, allowFallback = false))
+    }
+
     @Test fun selectionIncludesPortWhenSeveralInstancesShareAnAddress() {
         val custom = pc("10.0.0.2", 49520)
         assertEquals(custom, ReceiverDirectory.select(listOf(pc(custom.address), custom), custom.address, custom.audioPort))
