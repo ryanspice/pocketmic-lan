@@ -10,7 +10,7 @@ FetchContent_Declare(libASPL
 FetchContent_MakeAvailable(libASPL)
 
 set(DRIVER_NAME PocketMicVirtualMic)
-set(DRIVER_VERSION 0.1.6)
+set(DRIVER_VERSION 1.7.0)
 set(DRIVER_UID 21745612-6791-45CD-9B31-3D1CD157FA66)
 set(DRIVER_ENTRYPOINT PocketMicVirtualMicEntryPoint)
 set(DRIVER_IDENTIFIER com.canopydigital.pocketmic.virtual-mic)

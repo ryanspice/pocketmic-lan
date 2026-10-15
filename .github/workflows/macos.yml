@@ -2,10 +2,10 @@ name: macOS
 
 on:
   push:
-    branches: [master, 'codex/**']
+    branches: [main, master, 'codex/**']
     tags: ['v*']
   pull_request:
-    branches: [master]
+    branches: [main, master]
   release:
     types: [published]
 

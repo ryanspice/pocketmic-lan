@@ -1,10 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!--
-      Covers the UI-agnostic engine only. Everything under test here is deterministic and free
-      of sockets, devices and dispatchers, which is exactly why it was extracted into Core.
+      Covers the UI-agnostic engine and the native window-frame lifecycle. The frame fixture
+      links only MicaForm; it never constructs the receiver or opens audio/network devices.
     -->
     <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <RootNamespace>PocketMicReceiver.Tests</RootNamespace>
@@ -23,5 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\windows-receiver-core\PocketMicReceiver.Core.csproj" />
+    <Compile Include="..\windows-receiver\MicaForm.cs" Link="UI\MicaForm.cs" />
   </ItemGroup>
 </Project>

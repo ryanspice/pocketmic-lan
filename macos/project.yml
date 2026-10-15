@@ -20,8 +20,8 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.canopydigital.pocketmic.mac
         PRODUCT_NAME: PocketMic
-        MARKETING_VERSION: "0.1.6"
-        CURRENT_PROJECT_VERSION: "6"
+        MARKETING_VERSION: "1.7.0"
+        CURRENT_PROJECT_VERSION: "10700"
         GENERATE_INFOPLIST_FILE: YES
         INFOPLIST_KEY_CFBundleDisplayName: PocketMic
         INFOPLIST_KEY_CFBundleDevelopmentRegion: en-CA

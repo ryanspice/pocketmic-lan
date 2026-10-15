@@ -95,7 +95,7 @@ internal static class Program
 /// <see cref="PostUi"/> and re-checks <c>_runId</c> inside the posted action — a callback queued
 /// before a stop can otherwise land on controls belonging to the run that replaced it.
 /// </summary>
-internal sealed class MainForm : Form
+internal sealed class MainForm : MicaForm
 {
     private const int DefaultPrebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
 
@@ -243,6 +243,7 @@ internal sealed class MainForm : Form
         var root = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
+            BackColor = SystemColors.Control,
             Padding = new Padding(20),
             ColumnCount = 1,
             RowCount = 1,

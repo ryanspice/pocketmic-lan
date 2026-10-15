@@ -2,9 +2,9 @@ name: Lighthouse
 
 on:
   push:
-    branches: [master, 'codex/**']
+    branches: [main, master, 'codex/**']
   pull_request:
-    branches: [master]
+    branches: [main, master]
 
 jobs:
   lighthouse:
