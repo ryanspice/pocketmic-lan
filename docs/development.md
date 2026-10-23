@@ -59,8 +59,11 @@ See [Mac setup](../macos/README.md), [localization status](../localization/READM
 node --check dev/v3/assets/marketing-home.js
 node --check dev/v3/assets/subsite.js
 node --check dev/v3/assets/site-locale.js
+node --test scripts/site-release-contract.test.mjs
 node scripts/validate-site-release.mjs
 ```
+
+`dev/v3/release.json` records separate stable and development-prerelease channels with version-pinned assets, hashes and sizes. Stable remains the default download; prerelease links stay in explicitly labelled opt-in sections. The release-contract tests cover channel mix-ups, stale versions and metadata changes, and run in website CI. Update the manifest and affected static pages together after verifying published release metadata.
 
 [Lighthouse](../.github/workflows/lighthouse.yml) also targets `dev/v3/`. `tools/verify_web.py` validates the retained legacy `web/` demo, not the deployment candidate. README screenshot assets still live under `web/`; `web-v2-compare/` contains comparison material. Keep these trees until a separate dependency/asset inventory justifies restructuring. A source build does not deploy the website.
 

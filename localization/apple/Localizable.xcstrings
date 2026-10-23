@@ -155,6 +155,75 @@
         }
       }
     },
+    "Delivery feedback requires a private-LAN IPv4 sender and receiver address.": {
+      "comment": "Mac delivery feedback. Kurdish entries retain English source pending fluent translation and review.",
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delivery feedback requires a private-LAN IPv4 sender and receiver address."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Delivery feedback requires a private-LAN IPv4 sender and receiver address."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Delivery feedback requires a private-LAN IPv4 sender and receiver address."
+          }
+        }
+      }
+    },
+    "Delivery feedback unavailable:": {
+      "comment": "Mac delivery feedback. Kurdish entries retain English source pending fluent translation and review.",
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delivery feedback unavailable:"
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Delivery feedback unavailable:"
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Delivery feedback unavailable:"
+          }
+        }
+      }
+    },
+    "Enter a UDP port between 1 and 65534, except 49501 (reserved for the virtual microphone).": {
+      "comment": "Mac delivery feedback. Kurdish entries retain English source pending fluent translation and review.",
+      "localizations": {
+        "en-US": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enter a UDP port between 1 and 65534, except 49501 (reserved for the virtual microphone)."
+          }
+        },
+        "ckb": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enter a UDP port between 1 and 65534, except 49501 (reserved for the virtual microphone)."
+          }
+        },
+        "ku-Latn": {
+          "stringUnit": {
+            "state": "needs_review",
+            "value": "Enter a UDP port between 1 and 65534, except 49501 (reserved for the virtual microphone)."
+          }
+        }
+      }
+    },
     "Enter a valid UDP port between 1 and 65535.": {
       "localizations": {
         "en-US": {

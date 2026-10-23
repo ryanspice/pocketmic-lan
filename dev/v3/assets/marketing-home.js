@@ -18,7 +18,7 @@ en:{
     "skip":"Skip to content",
     "nav.setup":"SETUP","nav.lab":"SIGNAL LAB","nav.why":"WHY","nav.latency":"PROTOCOL","nav.faq":"FAQ",
     "head.dl":"DOWNLOAD",
-    "hero.eyebrow":"ANDROID → WINDOWS · FREE &amp; OPEN SOURCE · v0.1.6 PLANNED",
+    "hero.eyebrow":"ANDROID → WINDOWS · FREE &amp; OPEN SOURCE · STABLE DOWNLOADS",
     "hero.h1":'Your phone is <span class="gr">already</span> a great microphone.',
     "hero.sub":"PocketMic LAN streams audio from an Android app to a Windows receiver over your local network. Audio uses AES-256-GCM encryption; route it to calling and recording apps with a Windows audio device.",
     "hero.cta2":"VIEW THE SOURCE",
@@ -86,7 +86,7 @@ en:{
     "faq.q4":"What happens when my phone’s screen turns off?",
     "faq.a4":"PocketMic uses an Android foreground service for microphone capture. Background and battery behaviour can vary by Android version and phone manufacturer; follow the in-app battery guidance for your device.",
     "faq.q5":"Which platforms does the receiver support?",
-    "faq.a5":"Windows is the current published receiver. An unsigned macOS receiver preview is in v0.1.6 manual testing and supports PCM v1 only. Android is the published transmitter; the iOS PCM publisher is experimental. Linux receiver support is planned for a later release.",
+    "faq.a5":"Windows is the current published receiver. An unsigned macOS receiver preview is implemented and supports PCM v1 only; physical Mac installation and routing acceptance remain open. Android is the published transmitter; the iOS PCM publisher is experimental. Linux receiver support is planned for a later release.",
     "faq.q6":"Is it really open source?",
     "faq.a6":"The source for the Android app and desktop receivers is MIT-licensed and on <a href=\"https://github.com/ryanspice/pocketmic-lan\" target=\"_blank\" rel=\"noopener\">GitHub</a>. Open source is not a security certification. Report a reproducible issue or suggest a change.",
     "coffee.tag":"07 — OPEN SOURCE",
@@ -123,8 +123,8 @@ en:{
     noteNoApi:"MICROPHONE API UNAVAILABLE — TRY THE GENERATED LOCAL SAMPLE.",
     noteDenied:"MIC ACCESS DENIED ({e}) — TRY THE GENERATED LOCAL SAMPLE.",
     rec:"LOCAL",pkts:"FRAMES",frames:"frames",typical:"TYPICAL",
-    dlWin:"WINDOWS RECEIVER · v0.1.5",dlAndroid:"ANDROID APK · v0.1.5",dlAny:"VIEW RELEASES",
-    subWin:"CURRENT PUBLISHED RELEASE · v0.1.5",subAndroid:"CURRENT PUBLISHED RELEASE · v0.1.5",subAny:"ANDROID + WINDOWS · RELEASES",
+    dlWin:"WINDOWS RECEIVER",dlAndroid:"ANDROID APK",dlAny:"STABLE DOWNLOADS",
+    subWin:"STABLE RELEASE",subAndroid:"STABLE RELEASE",subAny:"STABLE RELEASE",
     localOnly:"LOCAL DEMO ONLY",
     themeAuto:"Theme: follow your system",themeLight:"Theme: light",themeDark:"Theme: dark"
   }
@@ -231,6 +231,9 @@ var os = detectOS();
 function paintCTA(){
   var label = os === 'windows' ? T.dlWin : os === 'android' ? T.dlAndroid : T.dlAny;
   var sub = os === 'windows' ? T.subWin : os === 'android' ? T.subAndroid : T.subAny;
+  var version = $('#dlSub').getAttribute('data-stable-version');
+  label += ' · ' + version;
+  sub += ' · ' + version;
   $('#heroCtaLbl').textContent = label;
   $('#dlBigLbl').textContent = label;
   $('#dlSub').textContent = sub;

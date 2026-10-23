@@ -175,7 +175,9 @@ jobs:
           node --check dev/v3/assets/site-locale.js
 
       - name: Validate canonical marketing site, routes, hooks, and release metadata
-        run: node scripts/validate-site-release.mjs
+        run: |
+          node --test scripts/site-release-contract.test.mjs
+          node scripts/validate-site-release.mjs
 
       - name: Upload canonical marketing-site preview
         if: success()

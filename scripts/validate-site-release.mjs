@@ -2,10 +2,12 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateReleaseChannels } from "./site-release-contract.mjs";
 
 const read = (relativePath) => readFileSync(new URL(`../${relativePath}`, import.meta.url), "utf8").replace(/^\uFEFF/, "");
 const readJson = (relativePath) => JSON.parse(read(relativePath));
-const release = readJson("dev/v3/release.json");
+const releaseManifest = readJson("dev/v3/release.json");
+const release = releaseManifest.channels[releaseManifest.defaultChannel];
 const routeManifest = readJson("dev/v3/routes.json");
 const siteLocaleCatalog = readJson("localization/site/catalog-status.json");
 const targetLocales = readJson("localization/target-locales.json");
@@ -54,21 +56,6 @@ for (const page of htmlPages.filter((candidate) => !candidate.path.startsWith("m
   assert.ok(html.includes(`<script src="${localeScriptPath}" defer></script>`), `${page.path} must load the shared locale preference control`);
 }
 
-assert.match(release.version, /^v\d+\.\d+\.\d+$/, "release version must be SemVer with a v prefix");
-assert.match(release.checkedOn, /^\d{4}-\d{2}-\d{2}$/, "checkedOn must be an ISO date");
-assert.equal(release.releaseUrl, `https://github.com/ryanspice/pocketmic-lan/releases/tag/${release.version}`);
-
-for (const [platform, assetName] of [
-  ["android", "app-debug.apk"],
-  ["windows", "PocketMicReceiver-win-x64.zip"],
-]) {
-  const asset = release[platform];
-  assert.ok(asset, `release manifest is missing ${platform}`);
-  assert.match(asset.url, new RegExp(`/releases/download/${release.version}/${assetName.replaceAll(".", "\\.")}$`));
-  assert.match(asset.sha256, /^[a-f0-9]{64}$/, `${platform} SHA-256 must contain 64 lowercase hex characters`);
-  assert.ok(Number.isSafeInteger(asset.bytes) && asset.bytes > 0, `${platform} byte size must be a positive integer`);
-}
-
 assert.equal(new Set(routeManifest.map((route) => route.key)).size, routeManifest.length, "route keys must be unique");
 for (const route of routeManifest) {
   assert.ok(existsSync(new URL(route.path, siteRoot)), `route ${route.key} points to missing file ${route.path}`);
@@ -109,6 +96,8 @@ for (const [selector, target, href] of [
 
 const homeScript = read("dev/v3/assets/marketing-home.js");
 const subsiteScript = read("dev/v3/assets/subsite.js");
+assert.ok(homeScript.includes("getAttribute('data-stable-version')"), "runtime download labels must use the checked-in stable version");
+assert.ok(!/v\d+\.\d+\.\d+/.test(homeScript), "homepage script must not override channel metadata with a fixed version");
 assert.ok(homepage.includes('<script src="assets/subsite.js" defer></script>'), "homepage must load shared navigation and conversion hooks");
 assert.ok(subsiteScript.includes("pocketmic:conversion"), "shared site controls must emit the local conversion event");
 assert.ok(!/\bfetch\s*\(|XMLHttpRequest|sendBeacon|api\.github\.com/i.test(`${homeScript}\n${subsiteScript}`), "site scripts must not fetch live GitHub stats or send analytics to a remote service");
@@ -181,26 +170,8 @@ for (const page of publicRoutes) {
 }
 assert.equal(brokenReferences.length, 0, `public routes contain broken local references:\n${brokenReferences.join("\n")}`);
 
-const androidPage = read("dev/v3/download/android/index.html");
-const windowsPage = read("dev/v3/download/windows/index.html");
-const releasePage = read("dev/v3/release-notes/index.html");
-const downloadPage = read("dev/v3/download/index.html");
-const roadmapPage = read("dev/v3/roadmap/index.html");
-for (const [label, page, asset] of [
-  ["Android download page", androidPage, release.android],
-  ["Windows download page", windowsPage, release.windows],
-]) {
-  assert.ok(page.includes(release.version), `${label} does not show ${release.version}`);
-  assert.ok(page.includes(asset.url), `${label} does not link to its manifest asset`);
-  assert.ok(page.includes(asset.sha256), `${label} does not show the manifest checksum`);
-  assert.ok(page.includes(`${(asset.bytes / 1_000_000).toFixed(1)} MB`), `${label} does not show the manifest size`);
-}
-
-assert.ok(downloadPage.includes(release.version), "downloads index does not show the current release version");
-assert.ok(releasePage.includes(`Published ${release.version} artifacts`), "release notes do not identify the manifest version");
-assert.ok(releasePage.includes(release.android.url) && releasePage.includes(release.windows.url), "release notes do not link both published assets");
-assert.ok(roadmapPage.includes("v0.1.5 is the current published release"), "roadmap does not identify the current published release");
-assert.ok(roadmapPage.includes("v0.1.6") && roadmapPage.includes("not released"), "roadmap does not label v0.1.6 as unreleased");
+validateReleaseChannels(releaseManifest, pageContent);
+const roadmapPage = pageContent.get("roadmap/index.html");
 for (const staleClaim of [
   "crash on CI",
   "Current latency is 100–250 ms",
@@ -219,4 +190,4 @@ for (const disclosure of ["Google Fonts", "fonts.googleapis.com", "microphone de
   assert.ok(privacyPage.includes(disclosure), `privacy page is missing the ${disclosure} disclosure`);
 }
 
-console.log(`Canonical dev/v3 site: ${publicRoutes.length} routes, local links/hooks, locale defaults, and ${release.version} downloads are consistent.`);
+console.log(`Canonical dev/v3 site: ${publicRoutes.length} routes, local links/hooks, locale defaults, and stable ${release.version} / development ${releaseManifest.channels.prerelease.version} downloads are consistent.`);

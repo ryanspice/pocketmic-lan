@@ -1,17 +1,50 @@
 {
-  "version": "v0.1.5",
-  "checkedOn": "2026-09-25",
-  "releaseUrl": "https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.5",
-  "android": {
-    "url": "https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.5/app-debug.apk",
-    "sha256": "4a770f661b094bb3dc597dc20dec88a7459efc8a7177496242e3b918adc70367",
-    "bytes": 35585121,
-    "signing": "debug-signed"
+  "defaultChannel": "stable",
+  "checkedOn": "2026-10-23",
+  "channels": {
+    "stable": {
+      "version": "v0.1.5",
+      "releaseUrl": "https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.5",
+      "android": {
+        "url": "https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.5/app-debug.apk",
+        "sha256": "4a770f661b094bb3dc597dc20dec88a7459efc8a7177496242e3b918adc70367",
+        "bytes": 35585121,
+        "signing": "debug-signed"
+      },
+      "windows": {
+        "url": "https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.5/PocketMicReceiver-win-x64.zip",
+        "sha256": "593e9d23a32f29aa0562cc5af69dda9b49c9a078aa943e4f40e1673a57c7d2d9",
+        "bytes": 70613256,
+        "packaging": "self-contained ZIP",
+        "signing": "unsigned"
+      },
+      "prerelease": false
+    },
+    "prerelease": {
+      "version": "v0.1.7",
+      "prerelease": true,
+      "releaseUrl": "https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.7",
+      "android": {
+        "url": "https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.7/app-debug.apk",
+        "sha256": "2ec784e3fa19c5b001784184e23ca111308dc78781f3b350cb1f15ebb9a25dcc",
+        "bytes": 35522052,
+        "signing": "debug-signed"
+      },
+      "windows": {
+        "url": "https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.7/PocketMicReceiver-win-x64.zip",
+        "sha256": "adc89a2a8371012b96782f911aabccd61906579a851eb372b2c1b91fec3a9f2c",
+        "bytes": 199795218,
+        "signing": "unsigned",
+        "packaging": "self-contained ZIP"
+      }
+    }
   },
-  "windows": {
-    "url": "https://github.com/ryanspice/pocketmic-lan/releases/download/v0.1.5/PocketMicReceiver-win-x64.zip",
-    "sha256": "593e9d23a32f29aa0562cc5af69dda9b49c9a078aa943e4f40e1673a57c7d2d9",
-    "bytes": 70613256,
-    "packaging": "self-contained ZIP"
+  "sourceBaseline": {
+    "version": "v0.1.6",
+    "status": "historical source baseline"
+  },
+  "nextMilestone": {
+    "version": "v0.1.8",
+    "status": "next Apple development milestone"
   }
 }

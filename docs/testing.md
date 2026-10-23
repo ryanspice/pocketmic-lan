@@ -11,7 +11,7 @@ Status: current guide, reconciled 2026-10-15. Counts and receipts belong to exac
 - **Windows engine/UI:** run the Release test suite with pinned native Opus staged as described in [development.md](development.md). Exercise the changed installed UI behaviour separately.
 - **Windows packaging/installer:** complete modern/classic publish, resource/ZIP/hash checks and `scripts/test-windows-installer.ps1`. Install or update a user machine only within the authorized task.
 - **Apple:** existing hosted simulator/protocol/build/localization/package jobs; see the [Apple plan](plans/0.1.8-apple.md) for physical acceptance.
-- **Website:** `node scripts/validate-site-release.mjs`, affected JavaScript syntax checks and exact-payload desktop/mobile review. `tools/verify_web.py` applies only to the legacy demo.
+- **Website:** `node --test scripts/site-release-contract.test.mjs`, `node scripts/validate-site-release.mjs`, affected JavaScript syntax checks and exact-payload desktop/mobile review. Verify stable remains the default and prerelease opt-in links retain their own versions and hashes. `tools/verify_web.py` applies only to the legacy demo.
 - **Localization:** use the validators in [localization/](../localization/README.md) for the affected platform, followed by fluent/layout review before support claims.
 
 The [CI job definitions](../.github/workflows/ci.yml) are the authoritative Android/Windows command sequence. The retired 0.1.4 source/hash checker is not a substitute for these tests.
@@ -26,6 +26,8 @@ Record candidate commit, app/build versions, artifact hashes, sender/receiver mo
 4. **Windows controls:** manual buffer ownership versus adaptive effective target; live monitor-device changes and failed-open retention; explicit desktop DSP preset versus phone Custom settings; matching cable endpoints and all Windows default roles; restoration that preserves another user's/app's later changes; report export during active packets, cancel and error paths.
 5. **Desktop lifecycle and appearance:** Start/second-launch activation, persistent tray, X hiding and explicit Exit; modern/classic selection; light/dark, high contrast, disabled transparency, older Windows, keyboard access and mixed-DPI layouts. Owner confirmations from 0.1.7 establish only their recorded scenarios.
 6. **Apple driver and routing:** use [Mac setup](../macos/README.md) and the [tester report](../macos/TESTER-REPORT.md) for install, registration, selected-app input, underrun, reconnect, guarded uninstall and recovery.
+
+For Android-to-Mac PCM acceptance, run longer than the former approximately 65-second timeout (at least 90 seconds). Check authenticated delivery feedback at the default and a custom audio port, then stop the Mac receiver and verify Android still enters reconnecting and eventually times out. A wrong key, rejected/replayed packet or unsupported Opus stream must not refresh delivery confirmation. Verify stop/restart does not send feedback from the previous receiver run. Mac feedback establishes authenticated reception only; separately record audible input in the destination app and driver routing.
 
 Protocol tampering/replay rejection belongs to deterministic fixtures unless a dedicated physical test procedure is explicitly approved. Do not improvise packet injection into an ordinary user session.
 

@@ -16,6 +16,22 @@
 <meta property="og:image" content="https://canopydigital.ca/sites/pocketmic-lan/og-image.png">
 <link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
 <link rel="stylesheet" href="../styles.css">
+<style>
+/* Keep this page's version badge and injected locale control on their own row. */
+@media (max-width:1024px){
+  .roadmap-page .header-inner{ display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.5rem .75rem; position:relative }
+  .roadmap-page .header-inner .brand{ grid-column:1/4; min-width:0 }
+  .roadmap-page .primary-nav{ grid-column:4; justify-self:end; margin-left:0; position:static }
+  .roadmap-page .nav-toggle{ display:inline-flex; flex-direction:column }
+  .roadmap-page .nav-list{ display:none; flex-direction:column; gap:0; position:absolute; right:1.5rem; top:100%; background:var(--paper); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow-lg); padding:.5rem; min-width:15rem }
+  .roadmap-page .primary-nav:has(.nav-toggle-input:checked) .nav-list{ display:flex }
+  .roadmap-page .nav-list a{ display:block; padding:.7rem .9rem; min-height:44px }
+  .roadmap-page .nav-list a::after{ display:none }
+  .roadmap-page .header-inner .badge{ grid-column:1/3; justify-self:start }
+  .roadmap-page .header-inner .site-locale{ grid-column:3/5; justify-self:end; min-width:0; max-width:100% }
+  .roadmap-page .site-locale select{ min-width:0; max-width:100%; width:100% }
+}
+</style>
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -27,7 +43,7 @@
 </script>
 <script src="../app.js" defer></script>
 <script src="../assets/site-locale.js" defer></script></head>
-<body>
+<body class="roadmap-page">
 <a class="skip" href="#main">Skip to content</a>
 
 <header class="site-header">
@@ -67,7 +83,7 @@
     <h1 style="max-width:14ch">Where we are.<br><em>Where we're going.</em></h1>
     <p class="tagline" style="max-width:55ch">PocketMic is early software with a clear direction. Here's the competitive landscape, what works today, and what's planned next.</p>
     <div class="roadmap-stats">
-      <div class="roadmap-stat"><strong>v0.1.5</strong><span>Current published release</span></div>
+      <div class="roadmap-stat"><strong>v0.1.5</strong><span>Stable release</span></div>
       <div class="roadmap-stat"><strong>100 ms</strong><span>Default receiver prebuffer setting</span></div>
       <div class="roadmap-stat"><strong>48 kHz</strong><span>PCM sample rate</span></div>
       <div class="roadmap-stat"><strong>AES-256</strong><span>Encryption</span></div>
@@ -114,126 +130,60 @@
 <!-- CURRENT STATE -->
 <section class="section section-alt" id="current">
   <div class="wrap">
-    <p class="sec-eyebrow">Current state</p>
-    <h2>What works today</h2>
-    <p class="lede">v0.1.5 is the current published release. v0.1.6 is in development; hosted builds do not replace physical-device acceptance.</p>
+    <p class="sec-eyebrow">Current state</p><h2>Published channels and open acceptance</h2>
+    <p class="lede">Stable release · v0.1.5 remains the default Android and Windows download. The development channel is a separate opt-in choice below.</p>
+    <p data-source-baseline="v0.1.6">v0.1.6 is a historical source baseline, superseded by the consolidated development release. It is not an upcoming milestone.</p>
     <div class="status-grid">
-      <div class="status-card status-working">
-        <h3>✅ Working</h3>
-        <ul>
-          <li>Android publisher and Windows receiver in the published v0.1.5 release</li>
-          <li>Encrypted 48 kHz mono PCM16 audio over a private LAN</li>
-          <li>Pairing and receiver discovery</li>
-          <li>Use VB-CABLE, installed separately, to route receiver audio into another Windows app</li>
-          <li>Published release downloads and source: <a href="https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.5">v0.1.5 release</a></li>
-        </ul>
-      </div>
-      <div class="status-card status-partial">
-        <h3>⚠️ Partially working</h3>
-        <ul>
-          <li>Real-device audio routing, reconnect behavior, long sessions, and timing depend on the device and still need broader field evidence</li>
-          <li>Adaptive buffering is implemented; real-device behavior still needs validation</li>
-          <li>Several Android-to-Windows hardware checks remain open; CI build and unit tests do not prove audible end-to-end audio</li>
-          <li>The Windows PM-LAN route name and third-party VB-CABLE must not be treated as interchangeable</li>
-        </ul>
-      </div>
-      <div class="status-card status-planned">
-        <h3>❌ Not yet working</h3>
-        <ul>
-          <li>macOS receiver and CoreAudio virtual mic are v0.1.6 preview work, not part of published v0.1.5</li>
-          <li>iOS publisher is experimental and not part of the published v0.1.5 release</li>
-          <li>Android Opus selection is in development; physical codec interoperability is not yet accepted</li>
-          <li>Linux receiver and system-wide virtual audio route are planned after v0.1.6</li>
-          <li>Production signing, notarization, store distribution, and TestFlight are not configured as release paths</li>
-        </ul>
-      </div>
+      <div class="status-card status-working"><h3>Implemented and packaged</h3><ul>
+        <li>Android publisher and Windows receiver; encrypted 48 kHz mono PCM16 and negotiated Opus transport</li>
+        <li>Pairing, receiver discovery, desktop audio controls and diagnostics</li>
+        <li>Windows app microphone routing through VB-CABLE, installed separately</li>
+        <li><a href="https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.5">Stable release v0.1.5 downloads and source</a></li>
+      </ul></div>
+      <div class="status-card status-partial"><h3>Physical acceptance remains open</h3><ul>
+        <li>Named-device audible destination-app routing, sustained sessions and reconnect behaviour</li>
+        <li>Windows Opus audio, live buffering/DSP controls and reversible cable routing</li>
+        <li>Measured end-to-end latency, jitter/loss recovery and battery behaviour</li>
+        <li>Build, package and protocol checks do not establish physical audio acceptance</li>
+      </ul></div>
+      <div class="status-card status-planned"><h3>Apple development previews</h3><ul>
+        <li>iOS PCM publisher: existing simulator and unsigned archive workflows</li>
+        <li>macOS receiver and CoreAudio virtual microphone: existing universal build and tester-package workflows</li>
+        <li>Physical iPhone/Mac interoperability, driver installation, routing and recovery still need tester evidence</li>
+        <li>Production signing, notarization, store distribution and TestFlight remain separate decisions</li>
+      </ul></div>
     </div>
   </div>
 </section>
-
+<section class="section" data-release-channel="prerelease" id="development-prerelease">
+ <div class="wrap"><p class="sec-eyebrow">Completed development baseline</p><h2>Development prerelease · v0.1.7</h2>
+ <p>Published for opt-in development testing, with modern Windows Mica, classic fallback, shared icons, tray and single-instance activation, complete XAML/runtime/Opus packaging, installer preservation and Android pairing/discovery/endpoint fixes.</p>
+ <p>Recorded build and installation evidence applies to that exact candidate. It does not close every physical audio, device or accessibility scenario.</p>
+ <p><a href="https://github.com/ryanspice/pocketmic-lan/releases/tag/v0.1.7">Review the v0.1.7 development prerelease</a> · <a href="../download/index.html#development-prerelease">Opt-in downloads and checksums</a></p>
+ </div>
+</section>
 <!-- ROADMAP TIMELINE -->
-<section class="section" id="roadmap">
-  <div class="wrap">
-    <p class="sec-eyebrow">Roadmap</p>
-    <h2>What's planned</h2>
-    <p class="lede">Organized by priority. Items move up when measured data justifies them.</p>
-
-    <div class="timeline">
-
-      <div class="timeline-item timeline-done">
-        <div class="timeline-marker"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <span class="timeline-badge">v0.1.5</span>
-            <span class="timeline-status">Released · 2026-09-14</span>
-          </div>
-          <h3>Published Android-to-Windows release</h3>
-          <ul>
-            <li><strong>LinkQualityPolicy integration</strong> — adaptive prebuffer and concealment ✅</li>
-            <li><strong>Version mismatch UI</strong> — clear message when versions don't match ✅</li>
-            <li><strong>Reconnect tracking</strong> — elapsed time display during reconnecting ✅</li>
-            <li><strong>Current release assets</strong> — Android debug-signed APK and Windows receiver archive</li>
-            <li><strong>Validation boundary</strong> — CI and unit tests are not evidence of physical audio routing or a measured latency result</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="timeline-item timeline-next">
-        <div class="timeline-marker"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <span class="timeline-badge">v0.1.6</span>
-            <span class="timeline-status">In development · not released</span>
-          </div>
-          <h3>Mac receiver preview, mobile interoperability, and reviewed localization</h3>
-          <ul>
-            <li><strong>macOS receiver preview</strong> — encrypted LAN receive and CoreAudio virtual-microphone path; physical Mac installation and real-app routing must pass before the route is called ready.</li>
-            <li><strong>Mobile publisher interoperability</strong> — validate iOS PCM v1 and Android codec behavior against Windows and Mac; incompatible codec modes must be surfaced clearly.</li>
-            <li><strong>Desktop and discovery fixes</strong> — complete D1–D5 live acceptance and the authenticated pre-start discovery design.</li>
-            <li><strong>Localization</strong> — ship only translated and reviewed locales; default to Canadian English, keep American English distinct, and include Kurdish only when its locale copy passes review.</li>
-            <li><strong>Release evidence</strong> — rerun platform CI on one frozen candidate and publish exact artifact hashes and signing status.</li>
-            <li><strong>Release gate</strong> — v0.1.6 remains unreleased until physical Mac/mobile checks, product-truth review, and candidate CI pass.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-marker"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <span class="timeline-badge">v0.3</span>
-            <span class="timeline-status">Planned</span>
-          </div>
-          <h3>After v0.1.6: Linux and device roles</h3>
-          <ul>
-            <li><strong>Linux receiver</strong> — choose audio backend, distributions, packaging, and virtual-mic approach before implementation.</li>
-            <li><strong>Android and iOS consumer roles</strong> — allow phones and tablets to receive from supported publishers after a shared role and routing design is agreed.</li>
-            <li><strong>Expanded device matrix</strong> — validate supported Android, iPhone, iPad, Windows, Mac, and Linux combinations with dated evidence.</li>
-            <li><strong>Transport and audio quality</strong> — prioritize USB/ADB, capture changes, and DSP from measured user needs and controlled results.</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="timeline-item">
-        <div class="timeline-marker"></div>
-        <div class="timeline-content">
-          <div class="timeline-header">
-            <span class="timeline-badge">v1.0</span>
-            <span class="timeline-status">Future</span>
-          </div>
-          <h3>Later distribution and scale</h3>
-          <ul>
-            <li><strong>Signing and distribution</strong> — configure and verify platform-specific signing, notarization, store/TestFlight, and installer paths.</li>
-            <li><strong>Upgrade and rollback</strong> — define supported migrations and prove clean installation and recovery for each platform.</li>
-            <li><strong>Security and privacy</strong> — update disclosures and support materials to match verified runtime behavior.</li>
-            <li><strong>Promotion</strong> — widen outreach only after the pilot demonstrates repeatable setup and successful routes.</li>
-          </ul>
-        </div>
-      </div>
-
-    </div>
-  </div>
-</section>
+<section class="section" id="roadmap"><div class="wrap">
+ <p class="sec-eyebrow">Roadmap</p><h2>What comes next</h2>
+ <div class="timeline">
+  <div class="timeline-item timeline-next"><div class="timeline-marker"></div><div class="timeline-content">
+   <div class="timeline-header"><span class="timeline-badge" data-next-milestone="v0.1.8">v0.1.8</span><span class="timeline-status">Next bounded development milestone</span></div>
+   <h3>The next Apple development milestone</h3><ul>
+    <li><strong>Physical interoperability</strong> — test Android/iPhone PCM with Windows/Mac; Mac currently does not decode Opus v2.</li>
+    <li><strong>Mac driver acceptance</strong> — record installation, registration, named-app input, underrun, reconnect, guarded uninstall and recovery.</li>
+    <li><strong>Tester delivery</strong> — reuse existing hosted simulator/archive and universal Mac app/driver workflows, with exact artifact hashes and reproducible instructions.</li>
+    <li><strong>Signing decisions</strong> — make distribution choices explicit; unsigned previews are not store or notarized releases.</li>
+    <li><strong>Localization</strong> — keep Canadian English as fallback; target, translated, reviewed and supported locales remain distinct.</li>
+   </ul>
+  </div></div>
+  <div class="timeline-item"><div class="timeline-marker"></div><div class="timeline-content"><div class="timeline-header"><span class="timeline-badge">Later</span><span class="timeline-status">Deferred ideas</span></div><h3>Linux, mobile consumer roles and distribution</h3><ul>
+   <li>Choose the Linux backend, packaging and virtual microphone approach before implementation.</li>
+   <li>Design Android and iOS consumer roles, pairing and routing before adding reverse audio.</li>
+   <li>Prioritize USB, capture and DSP changes from measured user needs and controlled results.</li>
+   <li>Production signing, automatic updates and wider distribution need their own approved scope and acceptance.</li>
+  </ul></div></div>
+ </div>
+</div></section>
 
 <!-- COMMUNITY REQUESTS -->
 <section class="section section-alt" id="community">
@@ -244,7 +194,7 @@
     <div class="faq-grid">
       <details class="faq-item">
         <summary>iOS support</summary>
-        <p>The current unreleased source includes an experimental native iOS publisher that sends PCM v1. It has simulator-build evidence, but no physical iPhone-to-receiver acceptance and no published iOS download. Treat it as a v0.1.6 manual-test preview.</p>
+        <p>The implemented native iOS preview sends PCM v1. Hosted simulator and unsigned archive workflows exist. Physical iPhone interoperability, signed distribution and store availability remain separate acceptance gates for the Apple development milestone.</p>
       </details>
       <details class="faq-item">
         <summary>Lower latency</summary>
@@ -260,7 +210,7 @@
       </details>
       <details class="faq-item">
         <summary>macOS and Linux support</summary>
-        <p>A macOS receiver and CoreAudio virtual-microphone preview are in v0.1.6 development. Physical installation and routing acceptance remain open. Linux receiver support is planned after v0.1.6 and still needs audio-backend and packaging decisions.</p>
+        <p>A macOS receiver and CoreAudio virtual-microphone preview are implemented with hosted universal build and tester-package workflows. Physical installation and routing acceptance remain open. Linux remains deferred pending audio-backend and packaging decisions.</p>
       </details>
       <details class="faq-item">
         <summary>Multiple phones at once</summary>

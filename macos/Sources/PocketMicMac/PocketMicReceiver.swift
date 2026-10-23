@@ -22,16 +22,22 @@ final class PocketMicReceiver: ObservableObject {
     private var connections: [ObjectIdentifier: NWConnection] = [:]
     private var virtualMicConnection: NWConnection?
     private var key: SymmetricKey?
-    private var activeSessionID: UInt64?
-    private var lastSequence: UInt32?
-    private var seenSessionIDs = Set<UInt64>()
+    private var controlKey: SymmetricKey?
+    private var reception = PocketMicReceptionState()
+    private var feedbackConnection: NWConnection?
+    private var feedbackRoute: PocketMicFeedbackRoute?
+    private var feedbackReady = false
+    private var feedbackInFlight = false
+    private var nextFeedbackAttemptAt: TimeInterval = 0
+    private var runID: UUID?
+    private var audioPort: UInt16 = 49_500
     private var didReportUnsupportedCodec = false
 
     func start(portText: String, pairingKey: String) {
-        guard !isListening else { return }
-        guard let portNumber = UInt16(portText), portNumber > 0,
+        guard listener == nil else { return }
+        guard let portNumber = UInt16(portText), PocketMicFeedbackRoute.validAudioPort(portNumber),
               let port = NWEndpoint.Port(rawValue: portNumber) else {
-            errorMessage = String(localized: "Enter a valid UDP port between 1 and 65535.")
+            errorMessage = String(localized: "Enter a UDP port between 1 and 65534, except 49501 (reserved for the virtual microphone).")
             return
         }
         guard !pairingKey.isEmpty else {
@@ -40,12 +46,14 @@ final class PocketMicReceiver: ObservableObject {
         }
 
         key = SymmetricKey(data: Data(SHA256.hash(data: Data(pairingKey.utf8))))
+        controlKey = PocketMicControlFeedback.deriveKey(pairingKey: pairingKey)
+        audioPort = portNumber
+        let run = UUID()
+        runID = run
         authenticatedPackets = 0
         codecWarning = nil
         didReportUnsupportedCodec = false
-        activeSessionID = nil
-        lastSequence = nil
-        seenSessionIDs.removeAll()
+        reception = PocketMicReceptionState()
         errorMessage = nil
 
         do {
@@ -53,7 +61,7 @@ final class PocketMicReceiver: ObservableObject {
             listener = udpListener
             udpListener.stateUpdateHandler = { [weak self] state in
                 Task { @MainActor in
-                    guard let self else { return }
+                    guard let self, self.runID == run else { return }
                     switch state {
                     case .ready:
                         self.isListening = true
@@ -70,7 +78,10 @@ final class PocketMicReceiver: ObservableObject {
                 }
             }
             udpListener.newConnectionHandler = { [weak self] connection in
-                Task { @MainActor in self?.accept(connection) }
+                Task { @MainActor in
+                    guard let self, self.runID == run else { connection.cancel(); return }
+                    self.accept(connection, run: run)
+                }
             }
             udpListener.start(queue: queue)
 
@@ -78,12 +89,15 @@ final class PocketMicReceiver: ObservableObject {
             virtualMicConnection = local
             local.start(queue: queue)
         } catch {
-            key = nil
+            stop()
             errorMessage = String(localized: "Could not listen on UDP") + " \(portNumber): \(error.localizedDescription)"
         }
     }
 
     func stop() {
+        // Invalidate queued callbacks before cancelling sockets; an old run cannot send replies
+        // or update the packet count/status of a replacement receiver.
+        runID = nil
         listener?.cancel()
         listener = nil
         for connection in connections.values {
@@ -92,65 +106,120 @@ final class PocketMicReceiver: ObservableObject {
         connections.removeAll()
         virtualMicConnection?.cancel()
         virtualMicConnection = nil
+        feedbackConnection?.cancel()
+        feedbackConnection = nil
+        feedbackRoute = nil
+        feedbackReady = false
+        feedbackInFlight = false
+        nextFeedbackAttemptAt = 0
         key = nil
-        activeSessionID = nil
-        lastSequence = nil
-        seenSessionIDs.removeAll()
+        controlKey = nil
+        reception = PocketMicReceptionState()
         isListening = false
         status = String(localized: "Ready")
         didReportUnsupportedCodec = false
     }
 
-    private func accept(_ connection: NWConnection) {
+    private func accept(_ connection: NWConnection, run: UUID) {
         let id = ObjectIdentifier(connection)
         connections[id] = connection
         connection.stateUpdateHandler = { [weak self, weak connection] state in
             guard case .failed = state, let connection else { return }
             Task { @MainActor in
-                self?.connections.removeValue(forKey: ObjectIdentifier(connection))
+                guard let self, self.runID == run else { return }
+                self.connections.removeValue(forKey: ObjectIdentifier(connection))
             }
         }
         connection.start(queue: queue)
-        receiveNextMessage(from: connection)
+        receiveNextMessage(from: connection, run: run)
     }
 
-    private func receiveNextMessage(from connection: NWConnection) {
+    private func receiveNextMessage(from connection: NWConnection, run: UUID) {
+        guard runID == run else { return }
         let packetKey = key
-        let bridge = virtualMicConnection
         connection.receiveMessage { [weak self, weak connection] data, _, _, error in
             guard let self, let connection else { return }
-            if let data {
-                if Self.isOpusV2Packet(data) {
-                    Task { @MainActor in self.reportUnsupportedOpusOnce() }
-                } else if let packetKey, let frame = Self.decryptPCMv1(data, using: packetKey) {
-                    Task { @MainActor in
-                        guard self.accept(frame) else { return }
-                        bridge?.send(content: frame.pcm, completion: .contentProcessed { [weak self] error in
-                            guard error == nil else { return }
-                            Task { @MainActor in self?.authenticatedPackets += 1 }
-                        })
+            // Crypto work stays off the main actor; session/sequence and run ownership are
+            // checked before either the loopback bridge or feedback sees the plaintext.
+            let frame = data.flatMap { packet in packetKey.flatMap { Self.decryptPCMv1(packet, using: $0) } }
+            let unsupportedOpus = data.map(Self.isOpusV2Packet) ?? false
+            Task { @MainActor in
+                guard self.runID == run, self.connections[ObjectIdentifier(connection)] != nil else { return }
+                if let frame {
+                    switch self.reception.accept(frame) {
+                    case .accepted:
+                        self.authenticatedPackets += 1
+                        self.virtualMicConnection?.send(content: frame.pcm, completion: .contentProcessed { _ in })
+                        self.sendFeedbackIfDue(from: connection, run: run)
+                    case .late:
+                        break
+                    case .rejectedSession:
+                        self.errorMessage = String(localized: "Rejected a replayed or excessive PocketMic stream session. Restart the receiver to begin a fresh validation session.")
+                    }
+                } else if data != nil {
+                    self.reception.reject()
+                    if unsupportedOpus { self.reportUnsupportedOpusOnce() }
+                }
+                if error == nil { self.receiveNextMessage(from: connection, run: run) }
+            }
+        }
+    }
+
+    private func sendFeedbackIfDue(from audioConnection: NWConnection, run: UUID) {
+        guard let controlKey else { return }
+        let now = ProcessInfo.processInfo.systemUptime
+        guard let route = PocketMicFeedbackRoute(localEndpoint: audioConnection.currentPath?.localEndpoint,
+                                                remoteEndpoint: audioConnection.endpoint, audioPort: audioPort) else {
+            errorMessage = String(localized: "Delivery feedback requires a private-LAN IPv4 sender and receiver address.")
+            return
+        }
+        if feedbackRoute != route || feedbackConnection == nil {
+            // A persistent bind/route failure must not create a socket for every 10 ms frame.
+            guard feedbackRoute != route || now >= nextFeedbackAttemptAt else { return }
+            feedbackConnection?.cancel()
+            let feedback = route.makeConnection()
+            feedbackRoute = route
+            feedbackConnection = feedback
+            feedbackReady = false
+            feedbackInFlight = false
+            nextFeedbackAttemptAt = now + 0.5
+            feedback.stateUpdateHandler = { [weak self, weak feedback] state in
+                Task { @MainActor in
+                    guard let self, let feedback, self.runID == run,
+                          self.feedbackConnection === feedback else { return }
+                    switch state {
+                    case .ready:
+                        self.feedbackReady = true
+                    case .failed(let error):
+                        self.feedbackReady = false
+                        feedback.cancel()
+                        self.feedbackConnection = nil
+                        self.errorMessage = String(localized: "Delivery feedback unavailable:") + " \(error.localizedDescription)"
+                    default:
+                        self.feedbackReady = false
                     }
                 }
             }
-            if error == nil {
-                Task { @MainActor in self.receiveNextMessage(from: connection) }
-            }
+            feedback.start(queue: queue)
         }
-    }
-
-    private func accept(_ frame: PocketMicDecodedFrame) -> Bool {
-        if activeSessionID != frame.sessionID {
-            guard seenSessionIDs.count < 64, !seenSessionIDs.contains(frame.sessionID) else {
-                errorMessage = String(localized: "Rejected a replayed or excessive PocketMic stream session. Restart the receiver to begin a fresh validation session.")
-                return false
+        // Never queue STATS while the path is preparing/waiting: a delayed stale reply would
+        // otherwise look like fresh delivery after the sender or audio path had stopped.
+        guard reception.feedbackIsDue(at: now,
+            transportReady: feedbackReady, sendInFlight: feedbackInFlight),
+              let feedback = feedbackConnection else { return }
+        let frame = PocketMicControlFeedback.statsFrame(using: controlKey, packets: reception.packets,
+            lost: reception.lost, late: reception.late, rejected: reception.rejected)
+        feedbackInFlight = true
+        feedback.send(content: frame, completion: .contentProcessed { [weak self, weak feedback] error in
+            Task { @MainActor in
+                guard let self, let feedback, self.runID == run,
+                      self.feedbackConnection === feedback else { return }
+                self.feedbackInFlight = false
+                if let error {
+                    self.errorMessage = String(localized: "Delivery feedback unavailable:") + " \(error.localizedDescription)"
+                }
             }
-            seenSessionIDs.insert(frame.sessionID)
-            activeSessionID = frame.sessionID
-            lastSequence = nil
-        }
-        if let lastSequence, !PocketMicSequenceOrder.isForward(frame.sequence, after: lastSequence) { return false }
-        lastSequence = frame.sequence
-        return true
+        })
     }
 
     private func reportUnsupportedOpusOnce() {

@@ -15,13 +15,13 @@
     "ckb": {
       "status": "draft",
       "reviewed": false,
-      "notes": "Central Kurdish (Sorani), RTL. Draft Apple strings use Android terminology for consistency and need fluent linguistic and device-layout review."
+      "notes": "Central Kurdish (Sorani), RTL. Draft Apple strings use Android terminology for consistency and need fluent linguistic and device-layout review. Three Mac delivery-feedback/port-validation messages retain English source pending translation."
     },
     "kmr": {
       "status": "draft",
       "reviewed": false,
       "appleCatalogLocale": "ku-Latn",
-      "notes": "Northern Kurdish (Kurmanji), LTR. Apple builds this catalog as ku-Latn to preserve the Latin-script distinction; draft strings use Android terminology for consistency and need fluent linguistic and device-layout review."
+      "notes": "Northern Kurdish (Kurmanji), LTR. Apple builds this catalog as ku-Latn to preserve the Latin-script distinction; draft strings use Android terminology for consistency and need fluent linguistic and device-layout review. Three Mac delivery-feedback/port-validation messages retain English source pending translation."
     }
   }
 }

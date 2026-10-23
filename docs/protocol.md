@@ -95,7 +95,14 @@ These receiver rules do not alter the wire format.
 
 Carried on UDP `audioPort + 1`, separate from the audio stream. Every datagram is exactly 256 bytes, zero padded, so a reply can never exceed the request that triggered it and the discovery responder cannot be used as a traffic amplifier.
 
-Receivers also answer PROBE on the standard discovery port `49501` when their audio port is custom. This listener accepts only discovery probes; CONFIG and STATS remain on `audioPort + 1`. The ANNOUNCE payload carries the actual audio port. Phones probe both the configured control port and `49501`, plus the saved or scanned address directly, and retain a bounded list of receivers that have replied within five seconds. A QR or manually selected endpoint is pinned; automatic discovery prefers an authenticated, compatible receiver. Unauthenticated replies expose only the sender address and a key-mismatch notice. If audio itself occupies `49501`, the extra discovery listener cannot be opened and QR/manual pairing is required.
+The macOS PCM preview implements authenticated STATS feedback for a manually selected IPv4
+endpoint; it does not implement PROBE/ANNOUNCE discovery or CONFIG processing. It sends from
+the actual receiving LAN address on `audioPort + 1` to the authenticated sender's IPv4 address
+on that same companion port, not to the sender's ephemeral audio-source port. This specific
+local bind leaves the driver's separate `127.0.0.1:49501` PCM bridge available. Mac audio ports
+are `1..65534` except `49501`, which is reserved for that bridge.
+
+Windows receivers also answer PROBE on the standard discovery port `49501` when their audio port is custom. This listener accepts only discovery probes; CONFIG and STATS remain on `audioPort + 1`. The ANNOUNCE payload carries the actual audio port. Phones probe both the configured control port and `49501`, plus the saved or scanned address directly, and retain a bounded list of receivers that have replied within five seconds. A QR or manually selected endpoint is pinned; automatic discovery prefers an authenticated, compatible receiver. Unauthenticated replies expose only the sender address and a key-mismatch notice. If audio itself occupies `49501`, the extra discovery listener cannot be opened and QR/manual pairing is required.
 
 | Offset | Bytes | Field |
 |---:|---:|---|
@@ -149,6 +156,21 @@ big endian.
 | 32 | 8 | trimmed (discarded to claw back latency) |
 | 40 | 4 | buffered playback depth in milliseconds |
 | 44 | 1 | playing flag: 1 while output is running |
+
+Mac feedback is triggered only by authenticated, supported PCM packets that pass its
+session/sequence acceptance checks, at most once per 500 ms. Wrong keys, tampered or malformed
+datagrams, unsupported Opus, duplicate/older sequences and replayed prior sessions cannot
+trigger a reply. When accepted audio stops, STATS stops; Android's existing 2-second liveness
+timeout, 5-second initial grace and 60-second reconnect deadline remain in force. Feedback is
+submitted only on a ready return connection, with at most one send outstanding; it does not
+build a heartbeat backlog while the route is unavailable. Stop/restart invalidates pending
+callbacks and clears reception/session state.
+
+The Mac reports accepted authenticated packet, gap, late and rejection counters. Its driver
+bridge supplies no playback acknowledgement, so trimmed count, playback depth and playing
+remain zero/false. Authenticated STATS confirms packet reception at the app; it does not
+confirm a driver consumer, selected-app input, audible output or measured latency. The same
+boundary applies to the Mac's authenticated-packet display.
 
 ### CONFIG payload (7 bytes)
 

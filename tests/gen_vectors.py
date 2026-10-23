@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate cross-language test vectors for PocketMic protocol v1 and v2."""
-import hashlib, struct, json, os
+import hashlib, hmac, struct, json, os
 
 os.makedirs('tests/fixtures', exist_ok=True)
 
@@ -33,6 +33,18 @@ ct2 = a.encrypt(nonce, opus, h2)
 assert a.decrypt(nonce, ct1, h1) == pcm, "v1 round-trip failed"
 assert a.decrypt(nonce, ct2, h2) == opus, "v2 round-trip failed"
 
+# Mac reception-only feedback: packet accounting is known, CoreAudio playback is not.
+# Independent Python HMAC bytes are consumed by Kotlin, Swift and C# compatibility tests.
+control_key = hmac.digest(key, b'pocketmic-control-v1', 'sha256')
+stats = {"packets": 7000, "lost": 2, "late": 3, "rejected": 4,
+         "trimmed": 0, "buffer_millis": 0, "playing": False}
+stats_payload = struct.pack('>QQQQQIB', stats['packets'], stats['lost'], stats['late'],
+                            stats['rejected'], stats['trimmed'], stats['buffer_millis'], 0)
+stats_signed = (b'PMCTL' + bytes([1, 3, 0]) + struct.pack('>H', len(stats_payload))
+                + stats_payload).ljust(224, b'\0')
+stats_frame = stats_signed + hmac.digest(control_key, stats_signed, 'sha256')
+assert len(stats_frame) == 256
+
 vectors = {
     "key_hex": key.hex(),
     "nonce_hex": nonce.hex(),
@@ -40,6 +52,7 @@ vectors = {
     "sequence": sequence,
     "sample_rate": sample_rate,
     "pairing_key": pairing_key,
+    "control": {"key_hex": control_key.hex(), "stats": {**stats, "frame_hex": stats_frame.hex()}},
     "v1": {
         "header_hex": h1.hex(),
         "pcm_payload_hex": pcm.hex(),
@@ -54,7 +67,7 @@ vectors = {
     }
 }
 
-with open('tests/fixtures/vectors.json', 'w') as f:
+with open('tests/fixtures/vectors.json', 'w', newline='\n') as f:
     json.dump(vectors, f, indent=2)
 
 # Android's local JVM tests use java.util.Properties (available without adding a
@@ -70,6 +83,8 @@ android_vectors = {
     "v1.datagram_hex": (h1 + ct1).hex(),
     "v2.opus_payload_hex": opus.hex(),
     "v2.datagram_hex": (h2 + ct2).hex(),
+    "control.key_hex": control_key.hex(),
+    "control.stats.frame_hex": stats_frame.hex(),
 }
 
 with open('tests/fixtures/protocol-vectors.properties', 'w', encoding='ascii', newline='\n') as f:
