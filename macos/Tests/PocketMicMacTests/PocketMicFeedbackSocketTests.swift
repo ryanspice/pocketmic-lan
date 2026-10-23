@@ -9,44 +9,63 @@ final class PocketMicFeedbackSocketTests: XCTestCase {
     func testConcreteBindCompanionPortsAndRapidFeedbackRestart() throws {
         let address = try nonLoopbackIPv4()
         let queue = DispatchQueue(label: "pocketmic.tests.feedback")
-        let parameters = NWParameters.udp
-        parameters.requiredLocalEndpoint = .hostPort(host: .ipv4(.loopback), port: .any)
-        let listener = try NWListener(using: parameters)
-        var accepted = [NWConnection]()
-        defer {
-            listener.cancel()
-            queue.sync { accepted.forEach { $0.cancel() } }
+        // Model Android's unconnected DatagramSocket. Two Network.framework UDP peers in
+        // one process can collide even with distinct IPs; the production peer is another
+        // device. Keep the real feedback NWConnection and inspect its actual datagrams.
+        let descriptor = socket(AF_INET, SOCK_DGRAM, 0)
+        guard descriptor >= 0 else { throw socketError() }
+        defer { close(descriptor) }
+        var loopback = sockaddr_in()
+        loopback.sin_len = UInt8(MemoryLayout<sockaddr_in>.size)
+        loopback.sin_family = sa_family_t(AF_INET)
+        loopback.sin_addr = in_addr(s_addr: inet_addr("127.0.0.1"))
+        let bound = withUnsafePointer(to: &loopback) { pointer in
+            pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                Darwin.bind(descriptor, $0, socklen_t(MemoryLayout<sockaddr_in>.size))
+            }
         }
-        let listening = expectation(description: "Loopback test receiver ready")
-        listener.stateUpdateHandler = { state in
-            if case .ready = state { listening.fulfill() }
-            if case .failed(let error) = state { XCTFail("Test listener: \(error)") }
+        guard bound == 0 else { throw socketError() }
+        var length = socklen_t(MemoryLayout<sockaddr_in>.size)
+        let named = withUnsafeMutablePointer(to: &loopback) { pointer in
+            pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) {
+                getsockname(descriptor, $0, &length)
+            }
         }
+        guard named == 0 else { throw socketError() }
+        let portNumber = UInt16(bigEndian: loopback.sin_port)
+        guard portNumber > 1, PocketMicFeedbackRoute.validAudioPort(portNumber - 1) else {
+            throw XCTSkip("Ephemeral port is reserved for the driver bridge")
+        }
+        let port = try XCTUnwrap(NWEndpoint.Port(rawValue: portNumber))
+        var timeout = timeval(tv_sec: 5, tv_usec: 0)
+        guard setsockopt(descriptor, SOL_SOCKET, SO_RCVTIMEO, &timeout,
+                         socklen_t(MemoryLayout<timeval>.size)) == 0 else { throw socketError() }
+
         let received = expectation(description: "Feedback received before and after rapid restart")
         received.expectedFulfillmentCount = 2
-        listener.newConnectionHandler = { connection in
-            accepted.append(connection)
-            connection.start(queue: queue)
-            func receive() {
-                connection.receiveMessage { data, _, _, error in
-                    if let data {
-                        XCTAssertEqual(data, Data([0x50, 0x4d, 0x43, 0x54, 0x4c]))
-                        if case .hostPort(let sourceHost, let sourcePort) = connection.endpoint {
-                            XCTAssertEqual(sourceHost, .ipv4(address))
-                            XCTAssertEqual(sourcePort, listener.port)
-                        } else { XCTFail("Expected numeric source endpoint") }
-                        received.fulfill()
+        let readerQueue = DispatchQueue(label: "pocketmic.tests.phone-socket")
+        // Finish the bounded blocking reads before closing their descriptor.
+        defer { readerQueue.sync {} }
+        readerQueue.async {
+            for _ in 0..<2 {
+                var buffer = [UInt8](repeating: 0, count: 64)
+                var source = sockaddr_in()
+                var sourceLength = socklen_t(MemoryLayout<sockaddr_in>.size)
+                let count = withUnsafeMutablePointer(to: &source) { pointer in
+                    pointer.withMemoryRebound(to: sockaddr.self, capacity: 1) { sourceAddress in
+                        buffer.withUnsafeMutableBytes { bytes in
+                            recvfrom(descriptor, bytes.baseAddress, bytes.count, 0, sourceAddress, &sourceLength)
+                        }
                     }
-                    if error == nil { receive() }
                 }
+                if count >= 0 {
+                    XCTAssertEqual(Array(buffer.prefix(count)), [0x50, 0x4d, 0x43, 0x54, 0x4c])
+                    var receivedAddress = source.sin_addr
+                    XCTAssertEqual(withUnsafeBytes(of: &receivedAddress) { Data($0) }, address.rawValue)
+                    XCTAssertEqual(UInt16(bigEndian: source.sin_port), portNumber)
+                } else { XCTFail("Feedback receive failed: \(String(cString: strerror(errno)))") }
+                received.fulfill()
             }
-            receive()
-        }
-        listener.start(queue: queue)
-        wait(for: [listening], timeout: 5)
-        let port = try XCTUnwrap(listener.port)
-        guard port.rawValue > 1, PocketMicFeedbackRoute.validAudioPort(port.rawValue - 1) else {
-            throw XCTSkip("Ephemeral port is reserved for the driver bridge")
         }
         let route = try XCTUnwrap(PocketMicFeedbackRoute(
             localEndpoint: .hostPort(host: .ipv4(address), port: .any),
@@ -70,6 +89,10 @@ final class PocketMicFeedbackSocketTests: XCTestCase {
             feedback.cancel()
         }
         wait(for: [received], timeout: 5)
+    }
+
+    private func socketError() -> NSError {
+        NSError(domain: NSPOSIXErrorDomain, code: Int(errno))
     }
 
     func testDefaultLANControlBindCoexistsWithDriverLoopbackPort() throws {
