@@ -165,6 +165,7 @@ class MicStreamingService : Service() {
     }
 
     private suspend fun runStream(config: MicConfig) {
+        ControlChannel.beginDeliveryRun()
         var audioRecord: AudioRecord? = null
         var socket: DatagramSocket? = null
         var senderJob: Job? = null
@@ -441,11 +442,11 @@ class MicStreamingService : Service() {
                     // and the flow read stay off the ninety percent of iterations that do
                     // nothing but capture and send.
                     when (
-                        ReconnectPolicy.evaluate(
+                        ReconnectPolicy.evaluateDelivery(
                             streaming = streaming,
                             nowMillis = now,
                             streamStartedAtMillis = streamStartedAt,
-                            lastStatsAtMillis = ControlChannel.lastStatsAtMillis.value,
+                            lastProgressAtMillis = ControlChannel.lastAudioProgressAtMillis.value,
                             reconnectStartedAtMillis = reconnectStartedAt,
                         )
                     ) {

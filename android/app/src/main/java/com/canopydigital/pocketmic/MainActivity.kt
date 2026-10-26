@@ -144,7 +144,7 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
     val peer by ControlChannel.peer.collectAsState()
     val receivers by ControlChannel.receivers.collectAsState()
     val stats by ControlChannel.stats.collectAsState()
-    val lastStatsAt by ControlChannel.lastStatsAtMillis.collectAsState()
+    val lastProgressAt by ControlChannel.lastAudioProgressAtMillis.collectAsState()
 
     var host by rememberSaveable { mutableStateOf(initial.host) }
     var portText by rememberSaveable { mutableStateOf(initial.port.toString()) }
@@ -248,8 +248,7 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
         while (isActive) {
             nowMillis = SystemClock.elapsedRealtime()
             // Monotonic clock: liveness must not be fooled by a wall-clock jump backwards.
-            linkAlive = lastStatsAt > 0 &&
-                nowMillis - lastStatsAt < ControlChannel.STATS_TIMEOUT_MS
+            linkAlive = lastProgressAt > 0L && nowMillis - lastProgressAt < ReconnectPolicy.DELIVERY_TIMEOUT_MS
             delay(LINK_ALIVE_POLL_MS)
         }
         linkAlive = false

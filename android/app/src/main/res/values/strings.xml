@@ -19,7 +19,7 @@
     <string name="status_ready">Ready</string>
     <string name="status_connecting">Connecting</string>
     <string name="status_live_confirmed">Live — PC confirmed</string>
-    <string name="status_sending_waiting">Sending — no reply from PC</string>
+    <string name="status_sending_waiting">Sending — waiting for audio progress</string>
     <string name="status_reconnecting">Reconnecting — still recording</string>
     <string name="status_reconnecting_seconds">Reconnecting — still recording (%1$d s)</string>
     <string name="status_stopped_error">Stopped with error</string>
@@ -107,7 +107,7 @@
     <string name="error_pcm_not_supported">This phone does not support 48 kHz mono PCM microphone capture.</string>
     <string name="error_sequence_exhausted">Packet sequence exhausted; restart the stream to create a new encryption session.</string>
     <string name="error_opus_encoding">Opus encoding failed; stop and retry, or select PCM16.</string>
-    <string name="error_no_reply_seconds">No reply from the receiver for %1$d seconds. Check that PocketMicReceiver is running on the PC and that both devices are on the same Wi-Fi network.</string>
+    <string name="error_no_reply_seconds">No audio progress for %1$d seconds. Check that PocketMicReceiver is running, both devices are on the same Wi-Fi, the pairing key matches, and Windows Firewall allows PocketMicReceiver on a Private network. Silence alone does not identify the cause.</string>
     <string name="error_source_initialize">Microphone source %1$s did not initialize.</string>
     <string name="error_source_start">Microphone source %1$s did not start recording.</string>
     <string name="error_capture_start">Android could not start a 48 kHz mono microphone source.</string>

@@ -17,6 +17,16 @@ import org.junit.Test
 class ReconnectPolicyTest {
     private val started = 1_000_000L
 
+    @Test fun healthyControlWithoutPacketProgressStallsDelivery() {
+        assertEquals(LinkAction.ENTER_RECONNECTING, ReconnectPolicy.evaluateDelivery(
+            true, started + 8_000, started, started + 5_000, 0))
+    }
+
+    @Test fun deliveryProgressRecoversControlOnlyFailure() {
+        assertEquals(LinkAction.RESUME_STREAMING, ReconnectPolicy.evaluateDelivery(
+            false, started + 8_000, started, started + 7_500, started + 6_000))
+    }
+
     @Test
     fun aHealthyLinkIsLeftAlone() {
         val now = started + 30_000L
