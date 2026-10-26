@@ -26,3 +26,5 @@ The Windows package includes the Android-derived multi-size icon for executable,
 ## Verification boundary
 
 The release owner confirmed the corrected Mica appearance, close-to-tray and Start-menu reactivation for 0.1.7. Native paint/activation tests and the full suite provide separate deterministic evidence. High contrast, older Windows, mixed DPI, accessibility, scrolling/theme transitions and prolonged sessions require the relevant [manual checks](testing.md); do not expand a source or unit-test pass into visual acceptance.
+
+Both desktop interfaces use the shared adapter inventory/ranker, retain an available explicit selection across refresh, label the recommended physical/default-gateway candidate and keep VPN/virtual/no-gateway alternatives. Copy and QR use that same selection. Recommendation is advisory and does not establish the phone subnet. Classic QR captions show address/port rather than printing the key-bearing URI.

@@ -171,7 +171,7 @@ internal sealed class MainForm : MicaForm
 
     private readonly ReceiverSettings _settings = ReceiverSettings.Load();
     private readonly Button _startButton = new() { Text = "Start receiver", AutoSize = true, Tag = ThemeRole.Primary };
-    private readonly Button _copyIpButton = new() { Text = "Copy recommended IP", AutoSize = true };
+    private readonly Button _copyIpButton = new() { Text = "Copy selected PC address", AutoSize = true };
     private readonly Button _showQrButton = new() { Text = "Show QR for phone", AutoSize = true };
     private readonly Label _statusLabel = new() { Text = "Stopped", AutoSize = true };
     private readonly Label _sourceLabel = new() { Text = "Phone: —", AutoSize = true };
@@ -185,8 +185,9 @@ internal sealed class MainForm : MicaForm
         Text = "Link: —",
         AutoSize = true,
     };
-    private readonly TextBox _addressesText = new() { Multiline = true, ReadOnly = true, Height = 78,
-        Dock = DockStyle.Top, ScrollBars = ScrollBars.Vertical, WordWrap = false };
+    private readonly ComboBox _addressChoice = new() { DropDownStyle = ComboBoxStyle.DropDownList, Dock = DockStyle.Top };
+    private PairingAddress[] _pairingChoices = Array.Empty<PairingAddress>();
+    private string? _selectedPairingAddress;
 
     private readonly AnalyticsPanel _analyticsPanel = new()
     {
@@ -242,13 +243,15 @@ internal sealed class MainForm : MicaForm
             Margin = new Padding(0, 0, 0, 18),
         });
 
-        root.Controls.Add(_advancedCheck);
         _advancedCheck.CheckedChanged += (_, _) => ApplyAdvancedMode();
 
         var addressSection = SectionLabel("PC address to enter on the phone");
         root.Controls.Add(addressSection);
         RefreshLocalAddresses();
-        root.Controls.Add(_addressesText);
+        root.Controls.Add(_addressChoice);
+        _addressChoice.DisplayMember = nameof(PairingAddress.Label);
+        _addressChoice.SelectedIndexChanged += (_, _) =>
+            _selectedPairingAddress = (_addressChoice.SelectedItem as PairingAddress)?.Address;
         var pairingActions = new FlowLayoutPanel
         {
             AutoSize = true,
@@ -263,13 +266,14 @@ internal sealed class MainForm : MicaForm
         _showQrButton.Margin = Padding.Empty;
         _copyIpButton.Click += (_, _) =>
         {
-            var first = GetLocalIpv4Addresses().FirstOrDefault();
+            RefreshLocalAddresses();
+            var first = _selectedPairingAddress;
             if (first is not null)
             {
                 try
                 {
                     Clipboard.SetText(first.ToString());
-                    _copyIpButton.Text = "Copied recommended IP";
+                    _copyIpButton.Text = "Copied PC address";
                 }
                 catch (ExternalException)
                 {
@@ -306,6 +310,7 @@ internal sealed class MainForm : MicaForm
         root.Controls.Add(_autoListenCheck);
         _advancedControls.Add(_autoListenCheck);
 
+        root.Controls.Add(_advancedCheck);
         var bufferSection = SectionLabel("Jitter buffer");
         root.Controls.Add(bufferSection);
         root.Controls.Add(_automaticBufferingCheck);
@@ -1076,12 +1081,14 @@ internal sealed class MainForm : MicaForm
 
     private void RefreshLocalAddresses()
     {
-        var addresses = GetLocalIpv4Addresses();
-        _copyIpButton.Enabled = addresses.Count > 0;
-        _copyIpButton.Text = "Copy recommended IP";
-        _addressesText.Text = addresses.Count > 0
-            ? string.Join(Environment.NewLine, addresses)
-            : "No active private IPv4 address was found.";
+        var previous = _selectedPairingAddress;
+        _pairingChoices = PairingAddressRanker.LocalChoices().ToArray();
+        _addressChoice.DataSource = _pairingChoices.ToList();
+        _addressChoice.DisplayMember = nameof(PairingAddress.Label);
+        _addressChoice.SelectedItem = _pairingChoices.FirstOrDefault(item => item.Address == previous) ?? _pairingChoices.FirstOrDefault();
+        _selectedPairingAddress = (_addressChoice.SelectedItem as PairingAddress)?.Address;
+        _copyIpButton.Enabled = _selectedPairingAddress is not null;
+        _copyIpButton.Text = "Copy selected PC address";
     }
 
     private async Task ToggleReceiverAsync()
@@ -1290,8 +1297,9 @@ internal sealed class MainForm : MicaForm
     /// </summary>
     private void ShowQrCode()
     {
-        var addresses = GetLocalIpv4Addresses();
-        var first = addresses.FirstOrDefault();
+        RefreshLocalAddresses();
+        var addresses = _pairingChoices;
+        var first = _selectedPairingAddress;
         if (first is null)
         {
             MessageBox.Show(this, "No active IPv4 address was found.", "PocketMic",
@@ -1341,7 +1349,7 @@ internal sealed class MainForm : MicaForm
 
         var label = new Label
         {
-            Text = $"Scan this QR code with PocketMic on your phone\n{uri}",
+            Text = $"Scan this QR code with PocketMic on your phone\n{first}:{port}",
             Dock = DockStyle.Bottom,
             Height = 50,
             TextAlign = ContentAlignment.MiddleCenter,
@@ -1353,19 +1361,23 @@ internal sealed class MainForm : MicaForm
         // the first address. Let the user generate a QR for the LAN they are actually on.
         using var addressChoice = new ComboBox { Dock = DockStyle.Top,
             DropDownStyle = ComboBoxStyle.DropDownList };
+        addressChoice.DisplayMember = nameof(PairingAddress.Label);
         addressChoice.Items.AddRange(addresses.Cast<object>().ToArray());
-        addressChoice.SelectedIndex = 0;
+        addressChoice.SelectedItem = addresses.FirstOrDefault(item => item.Address == first) ?? addresses[0];
         Image? selectedImage = null;
         addressChoice.SelectedIndexChanged += (_, _) =>
         {
-            var selectedUri = $"pmic://{addressChoice.SelectedItem}:{port}/{key}";
+            if (addressChoice.SelectedItem is not PairingAddress selected) return;
+            _selectedPairingAddress = selected.Address;
+            _addressChoice.SelectedItem = _pairingChoices.FirstOrDefault(item => item.Address == selected.Address);
+            var selectedUri = $"pmic://{selected.Address}:{port}/{key}";
             using var data = qrGen.CreateQrCode(selectedUri, QRCodeGenerator.ECCLevel.M);
             using var code = new QRCode(data);
             var nextImage = code.GetGraphic(8);
             pictureBox.Image = nextImage;
             selectedImage?.Dispose();
             selectedImage = nextImage;
-            label.Text = $"Scan this QR code with PocketMic on your phone\n{selectedUri}";
+            label.Text = $"Scan this QR code with PocketMic on your phone\n{selected.Address}:{port}";
         };
         form.Controls.Add(addressChoice);
 
@@ -1391,42 +1403,6 @@ internal sealed class MainForm : MicaForm
         catch (InvalidOperationException)
         {
             // The window closed or was disposed between the handle check and BeginInvoke.
-        }
-    }
-
-    private static IReadOnlyList<IPAddress> GetLocalIpv4Addresses()
-    {
-        try
-        {
-            return NetworkInterface.GetAllNetworkInterfaces()
-                .Where(network => network.OperationalStatus == OperationalStatus.Up &&
-                                  network.NetworkInterfaceType is not NetworkInterfaceType.Loopback and not NetworkInterfaceType.Tunnel)
-                .SelectMany(network =>
-                {
-                    var properties = network.GetIPProperties();
-                    var physicalType = network.NetworkInterfaceType is NetworkInterfaceType.Wireless80211 or
-                        NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet;
-                    var virtualHint = $"{network.Name} {network.Description}";
-                    var looksVirtual = new[] { "virtual", "vpn", "tunnel", "hyper-v", "vmware", "virtualbox", "wsl" }
-                        .Any(hint => virtualHint.Contains(hint, StringComparison.OrdinalIgnoreCase));
-                    var physical = physicalType && !looksVirtual;
-                    var gateway = properties.GatewayAddresses.Any(item =>
-                        item.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(item.Address));
-                    return properties.UnicastAddresses
-                        .Where(address => address.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(address.Address))
-                        .Select(address => (Address: address.Address, Physical: physical, Gateway: gateway, Name: network.Name));
-                })
-                .OrderByDescending(item => item.Physical && item.Gateway)
-                .ThenByDescending(item => item.Gateway)
-                .ThenByDescending(item => item.Physical)
-                .ThenBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
-                .Select(item => item.Address)
-                .Distinct()
-                .ToArray();
-        }
-        catch (NetworkInformationException)
-        {
-            return Array.Empty<IPAddress>();
         }
     }
 

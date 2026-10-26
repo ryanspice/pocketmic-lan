@@ -153,7 +153,7 @@ public sealed class MainWindow : Window
         var qr = new Button { Content = "Pair phone with QR" };
         qr.Click += async (_, _) => await ShowQrAsync();
         actions.Children.Add(_start); actions.Children.Add(qr);
-        body.Children.Add(actions); body.Children.Add(_advancedToggle);
+        body.Children.Add(actions);
         var pairing = new StackPanel { Spacing = 12 };
         pairing.Children.Add(Text("Scan the PC code with PocketMic, or enter the same pairing key manually on both devices."));
         pairing.Children.Add(_addresses);
@@ -192,7 +192,7 @@ public sealed class MainWindow : Window
         var export = new Button { Content = "Export session report" };
         export.Click += async (_, _) => await ExportAsync();
         diagnostics.Children.Add(export); _advanced.Children.Add(Card(diagnostics));
-        body.Children.Add(_advanced);
+        body.Children.Add(_advancedToggle); body.Children.Add(_advanced);
         body.Children.Add(Text("For Discord, Teams, OBS or games: choose CABLE Input here and CABLE Output as that app’s microphone. Choose speakers for a quick test.", caption: true));
         var scroll = new ScrollViewer { Content = body, Padding = new Thickness(24, 12, 24, 24),
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled, VerticalScrollBarVisibility = ScrollBarVisibility.Auto };
@@ -581,21 +581,7 @@ public sealed class MainWindow : Window
     private void RefreshAddresses()
     {
         var previous = _addresses.SelectedItem is PairingAddress current ? current.Address : _selectedAddress;
-        try
-        {
-            var candidates = NetworkInterface.GetAllNetworkInterfaces()
-                .Where(adapter => adapter.OperationalStatus == OperationalStatus.Up && adapter.NetworkInterfaceType != NetworkInterfaceType.Loopback)
-                .SelectMany(adapter => adapter.GetIPProperties().UnicastAddresses
-                    .Where(address => address.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(address.Address))
-                    .Select(address => new PairingAddress(adapter.Name, adapter.NetworkInterfaceType.ToString(), address.Address.ToString(),
-                        adapter.GetIPProperties().GatewayAddresses.Any(gateway => gateway.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(gateway.Address)),
-                        adapter.NetworkInterfaceType is NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet or NetworkInterfaceType.Wireless80211 &&
-                        !new[] { "virtual", "vpn", "tunnel", "hyper-v", "vmware", "virtualbox", "wsl" }
-                            .Any(hint => $"{adapter.Name} {adapter.Description}".Contains(hint, StringComparison.OrdinalIgnoreCase))))
-                .ToArray();
-            _addressChoices = PairingAddressRanker.Rank(candidates).ToArray();
-        }
-        catch (NetworkInformationException) { _addressChoices = Array.Empty<PairingAddress>(); }
+        _addressChoices = PairingAddressRanker.LocalChoices().ToArray();
         _addresses.ItemsSource = _addressChoices;
         _addresses.SelectedItem = _addressChoices.FirstOrDefault(address => address.Address == previous) ??
             _addressChoices.FirstOrDefault(address => address.IsPhysical && address.HasDefaultGateway) ?? _addressChoices.FirstOrDefault();
