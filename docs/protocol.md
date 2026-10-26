@@ -198,3 +198,7 @@ authenticated ID again. Senders sharing a pairing key share this receiver-wide a
 so one sender can retire another sender's stream. A legitimate new session is accepted unless
 its random ID is still in the bounded retired set. Audio AES-GCM key derivation, session/sequence
 nonce construction, and wire audio framing are unchanged.
+
+Gap concealment is staged before decoding the following Opus packet, using a shallow copy of the active decoder state (as guaranteed by libopus). New sessions and large-gap resync use a fresh decoder. Failed candidates dispose that private state and cannot enqueue PLC, reset playback, retire a session or alter delivery/source state. Successful candidates are promoted without a subsequent decoder reset.
+
+Android retries DSP_RELEASE three times within 500 ms; a subsequent Custom update or endpoint change cancels unsent release retries. This bounded retry is not an acknowledgement protocol and does not guarantee delivery or network ordering. Older receivers ignore DSP_RELEASE and retain Custom until the operator selects a desktop preset or restarts the receiver. Discovery timestamp refreshes alone do not resend Custom and undo a deliberate desktop override. Desktop settings persistence uses the pre-Custom desktop snapshot, not the temporary reflected controls.

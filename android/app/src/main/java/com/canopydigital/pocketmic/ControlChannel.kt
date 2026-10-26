@@ -121,6 +121,7 @@ object ControlChannel {
     private var receiveJob: Job? = null
     private var probeJob: Job? = null
     private var startedPort = 0
+    private var dspRevision = 0L
 
     @Synchronized
     fun start(context: Context, pairingKey: String, audioPort: Int, probe: Boolean, host: String = "",
@@ -226,7 +227,7 @@ object ControlChannel {
             val key = controlKey ?: return
             val active = socket ?: return
             val target = resolveConfigTarget(preferredHost, preferredPort, peer.value) ?: return
-            ConfigDispatch(key, active, target)
+            ConfigDispatch(key, active, target, ++dspRevision)
         }
 
         scope.launch {
@@ -246,7 +247,7 @@ object ControlChannel {
                     // DNS/frame preparation may outlive a reconnect, key change or stop.
                     // Keep validation and send under start()/stop()'s monitor so a queued
                     // update cannot go to the previous receiver or use a replaced socket.
-                    if (controlKey === pending.key && socket === pending.socket &&
+                    if (dspRevision == pending.revision && controlKey === pending.key && socket === pending.socket &&
                         resolveConfigTarget(preferredHost, preferredPort, peer.value) == pending.target
                     ) {
                         pending.socket.send(packet)
@@ -264,7 +265,7 @@ object ControlChannel {
             val key = controlKey ?: return
             val active = socket ?: return
             val target = resolveConfigTarget(preferredHost, preferredPort, peer.value) ?: return
-            ConfigDispatch(key, active, target)
+            ConfigDispatch(key, active, target, ++dspRevision)
         }
         scope.launch {
             runCatching {
@@ -272,10 +273,14 @@ object ControlChannel {
                 val packet = DatagramPacket(frame, frame.size,
                     InetAddress.getByName(pending.target.host),
                     ControlProtocol.controlPort(pending.target.audioPort))
-                synchronized(this@ControlChannel) {
-                    if (controlKey === pending.key && socket === pending.socket &&
-                        resolveConfigTarget(preferredHost, preferredPort, peer.value) == pending.target)
+                repeat(3) { attempt ->
+                    if (attempt > 0) delay(250L)
+                    synchronized(this@ControlChannel) {
+                        // A new Custom update or endpoint change cancels any pending release retry.
+                        if (dspRevision != pending.revision || controlKey !== pending.key || socket !== pending.socket ||
+                            resolveConfigTarget(preferredHost, preferredPort, peer.value) != pending.target) return@launch
                         pending.socket.send(packet)
+                    }
                 }
             }
         }
@@ -283,7 +288,7 @@ object ControlChannel {
 
     internal data class ConfigTarget(val host: String, val audioPort: Int)
 
-    private data class ConfigDispatch(val key: ByteArray, val socket: DatagramSocket, val target: ConfigTarget)
+    private data class ConfigDispatch(val key: ByteArray, val socket: DatagramSocket, val target: ConfigTarget, val revision: Long)
 
     internal fun resolveConfigTarget(host: String, audioPort: Int, discovered: PeerState): ConfigTarget? {
         // start() owns the endpoint adopted by the service, including a recovered custom port.

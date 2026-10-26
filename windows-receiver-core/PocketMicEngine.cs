@@ -309,6 +309,8 @@ public sealed class PocketMicEngine
     /// <summary>Backlog above which buffered audio may be trimmed. Derived from the prebuffer.</summary>
     public int HighWaterMilliseconds => _highWaterMilliseconds;
 
+    public VoiceProcessor.DspDesktopState DesktopDspState => _voice.DesktopState;
+
     public bool VoiceEnabled
     {
         get => _voice.Enabled;
@@ -497,7 +499,6 @@ public sealed class PocketMicEngine
         _discovery = null;
         _discoveryReceiveTask = null;
         _phoneAddress = null;
-        if (_voice.ReleasePhoneCustom()) DspReleased?.Invoke(this, EventArgs.Empty);
 
         cts?.Cancel();
         udp?.Close();
@@ -520,6 +521,9 @@ public sealed class PocketMicEngine
             catch (ObjectDisposedException) { }
             catch (SocketException) { }
         }
+
+        // All receive/control workers have exited; none can reacquire phone DSP ownership.
+        if (_voice.ReleasePhoneCustom()) DspReleased?.Invoke(this, EventArgs.Empty);
 
         // The receive loop owns the native decoder while it can be inside Decode/PLC/Reset.
         // Cancellation and closing the socket do not wait for a synchronous P/Invoke to finish.
@@ -1302,60 +1306,53 @@ public sealed class PocketMicEngine
                 continue;
             }
 
-            // A new Opus stream gets a fresh decoder so validating it cannot perturb the active
-            // stream's predictor state. The candidate is promoted only after successful decode.
-            var candidateDecoder = order.NewSession && packet.Codec == AudioPipeline.Codec.Opus
-                ? _opusDecoder?.CreateFresh()
-                : null;
-            var decodeWith = candidateDecoder ?? _opusDecoder;
-            // Decode before mutating playback/order/liveness. A failed decode cannot retire a
-            // session or cause gaps/resync to be applied to the active stream.
+            // Stage predictor changes and PLC before current-frame decode. A rejected candidate
+            // must not retire the active session, enqueue concealment, or reset playback.
+            var resync = order.NewSession || order.MissingPackets > _concealmentPackets;
+            byte[][]? stagedConcealment = null;
             if (packet.Codec == AudioPipeline.Codec.Pcm)
             {
                 Buffer.BlockCopy(packetPayload, 0, pcm, 0, AudioPipeline.PacketPcmBytes);
-            }
-            else if (decodeWith?.TryDecode(packetPayload, packet.PayloadLength, pcm) != true)
-            {
-                candidateDecoder?.Dispose();
-                _rejectedPackets++;
-                analytics?.RecordRejected();
-                continue;
-            }
-
-            if (candidateDecoder is not null)
-            {
-                _opusDecoder?.Dispose();
-                _opusDecoder = candidateDecoder;
-            }
-
-            if (order.NewSession)
-            {
-                Array.Clear(lastGood);
-                haveLastGood = false;
-                ResetPlaybackForResync(resetDecoder: false);
-            }
-
-            if (order.MissingPackets > 0)
-            {
-                var delta = order.MissingPackets;
-                _lostPackets += delta;
-                analytics?.RecordLost(delta);
-                if (delta <= _concealmentPackets)
+                if (!resync && order.MissingPackets > 0)
                 {
-                    for (var index = 0; index < delta; index++)
+                    stagedConcealment = new byte[order.MissingPackets][];
+                    for (var index = 0; index < order.MissingPackets; index++)
                     {
-                        var usedPlc = packet.Codec == AudioPipeline.Codec.Opus &&
-                            _opusDecoder?.TryGeneratePlc(conceal) == true;
-                        if (!usedPlc) AudioPipeline.BuildConcealmentFrame(conceal, lastGood, haveLastGood, index);
-                        _audioBuffer?.AddSamples(conceal, 0, conceal.Length);
+                        var frame = new byte[AudioPipeline.PacketPcmBytes];
+                        AudioPipeline.BuildConcealmentFrame(frame, lastGood, haveLastGood, index);
+                        stagedConcealment[index] = frame;
                     }
                 }
-                else
+            }
+            else
+            {
+                if (_opusDecoder is null || !OpusPacketStage.TryDecode(_opusDecoder, resync,
+                    order.MissingPackets, packetPayload, packet.PayloadLength, pcm, lastGood,
+                    haveLastGood, out var replacement, out stagedConcealment))
                 {
-                    ResetPlaybackForResync();
-                    Array.Clear(lastGood);
-                    haveLastGood = false;
+                    _rejectedPackets++;
+                    analytics?.RecordRejected();
+                    continue;
                 }
+                if (replacement is not null)
+                {
+                    _opusDecoder.Dispose();
+                    _opusDecoder = replacement;
+                }
+            }
+
+            if (resync)
+            {
+                ResetPlaybackForResync(resetDecoder: false);
+                Array.Clear(lastGood);
+                haveLastGood = false;
+            }
+            if (order.MissingPackets > 0)
+            {
+                _lostPackets += order.MissingPackets;
+                analytics?.RecordLost(order.MissingPackets);
+                if (stagedConcealment is not null)
+                    foreach (var frame in stagedConcealment) _audioBuffer?.AddSamples(frame, 0, frame.Length);
             }
 
             _packetOrder.Commit(packet);

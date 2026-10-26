@@ -235,7 +235,8 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
     }
 
     // Push slider changes to the receiver, debounced so dragging does not flood the channel.
-    LaunchedEffect(dsp, captureMode, peer) {
+    val dspPeer = (peer as? PeerState.Found)?.let { "${it.address}:${it.audioPort}:${it.keyMatches}" }
+    LaunchedEffect(dsp, captureMode, dspPeer) {
         delay(DSP_PUSH_DEBOUNCE_MS)
         if (captureMode == CaptureMode.CUSTOM) {
             AppPrefs.saveDsp(context, dsp)

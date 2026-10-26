@@ -154,6 +154,19 @@ public class VoiceProcessorTests
     }
 
     [Fact]
+    public void PersistenceReadsDesktopSnapshotWhileCustomControlsAreReflected()
+    {
+        var processor = new VoiceProcessor { Enabled = false, Strength = .25f };
+        var saved = processor.DesktopState;
+        processor.Apply(new DspConfig(true, 220, .8f, .7f, 10, .9f, 0));
+        processor.Apply(new DspConfig(true, 250, .9f, .8f, 12, .9f, 0));
+        Assert.True(processor.Enabled);
+        Assert.Equal(saved, processor.DesktopState);
+        Assert.True(processor.ReleasePhoneCustom());
+        Assert.Equal(saved, processor.DesktopState);
+    }
+
+    [Fact]
     public void DesktopOverrideEndsPhoneOwnershipAndReleaseCannotOverwriteIt()
     {
         var processor = new VoiceProcessor { Enabled = false, Strength = 0.25f };

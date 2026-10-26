@@ -353,8 +353,8 @@ public sealed class MainWindow : Window
         _settings.OutputDevice = (_output.SelectedItem as Device)?.Name ?? "";
         _settings.MonitorEnabled = _monitor.IsOn; _settings.AutoListen = _autoListen.IsChecked == true;
         _settings.AdvancedMode = _advancedToggle.IsOn; _settings.AutomaticBuffering = _automaticBuffer.IsChecked == true;
-        _settings.PrebufferMilliseconds = (int)_buffer.Value; _settings.VoiceEnhance = _voice.IsOn;
-        _settings.VoiceStrength = (int)_strength.Value; _settings.MinimizeToTray = true; _settings.Save();
+        _settings.PrebufferMilliseconds = (int)_buffer.Value; _settings.VoiceEnhance = _engine.DesktopDspState.Enabled;
+        _settings.VoiceStrength = (int)Math.Round(_engine.DesktopDspState.Strength * 100); _settings.MinimizeToTray = true; _settings.Save();
     }
 
     private async Task ToggleAsync()

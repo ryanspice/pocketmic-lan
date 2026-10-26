@@ -152,7 +152,8 @@ public sealed class VoiceProcessor
         return true;
     }
 
-    public DspDesktopState DesktopState => new(Enabled, Strength, _highPassHz, _presenceDb);
+    public DspDesktopState DesktopState => UseCustom && _desktopBeforePhone is { } saved
+        ? saved : new(Enabled, Strength, _highPassHz, _presenceDb);
 
     public void EndPhoneOwnership()
     {
