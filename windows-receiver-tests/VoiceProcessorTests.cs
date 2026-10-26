@@ -141,4 +141,54 @@ public class VoiceProcessorTests
         Assert.Equal(85f, processor.HighPassFrequencyHz);
         Assert.Equal(3.5f, processor.PresenceGainDb);
     }
+
+    [Fact]
+    public void ReleaseRestoresCapturedDesktopPresetAndIsIdempotent()
+    {
+        var processor = new VoiceProcessor { Enabled = false, Strength = 0.25f };
+        processor.Apply(new DspConfig(true, 180, .8f, .7f, 6, .5f, 0));
+        Assert.True(processor.ReleasePhoneCustom());
+        Assert.False(processor.Enabled);
+        Assert.Equal(.25f, processor.Strength);
+        Assert.False(processor.ReleasePhoneCustom());
+    }
+
+    [Fact]
+    public void DesktopOverrideEndsPhoneOwnershipAndReleaseCannotOverwriteIt()
+    {
+        var processor = new VoiceProcessor { Enabled = false, Strength = 0.25f };
+        processor.Apply(new DspConfig(true, 180, .8f, .7f, 6, .5f, 0));
+        processor.SelectPresetStrength(.9f);
+        Assert.False(processor.ReleasePhoneCustom());
+        Assert.True(processor.Enabled);
+        Assert.Equal(.9f, processor.Strength);
+    }
+
+    [Fact]
+    public void CustomCleanCustomTransitionRestoresThenReacquiresWithoutChangingDesktopPreset()
+    {
+        var processor = new VoiceProcessor { Enabled = true, Strength = 0.42f };
+        var custom = new DspConfig(true, 210, .9f, .3f, 8, .8f, .2f);
+        processor.Apply(custom);
+        Assert.True(processor.ReleasePhoneCustom()); // Clean or Voice
+        Assert.False(processor.UseCustom);
+        Assert.Equal(0.42f, processor.Strength);
+        processor.Apply(custom); // Custom again
+        Assert.True(processor.UseCustom);
+        Assert.True(processor.ReleasePhoneCustom());
+        Assert.Equal(0.42f, processor.Strength);
+    }
+
+    [Fact]
+    public void DesktopEnableOverrideImmediatelyEndsCustomOwnership()
+    {
+        var processor = new VoiceProcessor();
+        processor.Apply(new DspConfig(true, 220, .9f, .9f, 10, .9f, 0));
+        processor.Enabled = false;
+        processor.EndPhoneOwnership();
+        Assert.False(processor.UseCustom);
+        Assert.False(processor.ReleasePhoneCustom());
+        Assert.False(processor.Enabled);
+        Assert.Equal(85f, processor.HighPassFrequencyHz);
+    }
 }

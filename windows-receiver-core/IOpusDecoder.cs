@@ -17,6 +17,8 @@ namespace PocketMicReceiver;
 /// </summary>
 public interface IOpusDecoder : IDisposable
 {
+    /// <summary>Creates an isolated decoder for validating the first packet of a new session.</summary>
+    IOpusDecoder? CreateFresh() => null;
     /// <summary>
     /// Decodes one Opus frame into 480 interleaved mono PCM16 samples (960 bytes).
     /// </summary>

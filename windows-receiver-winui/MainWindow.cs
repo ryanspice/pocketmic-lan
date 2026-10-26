@@ -410,6 +410,13 @@ public sealed class MainWindow : Window
             Reflect(() => _voice.IsOn = dsp.Enabled); _strength.IsEnabled = dsp.Enabled;
             _voiceDetails.Text = $"Custom from phone · HPF {dsp.HighPassHz} Hz · gate {dsp.Gate:P0} · compressor {dsp.Compressor:P0} · presence {dsp.PresenceDb:F1} dB";
         }, requireRunning: true);
+        _engine.DspReleased += (_, _) => Post(() =>
+        {
+            Reflect(() => _voice.IsOn = _engine.VoiceEnabled);
+            Reflect(() => _strength.Value = Math.Clamp(_engine.VoiceStrength * 100, 0, 100));
+            _strength.IsEnabled = _voice.IsOn;
+            UpdateVoiceText();
+        });
         _engine.MonitorStarted += (_, _) =>
         {
             var openedDevice = _engine.MonitorDeviceNumber;

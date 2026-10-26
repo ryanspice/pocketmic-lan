@@ -256,6 +256,31 @@ object ControlChannel {
         }
     }
 
+    /** Authenticated, idempotent release; older receivers safely ignore this unknown type. */
+    fun releaseDsp() = sendControl(ControlProtocol.TYPE_DSP_RELEASE, byteArrayOf())
+
+    private fun sendControl(type: Byte, payload: ByteArray) {
+        val pending = synchronized(this) {
+            val key = controlKey ?: return
+            val active = socket ?: return
+            val target = resolveConfigTarget(preferredHost, preferredPort, peer.value) ?: return
+            ConfigDispatch(key, active, target)
+        }
+        scope.launch {
+            runCatching {
+                val frame = ControlProtocol.build(pending.key, type, payload)
+                val packet = DatagramPacket(frame, frame.size,
+                    InetAddress.getByName(pending.target.host),
+                    ControlProtocol.controlPort(pending.target.audioPort))
+                synchronized(this@ControlChannel) {
+                    if (controlKey === pending.key && socket === pending.socket &&
+                        resolveConfigTarget(preferredHost, preferredPort, peer.value) == pending.target)
+                        pending.socket.send(packet)
+                }
+            }
+        }
+    }
+
     internal data class ConfigTarget(val host: String, val audioPort: Int)
 
     private data class ConfigDispatch(val key: ByteArray, val socket: DatagramSocket, val target: ConfigTarget)

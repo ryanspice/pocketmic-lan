@@ -83,6 +83,7 @@ public static class ControlProtocol
     public const byte TypeAnnounce = 2;
     public const byte TypeStats = 3;
     public const byte TypeConfig = 4;
+    public const byte TypeDspRelease = 5;
 
     private static readonly byte[] Magic = "PMCTL"u8.ToArray();
 

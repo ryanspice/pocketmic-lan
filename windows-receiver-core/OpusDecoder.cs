@@ -16,6 +16,7 @@ namespace PocketMicReceiver;
 /// </summary>
 public sealed class OpusDecoder : IOpusDecoder
 {
+    public IOpusDecoder CreateFresh() => new OpusDecoder();
     private const string LibOpus = "opus";
 
     // -- Opus constants ----------------------------------------------------

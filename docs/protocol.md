@@ -101,7 +101,7 @@ Receivers also answer PROBE on the standard discovery port `49501` when their au
 |---:|---:|---|
 | 0 | 5 | ASCII `PMCTL` |
 | 5 | 1 | control protocol version (`1`) |
-| 6 | 1 | message type: 1 PROBE, 2 ANNOUNCE, 3 STATS, 4 CONFIG |
+| 6 | 1 | message type: 1 PROBE, 2 ANNOUNCE, 3 STATS, 4 CONFIG, 5 DSP_RELEASE |
 | 7 | 1 | reserved (`0`) |
 | 8 | 2 | payload length, big endian |
 | 10 | 214 | payload area, zero padded |
@@ -165,3 +165,36 @@ by the next one.
 | 4 | 1 | presence EQ boost in dB × 10 |
 | 5 | 1 | make-up gain, 0–100 |
 | 6 | 1 | noise reduction amount, 0–100 |
+
+### DSP_RELEASE payload (empty)
+
+`DSP_RELEASE` is type 5 with a zero-length payload and the normal control-channel HMAC. It
+releases only an active phone Custom DSP takeover. On the first Custom CONFIG, the receiver
+captures its live desktop DSP preset; release restores that captured state and is idempotent.
+A deliberate desktop enable or preset/strength change ends phone ownership, so a later release
+cannot overwrite that desktop choice. Persisted desktop settings are never rewritten by the
+phone release. Both Windows front ends share this engine behavior.
+
+Android sends the current ownership at stream start, on reconnect/recovery and when changing
+capture mode. Custom sends CONFIG; Clean and Voice send DSP_RELEASE. UI effects provide a
+foreground update, while the service-owned sends cover background recovery. Legacy receivers
+that know only CONFIG safely ignore the unknown type 5, but therefore retain their previous
+Custom DSP until their existing desktop controls or a newer receiver changes it.
+
+### Receiver session admission
+
+After authentication, the receiver admits the initial session and then retires each previous
+active session only when a packet from a new session successfully decodes and commits. A fixed
+FIFO remembers the most recent 32 retired IDs. Packets from those IDs are rejected before codec,
+playback, ordering, source-address or liveness changes. Same-session codec changes and duplicate/
+reordered sequences remain rejected by the existing policy. Malformed or failed-decode candidate
+packets do not retire the active session or apply gap concealment/resync effects. The Windows
+Opus decoder uses an isolated fresh decoder to validate the first packet of a new session before
+promoting it.
+
+This is bounded, receiver-process-local replay protection, not durable global replay prevention.
+Restart clears the cache; eviction after 32 later committed session transitions permits an old
+authenticated ID again. Senders sharing a pairing key share this receiver-wide admission history,
+so one sender can retire another sender's stream. A legitimate new session is accepted unless
+its random ID is still in the bounded retired set. Audio AES-GCM key derivation, session/sequence
+nonce construction, and wire audio framing are unchanged.
