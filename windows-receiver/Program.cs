@@ -247,11 +247,11 @@ internal sealed class MainForm : MicaForm
 
         var addressSection = SectionLabel("PC address to enter on the phone");
         root.Controls.Add(addressSection);
-        RefreshLocalAddresses();
         root.Controls.Add(_addressChoice);
         _addressChoice.DisplayMember = nameof(PairingAddress.Label);
         _addressChoice.SelectedIndexChanged += (_, _) =>
             _selectedPairingAddress = (_addressChoice.SelectedItem as PairingAddress)?.Address;
+        RefreshLocalAddresses();
         var pairingActions = new FlowLayoutPanel
         {
             AutoSize = true,
