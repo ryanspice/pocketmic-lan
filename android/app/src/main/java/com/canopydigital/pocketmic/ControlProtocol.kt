@@ -1,5 +1,7 @@
 package com.canopydigital.pocketmic
 
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.security.MessageDigest
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -302,6 +304,9 @@ object ControlProtocol {
                 ((payload[42].toInt() and 0xff) shl 8) or
                 (payload[43].toInt() and 0xff),
             playing = (payload[44].toInt() and 1) == 1,
+            sessionId = if (payload.size >= 58 && payload[45].toInt() == 1) long(46) else null,
+            sequence = if (payload.size >= 58 && payload[45].toInt() == 1)
+                ByteBuffer.wrap(payload, 54, 4).order(ByteOrder.BIG_ENDIAN).int else null,
         )
     }
 }
@@ -375,4 +380,6 @@ data class ReceiverStats(
     val trimmed: Long,
     val bufferMillis: Int,
     val playing: Boolean,
+    val sessionId: Long? = null,
+    val sequence: Int? = null,
 )

@@ -165,7 +165,6 @@ class MicStreamingService : Service() {
     }
 
     private suspend fun runStream(config: MicConfig) {
-        ControlChannel.beginDeliveryRun()
         var audioRecord: AudioRecord? = null
         var socket: DatagramSocket? = null
         var senderJob: Job? = null
@@ -233,6 +232,7 @@ class MicStreamingService : Service() {
             activeAudioRecord = recorder
 
             val streamSessionId = secureRandom.nextLong()
+            ControlChannel.beginDeliveryRun(streamSessionId)
 
             // Opus is optional on devices/ABIs without the native library. Surface the
             // actual codec so a fallback cannot be mistaken for a compressed session.
@@ -447,6 +447,7 @@ class MicStreamingService : Service() {
                             nowMillis = now,
                             streamStartedAtMillis = streamStartedAt,
                             lastProgressAtMillis = ControlChannel.lastAudioProgressAtMillis.value,
+                            lastStatsAtMillis = ControlChannel.lastStatsAtMillis.value,
                             reconnectStartedAtMillis = reconnectStartedAt,
                         )
                     ) {

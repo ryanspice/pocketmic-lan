@@ -30,3 +30,7 @@ VB-CABLE is third-party software and is not included in this ZIP. The receiver's
 - Opening PocketMic again brings the existing receiver forward. Closing the window leaves it running in the notification area; choose **Exit** from the PocketMic tray menu to stop it. The tray icon remains present while the window is visible too.
 
 For current project information and source, visit [PocketMic LAN on GitHub](https://github.com/ryanspice/pocketmic-lan). License notices are in the accompanying `PocketMic-LICENSE.txt` and `THIRD-PARTY-NOTICES.txt`; `OPUS-COPYING.txt` is also included when `opus.dll` is present.
+
+### Connection help
+
+Both Windows interfaces offer **Connection help**. It provides the no-reply checklist and opens manual Windows firewall settings, or requests elevation for an explicit scoped repair. Repair configures only the running receiver executable, UDP audio/control plus standard discovery ports, Private profile and LocalSubnet. It does not change the network profile, remove explicit blocking rules or touch another installation's rules. An explicit block is reported because an Allow rule cannot override it. Denying elevation applies no repair. Verify the trusted LAN's profile and any reported blocks manually.

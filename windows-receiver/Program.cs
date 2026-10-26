@@ -258,6 +258,10 @@ internal sealed class MainForm : MicaForm
         };
         pairingActions.Controls.Add(_copyIpButton);
         pairingActions.Controls.Add(_showQrButton);
+        var connectionHelp = new Button { Text = "Connection help", AutoSize = true };
+        connectionHelp.Click += (_, _) => FirewallSupport.Show(_engine.IsRunning ? _settings.Port :
+            int.TryParse(_portText.Text, out var helpPort) ? helpPort : _settings.Port);
+        pairingActions.Controls.Add(connectionHelp);
         root.Controls.Add(pairingActions);
         _advancedControls.AddRange(new Control[] { addressSection, _addressesText, _copyIpButton });
         _copyIpButton.Margin = new Padding(0, 0, 8, 0);

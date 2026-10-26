@@ -421,4 +421,22 @@ public class ControlProtocolTests
         Assert.True(payload.Length <= ControlProtocol.MaxPayload);
         Assert.Equal(0, (int)payload[44]);
     }
+
+    [Fact]
+    public void DeliveryReceiptPreservesLegacyPrefixAndAuthenticatesSessionAndSequence()
+    {
+        var legacy = ControlProtocol.StatsPayload(1, 2, 3, 4, 5, 60, true);
+        var extended = ControlProtocol.StatsPayload(1, 2, 3, 4, 5, 60, true,
+            (0x0102030405060708UL, uint.MaxValue));
+        Assert.Equal(58, extended.Length);
+        Assert.Equal(legacy, extended.AsSpan(0, 45).ToArray());
+        Assert.Equal(1, extended[45]);
+        Assert.Equal(0x0102030405060708UL, BinaryPrimitives.ReadUInt64BigEndian(extended.AsSpan(46, 8)));
+        Assert.Equal(uint.MaxValue, BinaryPrimitives.ReadUInt32BigEndian(extended.AsSpan(54, 4)));
+        var frame = ControlProtocol.Build(Key, ControlProtocol.TypeStats, extended);
+        Assert.Equal(ControlProtocol.FrameSize, frame.Length);
+        Assert.True(ControlProtocol.Verify(Key, frame));
+        frame[ControlProtocol.HeaderSize + 54] ^= 1;
+        Assert.False(ControlProtocol.Verify(Key, frame));
+    }
 }

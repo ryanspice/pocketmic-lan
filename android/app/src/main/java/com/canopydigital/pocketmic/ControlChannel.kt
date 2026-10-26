@@ -104,10 +104,10 @@ object ControlChannel {
     val lastStatsAtMillis: StateFlow<Long> = mutableStatsAt.asStateFlow()
     private val mutableProgressAt = MutableStateFlow(0L)
     val lastAudioProgressAtMillis: StateFlow<Long> = mutableProgressAt.asStateFlow()
-    private var highestPacketCount = -1L
+    private val delivery = DeliveryProgress()
 
-    @Synchronized fun beginDeliveryRun() {
-        highestPacketCount = -1L
+    @Synchronized fun beginDeliveryRun(sessionId: Long) {
+        delivery.reset(sessionId)
         mutableProgressAt.value = 0L
     }
 
@@ -200,14 +200,9 @@ object ControlChannel {
         probeJob = null
     }
 
-    internal fun recordDeliveryStats(stats: ReceiverStats, receivedAtMillis: Long) {
-        if (stats.packets > highestPacketCount) {
-            highestPacketCount = stats.packets
-            mutableProgressAt.value = receivedAtMillis
-        } else if (stats.packets < highestPacketCount) {
-            // Receiver restart/counter reset: rebaseline, but require a later increase as proof.
-            highestPacketCount = stats.packets
-        }
+    @Synchronized internal fun recordDeliveryStats(stats: ReceiverStats, receivedAtMillis: Long) {
+        delivery.observe(stats, receivedAtMillis)
+        mutableProgressAt.value = delivery.lastProgressAtMillis
         mutableStats.value = stats
         mutableStatsAt.value = receivedAtMillis
     }
@@ -220,8 +215,6 @@ object ControlChannel {
         if (!preserveStats) {
             mutableStats.value = null
             mutableStatsAt.value = 0L
-            mutableProgressAt.value = 0L
-            highestPacketCount = -1L
         }
         mutableStaleAnnounces.value = 0L
         mutableBindError.value = null

@@ -93,8 +93,10 @@ object ReconnectPolicy {
 
     /** Authenticated control replies are reachability only; only forward packet progress proves delivery. */
     fun evaluateDelivery(streaming: Boolean, nowMillis: Long, streamStartedAtMillis: Long,
-        lastProgressAtMillis: Long, reconnectStartedAtMillis: Long): LinkAction {
-        val fresh = lastProgressAtMillis > streamStartedAtMillis && nowMillis - lastProgressAtMillis < DELIVERY_TIMEOUT_MS
+        lastProgressAtMillis: Long, reconnectStartedAtMillis: Long,
+        lastStatsAtMillis: Long = lastProgressAtMillis): LinkAction {
+        val fresh = lastStatsAtMillis > streamStartedAtMillis && nowMillis - lastStatsAtMillis < STATS_TIMEOUT_MS &&
+            lastProgressAtMillis > streamStartedAtMillis && nowMillis - lastProgressAtMillis < DELIVERY_TIMEOUT_MS
         return if (streaming) when {
             fresh -> LinkAction.CONTINUE
             nowMillis - streamStartedAtMillis < CONNECT_GRACE_MS -> LinkAction.CONTINUE

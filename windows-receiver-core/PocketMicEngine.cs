@@ -131,6 +131,8 @@ public sealed class PocketMicEngine
     /// thing that stops it running.
     /// </summary>
     private long _lastPacketTick;
+    private readonly object _deliveryLock = new();
+    private (ulong Session, uint Sequence)? _deliveryReceipt;
 
     private int _prebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
     private int _manualPrebufferMilliseconds = AudioPipeline.DefaultPrebufferMilliseconds;
@@ -426,6 +428,7 @@ public sealed class PocketMicEngine
         _packetOrder.Reset();
         _lastUpdateTick = 0;
         _lastPacketTick = 0;
+        lock (_deliveryLock) _deliveryReceipt = null;
         _playbackStarted = false;
         _lastStatus = EngineStatus.Stopped;
         _lastStatusMessage = string.Empty;
@@ -1120,6 +1123,8 @@ public sealed class PocketMicEngine
             CheckForSilence(runId);
 
             var snapshot = Stats;
+            (ulong Session, uint Sequence)? receipt;
+            lock (_deliveryLock) receipt = _deliveryReceipt;
             var frame = ControlProtocol.Build(
                 key,
                 ControlProtocol.TypeStats,
@@ -1130,7 +1135,7 @@ public sealed class PocketMicEngine
                     snapshot.Rejected,
                     snapshot.Trimmed,
                     (int)snapshot.BufferedMilliseconds,
-                    snapshot.Playing));
+                    snapshot.Playing, receipt));
 
             try
             {
@@ -1331,6 +1336,7 @@ public sealed class PocketMicEngine
             }
 
             _packetOrder.Commit(packet);
+            lock (_deliveryLock) _deliveryReceipt = (packet.SessionId, packet.Sequence);
 
             // Remember where authenticated audio came from so statistics can be sent back.
             _phoneAddress = result.RemoteEndPoint.Address;
