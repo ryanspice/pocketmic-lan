@@ -9,6 +9,11 @@
     <string name="action_allow">ڕێگە بدە</string>
     <string name="action_continue_anyway">بەردەوام بە هەرچۆنێک</string>
     <string name="action_copy_key">کلیلەکە لەبەر بگرە</string>
+    <string name="action_show_key">Show key</string>
+    <string name="action_hide_key">Hide key</string>
+    <string name="pairing_replace_title">Replace pairing key?</string>
+    <string name="pairing_replace_message">A new key must be entered on both devices. The current key will stop working.</string>
+    <string name="pairing_replace_cancel">Keep current key</string>
     <string name="action_generate">دروستکردن</string>
     <string name="action_scan_qr">کۆدی QR بخوێنەوە</string>
     <string name="action_hide_camera">کامێرا بشارەوە</string>

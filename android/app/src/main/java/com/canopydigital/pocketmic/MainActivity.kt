@@ -27,6 +27,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -36,6 +37,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -43,6 +46,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -67,6 +71,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.AlertDialog
 import androidx.core.content.ContextCompat
@@ -351,7 +356,20 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
         }
     }
 
-    Scaffold(containerColor = Background) { padding ->
+    Scaffold(
+        containerColor = Background,
+        bottomBar = {
+            Surface(color = Background, tonalElevation = 3.dp) {
+                Button(
+                    onClick = { if (isActive) stopService(context) else attemptStart() },
+                    modifier = Modifier.fillMaxWidth().navigationBarsPadding().imePadding().padding(horizontal = 18.dp, vertical = 10.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = if (isActive) Danger else Accent),
+                ) {
+                    Text(stringResource(if (isActive) R.string.action_stop else R.string.action_start))
+                }
+            }
+        },
+    ) { padding ->
         BoxWithConstraints(
             modifier = Modifier
                 .fillMaxSize()
@@ -384,6 +402,9 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
                 }
 
                 StatusCard(snapshot, stats, linkAlive, peer, nowMillis)
+
+                validationError?.let { Text(it, color = Danger, style = MaterialTheme.typography.bodyMedium) }
+                snapshot.error?.let { Text(it, color = Danger, style = MaterialTheme.typography.bodyMedium) }
 
                 ConnectionCard(
                     autoConnect = autoConnect,
@@ -418,6 +439,7 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
                     onPortChange = { portText = it.filter(Char::isDigit).take(PORT_INPUT_MAX_DIGITS) },
                     pairingKey = pairingKey,
                     onKeyChange = { pairingKey = it.take(PAIRING_KEY_MAX_CHARS) },
+                    validationError = validationError,
                     enabled = !isActive,
                     showQrScanner = showQrScanner,
                     onShowQrScannerChange = { show ->
@@ -447,26 +469,11 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
                     onDspChange = { dsp = it },
                 )
 
-                validationError?.let { Text(it, color = Danger, style = MaterialTheme.typography.bodyMedium) }
-                snapshot.error?.let { Text(it, color = Danger, style = MaterialTheme.typography.bodyMedium) }
                 ControlChannel.bindError.collectAsState().value?.let {
                     Text(it, color = Caution, style = MaterialTheme.typography.bodySmall)
                 }
 
-                Spacer(Modifier.height(72.dp))
             }
-
-            DraggableActionButton(
-                corner = fabCorner,
-                onCornerChange = {
-                    fabCorner = it
-                    AppPrefs.saveFabCorner(context, it)
-                },
-                isActive = isActive,
-                onClick = { if (isActive) stopService(context) else attemptStart() },
-                containerWidth = maxWidth.value,
-                containerHeight = maxHeight.value,
-            )
         }
     }
 
@@ -730,6 +737,7 @@ private fun ConnectionCard(
     onPortChange: (String) -> Unit,
     pairingKey: String,
     onKeyChange: (String) -> Unit,
+    validationError: String?,
     enabled: Boolean,
     showQrScanner: Boolean,
     onShowQrScannerChange: (Boolean) -> Unit,
@@ -737,6 +745,8 @@ private fun ConnectionCard(
 ) {
     val context = LocalContext.current
     val streaming = !enabled
+    var revealKey by rememberSaveable { mutableStateOf(false) }
+    var confirmKeyReplacement by rememberSaveable { mutableStateOf(false) }
 
     Card(
         colors = CardDefaults.cardColors(containerColor = Surface),
@@ -746,6 +756,15 @@ private fun ConnectionCard(
             modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            Text("Scan PC QR", fontWeight = FontWeight.SemiBold)
+            Text("Scan the code shown by PocketMic Receiver, or enter the same pairing key on both devices.",
+                color = TextMuted, style = MaterialTheme.typography.bodySmall)
+            if (enabled) {
+                OutlinedButton(onClick = { onShowQrScannerChange(!showQrScanner) }, modifier = Modifier.fillMaxWidth()) {
+                    Text(if (showQrScanner) stringResource(R.string.action_hide_camera) else stringResource(R.string.action_scan_qr))
+                }
+                if (showQrScanner) QrScannerView(onScanned = onQrScanned)
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -903,17 +922,15 @@ private fun ConnectionCard(
                         }
                     }
                 }
-                OutlinedButton(onClick = { onShowQrScannerChange(!showQrScanner) }) {
-                    Text(if (showQrScanner) "Hide camera" else "Scan QR")
-                }
-                if (showQrScanner) QrScannerView(onScanned = onQrScanned)
             }
             if (enabled && (!autoConnect || peer !is PeerState.Found || !peer.keyMatches)) {
                 OutlinedTextField(
                     value = host,
                     onValueChange = onHostChange,
                     label = { Text(stringResource(R.string.connection_pc_ip)) },
+                    isError = validationError?.contains("address", ignoreCase = true) == true,
                     placeholder = { Text("192.168.1.25") },
+                    supportingText = { if (validationError?.contains("address", ignoreCase = true) == true) Text(validationError) },
                     singleLine = true,
                     enabled = enabled,
                     modifier = Modifier.fillMaxWidth(),
@@ -923,6 +940,8 @@ private fun ConnectionCard(
                         value = portText,
                         onValueChange = onPortChange,
                         label = { Text(stringResource(R.string.connection_udp_port)) },
+                        supportingText = { if (validationError?.contains("port", ignoreCase = true) == true) Text(validationError) },
+                        isError = validationError?.contains("port", ignoreCase = true) == true,
                         singleLine = true,
                         enabled = enabled,
                         modifier = Modifier.width(140.dp),
@@ -932,9 +951,16 @@ private fun ConnectionCard(
                     value = pairingKey,
                     onValueChange = onKeyChange,
                     label = { Text(stringResource(R.string.connection_pairing_key)) },
+                    supportingText = { if (validationError?.contains("key", ignoreCase = true) == true) Text(validationError) },
                     singleLine = true,
                     enabled = enabled,
-                    visualTransformation = PasswordVisualTransformation(),
+                    isError = validationError?.contains("key", ignoreCase = true) == true,
+                    visualTransformation = if (revealKey) VisualTransformation.None else PasswordVisualTransformation(),
+                    trailingIcon = {
+                        TextButton(onClick = { revealKey = !revealKey }) {
+                            Text(stringResource(if (revealKey) R.string.action_hide_key else R.string.action_show_key))
+                        }
+                    },
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -943,10 +969,21 @@ private fun ConnectionCard(
                             ?.setPrimaryClip(ClipData.newPlainText("PocketMic pairing key", pairingKey))
                     }) { Text(stringResource(R.string.action_copy_key)) }
                     OutlinedButton(
-                        onClick = { onKeyChange(AppPrefs.generatePairingKey()) },
+                        onClick = { confirmKeyReplacement = true },
                         enabled = enabled,
                     ) { Text(stringResource(R.string.action_generate)) }
                 }
+                if (confirmKeyReplacement) AlertDialog(
+                    onDismissRequest = { confirmKeyReplacement = false },
+                    title = { Text(stringResource(R.string.pairing_replace_title)) },
+                    text = { Text(stringResource(R.string.pairing_replace_message)) },
+                    confirmButton = { TextButton(onClick = {
+                        onKeyChange(AppPrefs.generatePairingKey()); confirmKeyReplacement = false
+                    }) { Text(stringResource(R.string.action_generate)) } },
+                    dismissButton = { TextButton(onClick = { confirmKeyReplacement = false }) {
+                        Text(stringResource(R.string.pairing_replace_cancel))
+                    } },
+                )
             }
         }
     }

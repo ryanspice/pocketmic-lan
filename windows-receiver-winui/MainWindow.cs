@@ -44,7 +44,9 @@ public sealed class MainWindow : Window
     private readonly CheckBox _autoListen = new() { Content = "Start listening automatically" };
     private readonly TextBox _port = new() { Header = "UDP audio port", MaxLength = 5 };
     private readonly PasswordBox _key = new() { Header = "Pairing key", PasswordRevealMode = PasswordRevealMode.Peek };
-    private readonly TextBox _addresses = new() { Header = "PC addresses", IsReadOnly = true, AcceptsReturn = true, MaxHeight = 120 };
+    private readonly ComboBox _addresses = new() { Header = "PC address (recommended address is labelled)", HorizontalAlignment = HorizontalAlignment.Stretch };
+    private PairingAddress[] _addressChoices = Array.Empty<PairingAddress>();
+    private string? _selectedAddress;
     private readonly CheckBox _automaticBuffer = new() { Content = "Automatic buffer (slider is the minimum)" };
     private readonly Slider _buffer = new() { Header = "Jitter buffer", Minimum = 40, Maximum = 300, StepFrequency = 10, TickFrequency = 20 };
     private readonly TextBlock _effectiveBuffer = Text("", caption: true);
@@ -153,21 +155,30 @@ public sealed class MainWindow : Window
         actions.Children.Add(_start); actions.Children.Add(qr);
         body.Children.Add(actions); body.Children.Add(_advancedToggle);
         var pairing = new StackPanel { Spacing = 12 };
+        pairing.Children.Add(Text("Scan the PC code with PocketMic, or enter the same pairing key manually on both devices."));
         pairing.Children.Add(_addresses);
-        var copy = new Button { Content = "Copy first PC address" };
+        _addresses.DisplayMemberPath = nameof(PairingAddress.Label);
+        _addresses.SelectionChanged += (_, _) =>
+        {
+            if (_addresses.SelectedItem is PairingAddress selected) _selectedAddress = selected.Address;
+        };
+        var refresh = new Button { Content = "Refresh PC addresses" };
+        refresh.Click += (_, _) => RefreshAddresses();
+        pairing.Children.Add(refresh);
+        var copy = new Button { Content = "Copy selected address" };
         copy.Click += (_, _) =>
         {
-            var address = Addresses().FirstOrDefault();
+            var address = _addresses.SelectedItem as PairingAddress;
             if (address is null) { Notice("No LAN address", "Connect this PC to your private network."); return; }
             try
             {
-                var data = new DataPackage(); data.SetText(address.ToString()); Clipboard.SetContent(data);
+                var data = new DataPackage(); data.SetText(address.Address); Clipboard.SetContent(data);
             }
             catch (Exception error) when (error is ExternalException or InvalidOperationException)
             { Notice("Could not copy address", "The clipboard is busy. Try again, or copy the address from the list."); }
         };
         pairing.Children.Add(copy); pairing.Children.Add(_port); pairing.Children.Add(_key); pairing.Children.Add(_autoListen);
-        _advanced.Children.Add(Card(pairing));
+        body.Children.Add(Card(pairing));
         var processing = new StackPanel { Spacing = 12 };
         processing.Children.Add(_automaticBuffer); processing.Children.Add(_buffer); processing.Children.Add(_effectiveBuffer);
         processing.Children.Add(_voice); processing.Children.Add(_strength); processing.Children.Add(_voiceDetails);
@@ -219,7 +230,7 @@ public sealed class MainWindow : Window
         _monitor.IsOn = _settings.MonitorEnabled; _monitorOutput.IsEnabled = _monitor.IsOn;
         _engine.VoiceEnabled = _settings.VoiceEnhance; _engine.VoiceStrength = (float)_strength.Value / 100;
         UpdateVoiceText(); _strength.IsEnabled = _voice.IsOn;
-        _addresses.Text = string.Join(Environment.NewLine, Addresses().Select(address => address.ToString()));
+        RefreshAddresses();
     }
 
     internal async void Start(bool show)
@@ -496,11 +507,14 @@ public sealed class MainWindow : Window
         try
         {
             if (_root.XamlRoot is null) return;
-            var addresses = Addresses();
+            RefreshAddresses();
+            var addresses = _addressChoices;
             if (addresses.Length == 0 || !int.TryParse(_port.Text, out var port) || port is < 1 or > 65534 || _key.Password.Length < 8)
-            { Notice("Pairing is not ready", "Connect to a LAN and enter a valid port and pairing key in Advanced settings."); return; }
+            { Notice("Pairing is not ready", "Connect to a LAN and enter a valid port and pairing key."); return; }
             var key = _key.Password;
-            var choice = new ComboBox { Header = "PC address", ItemsSource = addresses, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
+            var choice = new ComboBox { Header = "PC address", ItemsSource = addresses, DisplayMemberPath = nameof(PairingAddress.Label), HorizontalAlignment = HorizontalAlignment.Stretch };
+            choice.SelectedItem = addresses.FirstOrDefault(address => address.Address == _selectedAddress) ?? addresses[0];
+            _selectedAddress = ((PairingAddress)choice.SelectedItem).Address;
             var image = new Image { MaxWidth = 320, Height = 320, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Stretch };
             image.SizeChanged += (_, args) => image.Height = Math.Min(320, Math.Max(1, args.NewSize.Width));
             AutomationProperties.SetName(image, "Pairing QR code; scan with PocketMic on your phone");
@@ -508,7 +522,8 @@ public sealed class MainWindow : Window
             {
                 var request = ++version;
                 using var generator = new QRCodeGenerator();
-                using var data = generator.CreateQrCode($"pmic://{choice.SelectedItem}:{port}/{key}", QRCodeGenerator.ECCLevel.M);
+                var selected = (PairingAddress)choice.SelectedItem;
+                using var data = generator.CreateQrCode($"pmic://{selected.Address}:{port}/{key}", QRCodeGenerator.ECCLevel.M);
                 using var code = new PngByteQRCode(data);
                 var bytes = code.GetGraphic(8); // Opaque black/white modules and quiet zone.
                 using var stream = new InMemoryRandomAccessStream();
@@ -518,6 +533,11 @@ public sealed class MainWindow : Window
             }
             choice.SelectionChanged += async (_, _) =>
             {
+                if (choice.SelectedItem is PairingAddress selected)
+                {
+                    _selectedAddress = selected.Address;
+                    _addresses.SelectedItem = _addressChoices.FirstOrDefault(address => address.Address == selected.Address);
+                }
                 try { await RenderAsync(); }
                 catch (Exception)
                 {
@@ -558,17 +578,29 @@ public sealed class MainWindow : Window
     private void Notice(string title, string message, InfoBarSeverity severity = InfoBarSeverity.Warning)
     { _notice.Title = title; _notice.Message = message; _notice.Severity = severity; _notice.IsOpen = true; }
 
-    private static IPAddress[] Addresses()
+    private void RefreshAddresses()
     {
+        var previous = _addresses.SelectedItem is PairingAddress current ? current.Address : _selectedAddress;
         try
         {
-            return NetworkInterface.GetAllNetworkInterfaces()
+            var candidates = NetworkInterface.GetAllNetworkInterfaces()
                 .Where(adapter => adapter.OperationalStatus == OperationalStatus.Up && adapter.NetworkInterfaceType != NetworkInterfaceType.Loopback)
-                .SelectMany(adapter => adapter.GetIPProperties().UnicastAddresses).Select(address => address.Address)
-                .Where(address => address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(address))
-                .Distinct().OrderBy(address => address.ToString(), StringComparer.Ordinal).ToArray();
+                .SelectMany(adapter => adapter.GetIPProperties().UnicastAddresses
+                    .Where(address => address.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(address.Address))
+                    .Select(address => new PairingAddress(adapter.Name, adapter.NetworkInterfaceType.ToString(), address.Address.ToString(),
+                        adapter.GetIPProperties().GatewayAddresses.Any(gateway => gateway.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(gateway.Address)),
+                        adapter.NetworkInterfaceType is NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet or NetworkInterfaceType.Wireless80211 &&
+                        !new[] { "virtual", "vpn", "tunnel", "hyper-v", "vmware", "virtualbox", "wsl" }
+                            .Any(hint => $"{adapter.Name} {adapter.Description}".Contains(hint, StringComparison.OrdinalIgnoreCase))))
+                .ToArray();
+            _addressChoices = PairingAddressRanker.Rank(candidates).ToArray();
         }
-        catch (NetworkInformationException) { return Array.Empty<IPAddress>(); }
+        catch (NetworkInformationException) { _addressChoices = Array.Empty<PairingAddress>(); }
+        _addresses.ItemsSource = _addressChoices;
+        _addresses.SelectedItem = _addressChoices.FirstOrDefault(address => address.Address == previous) ??
+            _addressChoices.FirstOrDefault(address => address.IsPhysical && address.HasDefaultGateway) ?? _addressChoices.FirstOrDefault();
+        _selectedAddress = (_addresses.SelectedItem as PairingAddress)?.Address;
+        if (_addressChoices.Length == 0) _addresses.PlaceholderText = "No active IPv4 addresses";
     }
 
     private void AddChart(StackPanel target, string label, Func<WindowStats, double> value)

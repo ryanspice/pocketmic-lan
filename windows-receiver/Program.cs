@@ -171,7 +171,7 @@ internal sealed class MainForm : MicaForm
 
     private readonly ReceiverSettings _settings = ReceiverSettings.Load();
     private readonly Button _startButton = new() { Text = "Start receiver", AutoSize = true, Tag = ThemeRole.Primary };
-    private readonly Button _copyIpButton = new() { Text = "Copy first IP", AutoSize = true };
+    private readonly Button _copyIpButton = new() { Text = "Copy recommended IP", AutoSize = true };
     private readonly Button _showQrButton = new() { Text = "Show QR for phone", AutoSize = true };
     private readonly Label _statusLabel = new() { Text = "Stopped", AutoSize = true };
     private readonly Label _sourceLabel = new() { Text = "Phone: —", AutoSize = true };
@@ -259,7 +259,6 @@ internal sealed class MainForm : MicaForm
         pairingActions.Controls.Add(_copyIpButton);
         pairingActions.Controls.Add(_showQrButton);
         root.Controls.Add(pairingActions);
-        _advancedControls.AddRange(new Control[] { addressSection, _addressesText, _copyIpButton });
         _copyIpButton.Margin = new Padding(0, 0, 8, 0);
         _showQrButton.Margin = Padding.Empty;
         _copyIpButton.Click += (_, _) =>
@@ -270,7 +269,7 @@ internal sealed class MainForm : MicaForm
                 try
                 {
                     Clipboard.SetText(first.ToString());
-                    _copyIpButton.Text = "Copied first IP";
+                    _copyIpButton.Text = "Copied recommended IP";
                 }
                 catch (ExternalException)
                 {
@@ -305,7 +304,7 @@ internal sealed class MainForm : MicaForm
         _makeDefaultMicButton.Click += (_, _) => MakeVirtualCableDefaultMicrophone();
         _outputCombo.SelectedIndexChanged += (_, _) => DescribeRouting(_outputCombo.SelectedItem as DeviceItem);
         root.Controls.Add(_autoListenCheck);
-        _advancedControls.AddRange(new Control[] { connectionGrid, _autoListenCheck });
+        _advancedControls.Add(_autoListenCheck);
 
         var bufferSection = SectionLabel("Jitter buffer");
         root.Controls.Add(bufferSection);
@@ -1079,7 +1078,7 @@ internal sealed class MainForm : MicaForm
     {
         var addresses = GetLocalIpv4Addresses();
         _copyIpButton.Enabled = addresses.Count > 0;
-        _copyIpButton.Text = "Copy first IP";
+        _copyIpButton.Text = "Copy recommended IP";
         _addressesText.Text = addresses.Count > 0
             ? string.Join(Environment.NewLine, addresses)
             : "No active private IPv4 address was found.";
@@ -1397,24 +1396,31 @@ internal sealed class MainForm : MicaForm
 
     private static IReadOnlyList<IPAddress> GetLocalIpv4Addresses()
     {
-        static int InterfacePriority(NetworkInterfaceType type) => type switch
-        {
-            NetworkInterfaceType.Wireless80211 => 0,
-            NetworkInterfaceType.Ethernet => 1,
-            NetworkInterfaceType.GigabitEthernet => 1,
-            _ => 2,
-        };
-
         try
         {
             return NetworkInterface.GetAllNetworkInterfaces()
                 .Where(network => network.OperationalStatus == OperationalStatus.Up &&
                                   network.NetworkInterfaceType is not NetworkInterfaceType.Loopback and not NetworkInterfaceType.Tunnel)
-                .OrderBy(network => InterfacePriority(network.NetworkInterfaceType))
-                .SelectMany(network => network.GetIPProperties().UnicastAddresses)
-                .Where(address => address.Address.AddressFamily == AddressFamily.InterNetwork &&
-                                  !IPAddress.IsLoopback(address.Address))
-                .Select(address => address.Address)
+                .SelectMany(network =>
+                {
+                    var properties = network.GetIPProperties();
+                    var physicalType = network.NetworkInterfaceType is NetworkInterfaceType.Wireless80211 or
+                        NetworkInterfaceType.Ethernet or NetworkInterfaceType.GigabitEthernet;
+                    var virtualHint = $"{network.Name} {network.Description}";
+                    var looksVirtual = new[] { "virtual", "vpn", "tunnel", "hyper-v", "vmware", "virtualbox", "wsl" }
+                        .Any(hint => virtualHint.Contains(hint, StringComparison.OrdinalIgnoreCase));
+                    var physical = physicalType && !looksVirtual;
+                    var gateway = properties.GatewayAddresses.Any(item =>
+                        item.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(item.Address));
+                    return properties.UnicastAddresses
+                        .Where(address => address.Address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(address.Address))
+                        .Select(address => (Address: address.Address, Physical: physical, Gateway: gateway, Name: network.Name));
+                })
+                .OrderByDescending(item => item.Physical && item.Gateway)
+                .ThenByDescending(item => item.Gateway)
+                .ThenByDescending(item => item.Physical)
+                .ThenBy(item => item.Name, StringComparer.OrdinalIgnoreCase)
+                .Select(item => item.Address)
                 .Distinct()
                 .ToArray();
         }
