@@ -204,7 +204,7 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
 
     // Probe while idle, and again while reconnecting. During healthy capture the receiver's own
     // statistics feed answers everything a probe would, so broadcasting then is pure radio cost
-    // on the hot path â€” but once that feed stops, probing is the only way back, which is exactly
+    // on the hot path — but once that feed stops, probing is the only way back, which is exactly
     // why suppressing it unconditionally left the app unable to heal itself.
     //
     // MicStreamingService owns probing during capture, including with this activity destroyed.
@@ -490,7 +490,7 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
                     data = Uri.parse("package:${context.packageName}")
                 }
                 context.startActivity(intent)
-                // Start the stream after prompting â€” the exemption takes effect on return.
+                // Start the stream after prompting — the exemption takes effect on return.
                 val cfg = pendingConfig
                 if (cfg != null) startService(context, cfg, pendingPeerName)
                 pendingConfig = null
@@ -696,7 +696,7 @@ private fun StatusCard(
                 if (found != null && !found.audioProtocolMatches) {
                     Text(
                         "Found ${found.hostName.ifBlank { "receiver" }} at ${found.address} but " +
-                            "audio protocol v${found.audioProtocolVersion} â‰  v${PacketCrypto.VERSION}. " +
+                            "audio protocol v${found.audioProtocolVersion} ≠ v${PacketCrypto.VERSION}. " +
                             "Update both sides to the same release.",
                         color = Danger,
                         style = MaterialTheme.typography.bodySmall,
@@ -706,7 +706,7 @@ private fun StatusCard(
                 if (mismatch != null) {
                     Text(
                         "Found receiver at ${mismatch.address} but control protocol " +
-                            "v${mismatch.receiverControlVersion} â‰  v${ControlProtocol.VERSION}. " +
+                            "v${mismatch.receiverControlVersion} ≠ v${ControlProtocol.VERSION}. " +
                             "Update both sides to the same release.",
                         color = Danger,
                         style = MaterialTheme.typography.bodySmall,
@@ -766,10 +766,10 @@ private fun ConnectionCard(
             }
 
             if (streaming) {
-                // While the stream is up, discovery is not the source of truth â€” the receiver's
+                // While the stream is up, discovery is not the source of truth — the receiver's
                 // own statistics feed is. Reporting the last idle discovery result here is how a
                 // phone that was streaming happily came to display "Searching for a PocketMic
-                // receiverâ€¦" indefinitely: probing had been suppressed, so the label was frozen
+                // receiver…" indefinitely: probing had been suppressed, so the label was frozen
                 // at whatever it read the moment capture began.
                 val (message, colour) = when {
                     snapshot.status == StreamStatus.RECONNECTING ->
@@ -900,7 +900,7 @@ private fun ConnectionCard(
                     Text("Refresh PCs")
                 }
                 if (receivers.isEmpty()) {
-                    Text("Looking for running receivers on this networkâ€¦", color = TextMuted,
+                    Text("Looking for running receivers on this network…", color = TextMuted,
                         style = MaterialTheme.typography.bodySmall)
                 }
                 for (receiver in receivers) {
@@ -908,7 +908,7 @@ private fun ConnectionCard(
                         Column(modifier = Modifier.fillMaxWidth()) {
                             Text(receiver.hostName.ifBlank { "PC at ${receiver.address}" })
                             Text(if (receiver.keyMatches) "${receiver.address}:${receiver.audioPort}" else
-                                "${receiver.address} Â· Scan QR or enter this PC's key",
+                                "${receiver.address} · Scan QR or enter this PC's key",
                                 style = MaterialTheme.typography.bodySmall)
                         }
                     }
@@ -1044,7 +1044,7 @@ private fun CaptureCard(
                 enabled = enabled,
             )
 
-            // Custom exposes the receiver's chain directly. These take effect live â€” the PC is
+            // Custom exposes the receiver's chain directly. These take effect live — the PC is
             // doing the processing, so there is no need to stop the stream to retune.
             if (captureMode == CaptureMode.CUSTOM) {
                 DspSlider(stringResource(R.string.dsp_high_pass), "${dsp.highPassHz} Hz", dsp.highPassHz.toFloat(), 20f..300f) {
