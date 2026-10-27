@@ -7,6 +7,7 @@ plugins {
 }
 
 android {
+    ndkVersion = "27.2.12479018"
     namespace = "com.canopydigital.pocketmic"
     compileSdk = 36
 

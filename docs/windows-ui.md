@@ -20,8 +20,11 @@ The Windows package includes the Android-derived multi-size icon for executable,
 - A subsequent launch sends SHOW over the current-user/session activation channel and restores the existing receiver. Preserve the named mutex, current-user-only pipe, exact-process foreground grant and resilient listener after a disconnected client.
 - Installer EXIT is distinct from SHOW and must validate the installed executable path. Preserve bounded teardown and the previous installation/settings; do not close unrelated development copies.
 - Settings remain in `%APPDATA%\PocketMic\receiver.json`. The installer preserves them. Explicit `--show` must not be defeated by a minimized-start preference.
+- The modern pairing card remains visible outside Advanced. Refresh labels every usable IPv4 address by adapter, ranks a physical interface with an IPv4 gateway as the recommendation, and keeps the explicit address selection for both copy and QR. The classic fallback also exposes pairing outside Advanced and ranks a physical gateway interface first; its QR dialog still offers address-only alternatives, while its copy button copies the recommendation.
 - Bounded modern startup diagnostics are local and must not expose pairing keys. Secondary activation must preserve the primary process's startup log.
 
 ## Verification boundary
 
 The release owner confirmed the corrected Mica appearance, close-to-tray and Start-menu reactivation for 0.1.7. Native paint/activation tests and the full suite provide separate deterministic evidence. High contrast, older Windows, mixed DPI, accessibility, scrolling/theme transitions and prolonged sessions require the relevant [manual checks](testing.md); do not expand a source or unit-test pass into visual acceptance.
+
+Both desktop interfaces use the shared adapter inventory/ranker, retain an available explicit selection across refresh, label the recommended physical/default-gateway candidate and keep VPN/virtual/no-gateway alternatives. Copy and QR use that same selection. Recommendation is advisory and does not establish the phone subnet. Classic QR captions show address/port rather than printing the key-bearing URI.

@@ -9,6 +9,11 @@
     <string name="action_allow">Allow</string>
     <string name="action_continue_anyway">Continue anyway</string>
     <string name="action_copy_key">Copy key</string>
+    <string name="action_show_key">Show key</string>
+    <string name="action_hide_key">Hide key</string>
+    <string name="pairing_replace_title">Replace pairing key?</string>
+    <string name="pairing_replace_message">A new key must be entered on both devices. The current key will stop working.</string>
+    <string name="pairing_replace_cancel">Keep current key</string>
     <string name="action_generate">Generate</string>
     <string name="action_scan_qr">Scan QR</string>
     <string name="action_hide_camera">Hide camera</string>
@@ -135,4 +140,8 @@
     <string name="status_output_started">Receiver playback started. Check the selected output for audible sound.</string>
     <string name="status_output_waiting">Audio delivered; receiver playback has not started.</string>
     <string name="connection_delivery_unconfirmed">Audio delivery to %1$s is unconfirmed. Checking the receiver; microphone recording continues.</string>
+    <string name="pairing_qr_title">Pair with your PC</string>
+    <string name="pairing_qr_explanation">Scan the PC QR code to import its address, port and key. Manual entry below uses the same key on both devices.</string>
+    <string name="pairing_replacement_pending">New phone key created. Enter this same key on the PC before starting, or scan the PC QR code to use its key.</string>
+    <string name="pairing_dismiss_reminder">Dismiss reminder</string>
 </resources>

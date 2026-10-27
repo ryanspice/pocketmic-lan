@@ -2,7 +2,7 @@
 
 `target-locales.json` is the product-wide target list. A target is not a completed translation or a supported locale.
 
-The Android app currently uses Canadian English (`en-CA`) as its source and fallback. It exposes separate `en-CA` and `en-US` app-language choices and includes preliminary Central Kurdish/Sorani (`ckb`, RTL Arabic script) and Northern Kurdish/Kurmanji (`kmr`, LTR Latin script) catalogs. The Kurdish text is a draft and has not had fluent review. Do not describe Kurdish as reviewed or fully supported until a fluent reviewer accepts the terminology, protocol messages, and layout on a device.
+The Android app currently uses Canadian English (`en-CA`) as its source and fallback. It exposes separate `en-CA` and `en-US` app-language choices and includes preliminary Central Kurdish/Sorani (`ckb`, RTL Arabic script) and Northern Kurdish/Kurmanji (`kmr`, LTR Latin script) catalogs. The Kurdish text is a draft and has not had fluent review. New pairing-usability strings currently use the English fallback in those catalogs pending fluent review. Do not describe Kurdish as reviewed or fully supported until a fluent reviewer accepts the terminology, protocol messages, and layout on a device.
 
 The marketing site keeps `en-CA` as its source and fallback. Core pages offer a labelled `en-US` spelling preview for browser preference or manual selection. It only adapts the Canadian `licence`/`behaviour` spellings; it is not a full US editorial review or translation. The site has no Kurdish translations yet. `site/catalog-status.json` tracks those states separately from the Android and Apple catalogs.
 
