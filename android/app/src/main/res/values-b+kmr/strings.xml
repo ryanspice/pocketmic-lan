@@ -37,6 +37,7 @@
     <string name="connection_lost_searching">Têkiliya bi %1$s re qut bû. Dîsa lê digerin; tomarkirin didome û hewce nake ji nû ve dest pê bikî.</string>
     <string name="connection_connected">Bi %1$s re hate girêdan.</string>
     <string name="connection_waiting_reply">Ji %1$s re tê şandin; li benda bersiva yekem e.</string>
+    <string name="connection_vpn_warning">VPN vekirî ye. Gelek VPN girêdanên bi PC-ya te re li ser tora herêmî asteng dikin. Heke wergir neyê gihîştin, wê bigire an jî destûra LAN-ê bide.</string>
     <string name="connection_searching">Li wergirekî PocketMic digere…</string>
     <string name="connection_not_found">Wergirek nehat dîtin. Li PC ya xwe PocketMicReceiver vekin, an jî bixwebergirêdanê bigire da navnîşanê binivîsî.</string>
     <string name="connection_recovered_one">Piştî %1$d qutbûnê têkilî vegeriya.</string>

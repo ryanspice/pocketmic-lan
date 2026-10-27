@@ -37,6 +37,7 @@
     <string name="connection_lost_searching">Lost contact with %1$s. Searching again; recording continues and nothing needs restarting.</string>
     <string name="connection_connected">Connected to %1$s.</string>
     <string name="connection_waiting_reply">Sending to %1$s, waiting for the first reply.</string>
+    <string name="connection_vpn_warning">A VPN is on. Many VPNs block connections to your PC on the local network. Turn it off or allow LAN access if the receiver can\'t be reached.</string>
     <string name="connection_searching">Searching for a PocketMic receiver…</string>
     <string name="connection_not_found">No receiver found. Start PocketMicReceiver on your PC, or turn this off to enter the address.</string>
     <string name="connection_recovered_one">Recovered from %1$d dropout.</string>

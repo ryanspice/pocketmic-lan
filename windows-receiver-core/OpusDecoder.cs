@@ -16,6 +16,25 @@ namespace PocketMicReceiver;
 /// </summary>
 public sealed class OpusDecoder : IOpusDecoder
 {
+    public IOpusDecoder CreateFresh() => new OpusDecoder();
+
+    public IOpusDecoder CreateCopy()
+    {
+        if (_handle == IntPtr.Zero) throw new ObjectDisposedException(nameof(OpusDecoder));
+        var copy = new OpusDecoder();
+        try
+        {
+            // libopus explicitly guarantees contiguous, shallow-copyable decoder state.
+            var bytes = new byte[NativeDecoderGetSize(Channels)];
+            Marshal.Copy(_handle, bytes, 0, bytes.Length);
+            Marshal.Copy(bytes, 0, copy._handle, bytes.Length);
+            return copy;
+        }
+        catch { copy.Dispose(); throw; }
+    }
+
+    [DllImport("opus", CallingConvention = CallingConvention.Cdecl, EntryPoint = "opus_decoder_get_size")]
+    private static extern int NativeDecoderGetSize(int channels);
     private const string LibOpus = "opus";
 
     // -- Opus constants ----------------------------------------------------

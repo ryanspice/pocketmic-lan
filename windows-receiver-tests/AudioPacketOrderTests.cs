@@ -72,4 +72,39 @@ public sealed class AudioPacketOrderTests
         Assert.Equal(AudioPacketOrderStatus.Accept, decision.Status);
         Assert.True(decision.NewSession);
     }
+
+    [Fact]
+    public void RetiredSessionsAreRejectedUntilEvictedFromBoundedHistory()
+    {
+        var order = new AudioPacketOrder();
+        order.Commit(Packet(session: 1));
+        order.Commit(Packet(session: 2));
+        Assert.Equal(AudioPacketOrderStatus.RetiredSession, order.Inspect(Packet(session: 1, sequence: 1)).Status);
+        for (ulong id = 3; id < 3 + AudioPacketOrder.RetiredSessionCapacity; id++)
+            order.Commit(Packet(session: id));
+        Assert.Equal(AudioPacketOrderStatus.Accept, order.Inspect(Packet(session: 1, sequence: 1)).Status);
+    }
+
+    [Fact]
+    public void FailedCandidateDoesNotRetireActiveSessionOrChangeOrdering()
+    {
+        var order = new AudioPacketOrder();
+        order.Commit(Packet(session: 10, sequence: 8));
+        var candidate = order.Inspect(Packet(session: 20));
+        Assert.True(candidate.NewSession);
+        Assert.Equal(AudioPacketOrderStatus.Late, order.Inspect(Packet(session: 10, sequence: 8)).Status);
+        order.Commit(Packet(session: 10, sequence: 9));
+        Assert.Equal(AudioPacketOrderStatus.Accept, order.Inspect(Packet(session: 10, sequence: 10)).Status);
+    }
+
+    [Fact]
+    public void ReceiverRunResetClearsRetiredSessionHistory()
+    {
+        var order = new AudioPacketOrder();
+        order.Commit(Packet(session: 1));
+        order.Commit(Packet(session: 2));
+        Assert.Equal(AudioPacketOrderStatus.RetiredSession, order.Inspect(Packet(session: 1)).Status);
+        order.Reset();
+        Assert.Equal(AudioPacketOrderStatus.Accept, order.Inspect(Packet(session: 1)).Status);
+    }
 }

@@ -725,12 +725,34 @@ internal sealed class MainForm : MicaForm
                 // The processor already applied the phone config. Reflecting its enabled state
                 // must not be interpreted as a desktop preset override.
                 _reflectingPhoneDsp = true;
-                try { _voiceEnhanceCheck.Checked = dsp.Enabled; }
+                try
+                {
+                    _voiceEnhanceCheck.Checked = dsp.Enabled;
+                    _voiceStrength.Value = Math.Clamp((int)Math.Round(_engine.VoiceStrength * 100),
+                        _voiceStrength.Minimum, _voiceStrength.Maximum);
+                }
                 finally { _reflectingPhoneDsp = false; }
-                ApplyVoiceSetting();
+                _voiceStrength.Enabled = dsp.Enabled;
                 _voiceStrengthLabel.Text =
                     $"Custom (from phone; move Strength to use desktop preset) — HPF {dsp.HighPassHz} Hz · gate {dsp.Gate * 100:F0}% · " +
                     $"comp {dsp.Compressor * 100:F0}% · presence {dsp.PresenceDb:F1} dB";
+            });
+        };
+        _engine.DspReleased += (_, _) =>
+        {
+            var runId = _runId;
+            PostUi(() =>
+            {
+                if (runId != _runId) return;
+                _reflectingPhoneDsp = true;
+                try
+                {
+                    _voiceEnhanceCheck.Checked = _engine.VoiceEnabled;
+                    _voiceStrength.Value = Math.Clamp((int)Math.Round(_engine.VoiceStrength * 100),
+                        _voiceStrength.Minimum, _voiceStrength.Maximum);
+                }
+                finally { _reflectingPhoneDsp = false; }
+                ApplyVoiceSetting();
             });
         };
 

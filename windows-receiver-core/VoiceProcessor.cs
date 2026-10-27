@@ -64,6 +64,10 @@ public sealed class VoiceProcessor
     /// <see cref="Strength"/>. Set by the phone's Custom mode.
     /// </summary>
     public bool UseCustom { get; set; }
+    private DspDesktopState? _desktopBeforePhone;
+    private bool _desktopOverride;
+
+    public readonly record struct DspDesktopState(bool Enabled, float Strength, float HighPassHz, float PresenceDb);
 
     public float GateAmount { get; set; } = 0.6f;
 
@@ -80,6 +84,11 @@ public sealed class VoiceProcessor
     /// <summary>Applies a settings push from the phone. Filters are redesigned only on change.</summary>
     public void Apply(DspConfig config)
     {
+        if (!UseCustom)
+        {
+            _desktopBeforePhone = new DspDesktopState(Enabled, Strength, _highPassHz, _presenceDb);
+            _desktopOverride = false;
+        }
         Enabled = config.Enabled;
         UseCustom = true;
         GateAmount = Math.Clamp(config.Gate, 0f, 1f);
@@ -108,6 +117,7 @@ public sealed class VoiceProcessor
     /// </summary>
     public void SelectPresetStrength(float strength)
     {
+        _desktopOverride = true;
         UseCustom = false;
         Strength = Math.Clamp(strength, 0f, 1f);
 
@@ -117,6 +127,45 @@ public sealed class VoiceProcessor
             DesignHighPass(PresetHighPassHz);
         }
 
+        if (Math.Abs(_presenceDb - PresetPresenceDb) > 0.05f)
+        {
+            _presenceDb = PresetPresenceDb;
+            DesignPresence(3_000f, PresetPresenceDb, 1.0f);
+        }
+    }
+
+    public bool ReleasePhoneCustom()
+    {
+        if (!UseCustom) return false;
+        UseCustom = false;
+        if (!_desktopOverride && _desktopBeforePhone is { } saved)
+        {
+            Enabled = saved.Enabled;
+            Strength = saved.Strength;
+            _highPassHz = saved.HighPassHz;
+            _presenceDb = saved.PresenceDb;
+            DesignHighPass(_highPassHz);
+            DesignPresence(3_000f, _presenceDb, 1.0f);
+        }
+        _desktopBeforePhone = null;
+        _desktopOverride = false;
+        return true;
+    }
+
+    public DspDesktopState DesktopState => UseCustom && _desktopBeforePhone is { } saved
+        ? saved : new(Enabled, Strength, _highPassHz, _presenceDb);
+
+    public void EndPhoneOwnership()
+    {
+        if (!UseCustom) return;
+        UseCustom = false;
+        _desktopBeforePhone = null;
+        _desktopOverride = true;
+        if (Math.Abs(_highPassHz - PresetHighPassHz) > 0.5f)
+        {
+            _highPassHz = PresetHighPassHz;
+            DesignHighPass(PresetHighPassHz);
+        }
         if (Math.Abs(_presenceDb - PresetPresenceDb) > 0.05f)
         {
             _presenceDb = PresetPresenceDb;
