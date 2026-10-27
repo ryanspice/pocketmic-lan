@@ -153,6 +153,10 @@ public sealed class MainWindow : Window
         var qr = new Button { Content = "Pair phone with QR" };
         qr.Click += async (_, _) => await ShowQrAsync();
         actions.Children.Add(_start); actions.Children.Add(qr);
+        var help = new Button { Content = "Connection help" };
+        help.Click += (_, _) => FirewallSupport.Show(_engine.IsRunning ? _settings.Port :
+            int.TryParse(_port.Text, out var helpPort) ? helpPort : _settings.Port);
+        actions.Children.Add(help);
         body.Children.Add(actions);
         var pairing = new StackPanel { Spacing = 12 };
         pairing.Children.Add(Text("Scan the PC code with PocketMic, or enter the same pairing key manually on both devices."));

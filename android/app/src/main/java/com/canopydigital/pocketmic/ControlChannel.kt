@@ -102,6 +102,14 @@ object ControlChannel {
 
     private val mutableStatsAt = MutableStateFlow(0L)
     val lastStatsAtMillis: StateFlow<Long> = mutableStatsAt.asStateFlow()
+    private val mutableProgressAt = MutableStateFlow(0L)
+    val lastAudioProgressAtMillis: StateFlow<Long> = mutableProgressAt.asStateFlow()
+    private val delivery = DeliveryProgress()
+
+    @Synchronized fun beginDeliveryRun(sessionId: Long) {
+        delivery.reset(sessionId)
+        mutableProgressAt.value = 0L
+    }
 
     private val mutableStaleAnnounces = MutableStateFlow(0L)
     val staleAnnounceCount: StateFlow<Long> = mutableStaleAnnounces.asStateFlow()
@@ -193,7 +201,9 @@ object ControlChannel {
         probeJob = null
     }
 
-    internal fun recordDeliveryStats(stats: ReceiverStats, receivedAtMillis: Long) {
+    @Synchronized internal fun recordDeliveryStats(stats: ReceiverStats, receivedAtMillis: Long) {
+        delivery.observe(stats, receivedAtMillis)
+        mutableProgressAt.value = delivery.lastProgressAtMillis
         mutableStats.value = stats
         mutableStatsAt.value = receivedAtMillis
     }

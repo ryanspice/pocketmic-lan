@@ -166,6 +166,12 @@ by the next one.
 | 5 | 1 | make-up gain, 0–100 |
 | 6 | 1 | noise reduction amount, 0–100 |
 
+### Optional session-qualified delivery receipt
+
+Windows may append 13 bytes to the existing 45-byte STATS prefix: extension version `1` at offset 45, the last accepted audio session ID (uint64 big-endian) at 46, and its sequence (uint32 big-endian) at 54. The payload is then 58 bytes; the authenticated control frame remains 256 bytes. Receivers omit this trailer before any audio has been accepted. Old Android clients read the unchanged prefix. New clients match the receipt to their current stream session and require forward sequence progress; unchanged or older receipts never extend audio delivery health. Control reachability and receiver playback remain separate signals.
+
+Legacy receivers supply counters only. New Android clients establish a counter baseline, require advancement, and require two lower-counter advances before accepting a receiver reset. This fallback cannot strongly distinguish sufficiently delayed historical statistics or another same-key sender. Session-qualified receipts remove that ambiguity for updated peers; neither mode proves audible output in a destination app. Discovery/probing changes must not clear audio sequence history during an active stream.
+
 ### DSP_RELEASE payload (empty)
 
 `DSP_RELEASE` is type 5 with a zero-length payload and the normal control-channel HMAC. It

@@ -293,9 +293,10 @@ public static class ControlProtocol
         long rejected,
         long trimmed,
         int bufferMilliseconds,
-        bool playing)
+        bool playing,
+        (ulong Session, uint Sequence)? receipt = null)
     {
-        var payload = new byte[45];
+        var payload = new byte[receipt.HasValue ? 58 : 45];
         BinaryPrimitives.WriteInt64BigEndian(payload.AsSpan(0, 8), packets);
         BinaryPrimitives.WriteInt64BigEndian(payload.AsSpan(8, 8), lost);
         BinaryPrimitives.WriteInt64BigEndian(payload.AsSpan(16, 8), late);
@@ -303,6 +304,12 @@ public static class ControlProtocol
         BinaryPrimitives.WriteInt64BigEndian(payload.AsSpan(32, 8), trimmed);
         BinaryPrimitives.WriteInt32BigEndian(payload.AsSpan(40, 4), bufferMilliseconds);
         payload[44] = playing ? (byte)1 : (byte)0;
+        if (receipt is { } accepted)
+        {
+            payload[45] = 1; // Optional delivery-receipt extension; legacy prefix is unchanged.
+            BinaryPrimitives.WriteUInt64BigEndian(payload.AsSpan(46, 8), accepted.Session);
+            BinaryPrimitives.WriteUInt32BigEndian(payload.AsSpan(54, 4), accepted.Sequence);
+        }
         return payload;
     }
 }

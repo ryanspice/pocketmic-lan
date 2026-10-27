@@ -160,6 +160,7 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
     val peer by ControlChannel.peer.collectAsState()
     val receivers by ControlChannel.receivers.collectAsState()
     val stats by ControlChannel.stats.collectAsState()
+    val lastProgressAt by ControlChannel.lastAudioProgressAtMillis.collectAsState()
     val lastStatsAt by ControlChannel.lastStatsAtMillis.collectAsState()
 
     var host by rememberSaveable { mutableStateOf(initial.host) }
@@ -269,8 +270,8 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
         while (isActive) {
             nowMillis = SystemClock.elapsedRealtime()
             // Monotonic clock: liveness must not be fooled by a wall-clock jump backwards.
-            linkAlive = lastStatsAt > 0 &&
-                nowMillis - lastStatsAt < ControlChannel.STATS_TIMEOUT_MS
+            linkAlive = lastProgressAt > 0L && nowMillis - lastProgressAt < ReconnectPolicy.DELIVERY_TIMEOUT_MS &&
+                lastStatsAt > 0L && nowMillis - lastStatsAt < ControlChannel.STATS_TIMEOUT_MS
             delay(LINK_ALIVE_POLL_MS)
         }
         linkAlive = false
@@ -425,7 +426,8 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
                     }
                 }
 
-                StatusCard(snapshot, stats, linkAlive, peer, nowMillis)
+                StatusCard(snapshot, stats, linkAlive, peer, nowMillis,
+                    isActive && lastStatsAt > 0L && nowMillis - lastStatsAt < ControlChannel.STATS_TIMEOUT_MS)
 
                 validationError?.let { Text(it, color = Danger, style = MaterialTheme.typography.bodyMedium) }
                 snapshot.error?.let { Text(it, color = Danger, style = MaterialTheme.typography.bodyMedium) }
@@ -548,6 +550,7 @@ private fun StatusCard(
     linkAlive: Boolean,
     peer: PeerState,
     nowMillis: Long,
+    pcReachable: Boolean,
 ) {
     val label = when (snapshot.status) {
         StreamStatus.IDLE -> stringResource(R.string.status_ready)
@@ -595,6 +598,13 @@ private fun StatusCard(
                 }
             }
 
+            if (pcReachable && !linkAlive) {
+                Text(stringResource(R.string.status_pc_reachable_stalled), color = Caution)
+            }
+            if (pcReachable && linkAlive) {
+                Text(stringResource(if (stats?.playing == true) R.string.status_output_started
+                    else R.string.status_output_waiting), color = TextMuted, style = MaterialTheme.typography.bodySmall)
+            }
             snapshot.activeCodec?.let { activeCodec ->
                 Text(
                     stringResource(if (activeCodec == AudioCodec.OPUS) R.string.codec_using_opus else R.string.codec_using_pcm),
@@ -776,7 +786,7 @@ private fun ConnectionCard(
                 // at whatever it read the moment capture began.
                 val (message, colour) = when {
                     snapshot.status == StreamStatus.RECONNECTING ->
-                        stringResource(R.string.connection_lost_searching, snapshot.destination) to Caution
+                        stringResource(R.string.connection_delivery_unconfirmed, snapshot.destination) to Caution
 
                     linkAlive -> stringResource(R.string.connection_connected, snapshot.destination) to Accent
 

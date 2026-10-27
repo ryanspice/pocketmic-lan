@@ -51,6 +51,7 @@ object ReconnectPolicy {
      * different one, where the app abandons a link that was about to come back.
      */
     const val GIVE_UP_AFTER_MS = 60_000L
+    const val DELIVERY_TIMEOUT_MS = 2_000L
 
     /**
      * @param streaming true while in STREAMING, false while in RECONNECTING.
@@ -87,6 +88,23 @@ object ReconnectPolicy {
                 nowMillis - reconnectStartedAtMillis >= GIVE_UP_AFTER_MS -> LinkAction.GIVE_UP
                 else -> LinkAction.CONTINUE
             }
+        }
+    }
+
+    /** Authenticated control replies are reachability only; only forward packet progress proves delivery. */
+    fun evaluateDelivery(streaming: Boolean, nowMillis: Long, streamStartedAtMillis: Long,
+        lastProgressAtMillis: Long, reconnectStartedAtMillis: Long,
+        lastStatsAtMillis: Long = lastProgressAtMillis): LinkAction {
+        val fresh = lastStatsAtMillis > streamStartedAtMillis && nowMillis - lastStatsAtMillis < STATS_TIMEOUT_MS &&
+            lastProgressAtMillis > streamStartedAtMillis && nowMillis - lastProgressAtMillis < DELIVERY_TIMEOUT_MS
+        return if (streaming) when {
+            fresh -> LinkAction.CONTINUE
+            nowMillis - streamStartedAtMillis < CONNECT_GRACE_MS -> LinkAction.CONTINUE
+            else -> LinkAction.ENTER_RECONNECTING
+        } else when {
+            fresh -> LinkAction.RESUME_STREAMING
+            nowMillis - reconnectStartedAtMillis >= GIVE_UP_AFTER_MS -> LinkAction.GIVE_UP
+            else -> LinkAction.CONTINUE
         }
     }
 
