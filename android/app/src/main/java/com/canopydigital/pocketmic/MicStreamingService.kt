@@ -176,6 +176,7 @@ class MicStreamingService : Service() {
             val allowFallback = AppPrefs.loadUi(this).autoConnect
             ControlChannel.start(this, config.pairingKey, config.port, probe = false,
                 host = config.host, allowFallback = allowFallback)
+            sendCurrentDspOwnership(config)
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 error(getString(R.string.error_microphone_permission))
             }
@@ -468,6 +469,7 @@ class MicStreamingService : Service() {
                             // a previous recovery may already have changed its port.
                             ControlChannel.start(this@MicStreamingService, config.pairingKey,
                                 targetPort, probe = true, host = targetHost, allowFallback = allowFallback)
+                            sendCurrentDspOwnership(config)
                             StreamingState.update {
                                 it.copy(status = StreamStatus.RECONNECTING, reconnectingSinceMillis = now)
                             }
@@ -475,6 +477,7 @@ class MicStreamingService : Service() {
 
                         LinkAction.RESUME_STREAMING -> {
                             streaming = true
+                            sendCurrentDspOwnership(config)
                             reconnects += 1
                             reconnectStartedAt = 0L
                             ControlChannel.stopProbing()
@@ -514,6 +517,7 @@ class MicStreamingService : Service() {
                                 // Move control/liveness ownership together with the audio target.
                                 ControlChannel.start(this@MicStreamingService, config.pairingKey,
                                     targetPort, probe = true, host = targetHost, allowFallback = allowFallback)
+                                sendCurrentDspOwnership(config)
                                 sendTarget.endpoint = java.net.InetSocketAddress(resolved, targetPort)
                                 redirectTo(config.copy(host = targetHost, port = targetPort), found.hostName)
                             }
@@ -548,6 +552,13 @@ class MicStreamingService : Service() {
                 stopSelf()
             }
         }
+    }
+
+    private fun sendCurrentDspOwnership(config: MicConfig) {
+        // ControlChannel resolves the service-owned endpoint; updating start() first makes this
+        // safe for background recovery as well as initial capture and redirect.
+        if (config.captureMode == CaptureMode.CUSTOM) ControlChannel.sendConfig(AppPrefs.loadDsp(this))
+        else ControlChannel.releaseDsp()
     }
 
     // runStream() verifies RECORD_AUDIO before reaching here; the annotation carries that

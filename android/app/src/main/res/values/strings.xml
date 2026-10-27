@@ -17,6 +17,7 @@
     <string name="connection_udp_port">UDP port</string>
     <string name="connection_pairing_key">Pairing key</string>
     <string name="status_ready">Ready</string>
+    <string name="connection_vpn_warning">A VPN is on. Many VPNs block connections to your PC on the local network. Turn it off or allow LAN access if the receiver can\'t be reached.</string>
     <string name="status_connecting">Connecting</string>
     <string name="status_live_confirmed">Live — PC confirmed</string>
     <string name="status_sending_waiting">Sending — waiting for audio progress</string>

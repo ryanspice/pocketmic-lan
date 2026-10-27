@@ -357,8 +357,8 @@ public sealed class MainWindow : Window
         _settings.OutputDevice = (_output.SelectedItem as Device)?.Name ?? "";
         _settings.MonitorEnabled = _monitor.IsOn; _settings.AutoListen = _autoListen.IsChecked == true;
         _settings.AdvancedMode = _advancedToggle.IsOn; _settings.AutomaticBuffering = _automaticBuffer.IsChecked == true;
-        _settings.PrebufferMilliseconds = (int)_buffer.Value; _settings.VoiceEnhance = _voice.IsOn;
-        _settings.VoiceStrength = (int)_strength.Value; _settings.MinimizeToTray = true; _settings.Save();
+        _settings.PrebufferMilliseconds = (int)_buffer.Value; _settings.VoiceEnhance = _engine.DesktopDspState.Enabled;
+        _settings.VoiceStrength = (int)Math.Round(_engine.DesktopDspState.Strength * 100); _settings.MinimizeToTray = true; _settings.Save();
     }
 
     private async Task ToggleAsync()
@@ -380,6 +380,7 @@ public sealed class MainWindow : Window
                 ReceiverFrontEnd.Modern, ReceiverBuild.VersionOf(typeof(MainWindow).Assembly)));
             _port.IsEnabled = _key.IsEnabled = _output.IsEnabled = false;
             _start.Content = "Stop receiver"; _source.Text = "Phone: waiting…"; SaveSettings();
+            WarnIfVpnActive();
         }
         catch (Exception error)
         {
@@ -414,6 +415,13 @@ public sealed class MainWindow : Window
             Reflect(() => _voice.IsOn = dsp.Enabled); _strength.IsEnabled = dsp.Enabled;
             _voiceDetails.Text = $"Custom from phone · HPF {dsp.HighPassHz} Hz · gate {dsp.Gate:P0} · compressor {dsp.Compressor:P0} · presence {dsp.PresenceDb:F1} dB";
         }, requireRunning: true);
+        _engine.DspReleased += (_, _) => Post(() =>
+        {
+            Reflect(() => _voice.IsOn = _engine.VoiceEnabled);
+            Reflect(() => _strength.Value = Math.Clamp(_engine.VoiceStrength * 100, 0, 100));
+            _strength.IsEnabled = _voice.IsOn;
+            UpdateVoiceText();
+        });
         _engine.MonitorStarted += (_, _) =>
         {
             var openedDevice = _engine.MonitorDeviceNumber;
@@ -503,6 +511,7 @@ public sealed class MainWindow : Window
             var addresses = Addresses();
             if (addresses.Length == 0 || !int.TryParse(_port.Text, out var port) || port is < 1 or > 65534 || _key.Password.Length < 8)
             { Notice("Pairing is not ready", "Connect to a LAN and enter a valid port and pairing key in Advanced settings."); return; }
+            WarnIfVpnActive();
             var key = _key.Password;
             var choice = new ComboBox { Header = "PC address", ItemsSource = addresses, SelectedIndex = 0, HorizontalAlignment = HorizontalAlignment.Stretch };
             var image = new Image { MaxWidth = 320, Height = 320, Stretch = Stretch.Uniform, HorizontalAlignment = HorizontalAlignment.Stretch };
@@ -562,12 +571,19 @@ public sealed class MainWindow : Window
     private void Notice(string title, string message, InfoBarSeverity severity = InfoBarSeverity.Warning)
     { _notice.Title = title; _notice.Message = message; _notice.Severity = severity; _notice.IsOpen = true; }
 
+    private void WarnIfVpnActive()
+    {
+        var vpns = VpnDetector.ActiveVpnAdapters();
+        if (vpns.Count > 0)
+            Notice("VPN may block your phone", $"A VPN is active ({string.Join(", ", vpns)}). Many VPNs block LAN connections; turn it off or enable LAN access if your phone can't connect.");
+    }
+
     private static IPAddress[] Addresses()
     {
         try
         {
             return NetworkInterface.GetAllNetworkInterfaces()
-                .Where(adapter => adapter.OperationalStatus == OperationalStatus.Up && adapter.NetworkInterfaceType != NetworkInterfaceType.Loopback)
+                .Where(adapter => adapter.OperationalStatus == OperationalStatus.Up && adapter.NetworkInterfaceType != NetworkInterfaceType.Loopback && !VpnDetector.IsVpnAdapter(adapter))
                 .SelectMany(adapter => adapter.GetIPProperties().UnicastAddresses).Select(address => address.Address)
                 .Where(address => address.AddressFamily == AddressFamily.InterNetwork && !IPAddress.IsLoopback(address))
                 .Distinct().OrderBy(address => address.ToString(), StringComparer.Ordinal).ToArray();

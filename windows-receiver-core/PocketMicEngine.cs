@@ -222,6 +222,7 @@ public sealed class PocketMicEngine
     /// this is raised; hosts subscribe only to reflect it in their controls.
     /// </summary>
     public event EventHandler<DspConfig>? DspConfigReceived;
+    public event EventHandler? DspReleased;
 
     /// <summary>
     /// The local monitor output opened successfully. Separate from <see cref="Start"/> returning
@@ -310,17 +311,19 @@ public sealed class PocketMicEngine
     /// <summary>Backlog above which buffered audio may be trimmed. Derived from the prebuffer.</summary>
     public int HighWaterMilliseconds => _highWaterMilliseconds;
 
+    public VoiceProcessor.DspDesktopState DesktopDspState => _voice.DesktopState;
+
     public bool VoiceEnabled
     {
         get => _voice.Enabled;
-        set => _voice.Enabled = value;
+        set { _voice.Enabled = value; _voice.EndPhoneOwnership(); }
     }
 
     /// <summary>0 = off, 1 = maximum.</summary>
     public float VoiceStrength
     {
         get => _voice.Strength;
-        set => _voice.Strength = value;
+        set { _voice.Strength = value; _voice.EndPhoneOwnership(); }
     }
 
     /// <summary>Leaves phone Custom DSP and selects the desktop preset at the given strength.</summary>
@@ -521,6 +524,9 @@ public sealed class PocketMicEngine
             catch (ObjectDisposedException) { }
             catch (SocketException) { }
         }
+
+        // All receive/control workers have exited; none can reacquire phone DSP ownership.
+        if (_voice.ReleasePhoneCustom()) DspReleased?.Invoke(this, EventArgs.Empty);
 
         // The receive loop owns the native decoder while it can be inside Decode/PLC/Reset.
         // Cancellation and closing the socket do not wait for a synchronous P/Invoke to finish.
@@ -1041,6 +1047,14 @@ public sealed class PocketMicEngine
                 continue;
             }
 
+            if (type == ControlProtocol.TypeDspRelease)
+            {
+                if (discoveryOnly || !ControlProtocol.Verify(key, result.Buffer) || payload.Length != 0) continue;
+                if (runId != _runId) continue;
+                if (_voice.ReleasePhoneCustom()) DspReleased?.Invoke(this, EventArgs.Empty);
+                continue;
+            }
+
             if (type != ControlProtocol.TypeProbe) continue;
 
             // Reply even when the HMAC does not verify. A phone with the wrong pairing key must
@@ -1282,6 +1296,13 @@ public sealed class PocketMicEngine
                 continue;
             }
 
+            if (order.Status == AudioPacketOrderStatus.RetiredSession)
+            {
+                _rejectedPackets++;
+                analytics?.RecordRejected();
+                continue;
+            }
+
             if (order.Status == AudioPacketOrderStatus.Late)
             {
                 _latePackets++;
@@ -1290,49 +1311,53 @@ public sealed class PocketMicEngine
                 continue;
             }
 
-            if (order.NewSession)
-            {
-                Array.Clear(lastGood);
-                haveLastGood = false;
-                ResetPlaybackForResync();
-            }
-
-            if (order.MissingPackets > 0)
-            {
-                var delta = order.MissingPackets;
-                _lostPackets += delta;
-                analytics?.RecordLost(delta);
-                if (delta <= _concealmentPackets)
-                {
-                    for (var index = 0; index < delta; index++)
-                    {
-                        var usedPlc = packet.Codec == AudioPipeline.Codec.Opus &&
-                            _opusDecoder?.TryGeneratePlc(conceal) == true;
-                        if (!usedPlc)
-                        {
-                            AudioPipeline.BuildConcealmentFrame(conceal, lastGood, haveLastGood, index);
-                        }
-                        _audioBuffer?.AddSamples(conceal, 0, conceal.Length);
-                    }
-                }
-                else
-                {
-                    ResetPlaybackForResync();
-                    Array.Clear(lastGood);
-                    haveLastGood = false;
-                }
-            }
-
-            // Only an in-order, authenticated packet is allowed to advance codec state.
+            // Stage predictor changes and PLC before current-frame decode. A rejected candidate
+            // must not retire the active session, enqueue concealment, or reset playback.
+            var resync = order.NewSession || order.MissingPackets > _concealmentPackets;
+            byte[][]? stagedConcealment = null;
             if (packet.Codec == AudioPipeline.Codec.Pcm)
             {
                 Buffer.BlockCopy(packetPayload, 0, pcm, 0, AudioPipeline.PacketPcmBytes);
+                if (!resync && order.MissingPackets > 0)
+                {
+                    stagedConcealment = new byte[order.MissingPackets][];
+                    for (var index = 0; index < order.MissingPackets; index++)
+                    {
+                        var frame = new byte[AudioPipeline.PacketPcmBytes];
+                        AudioPipeline.BuildConcealmentFrame(frame, lastGood, haveLastGood, index);
+                        stagedConcealment[index] = frame;
+                    }
+                }
             }
-            else if (_opusDecoder?.TryDecode(packetPayload, packet.PayloadLength, pcm) != true)
+            else
             {
-                _rejectedPackets++;
-                analytics?.RecordRejected();
-                continue;
+                if (_opusDecoder is null || !OpusPacketStage.TryDecode(_opusDecoder, resync,
+                    order.MissingPackets, packetPayload, packet.PayloadLength, pcm, lastGood,
+                    haveLastGood, out var replacement, out stagedConcealment))
+                {
+                    _rejectedPackets++;
+                    analytics?.RecordRejected();
+                    continue;
+                }
+                if (replacement is not null)
+                {
+                    _opusDecoder.Dispose();
+                    _opusDecoder = replacement;
+                }
+            }
+
+            if (resync)
+            {
+                ResetPlaybackForResync(resetDecoder: false);
+                Array.Clear(lastGood);
+                haveLastGood = false;
+            }
+            if (order.MissingPackets > 0)
+            {
+                _lostPackets += order.MissingPackets;
+                analytics?.RecordLost(order.MissingPackets);
+                if (stagedConcealment is not null)
+                    foreach (var frame in stagedConcealment) _audioBuffer?.AddSamples(frame, 0, frame.Length);
             }
 
             _packetOrder.Commit(packet);
@@ -1419,14 +1444,14 @@ public sealed class PocketMicEngine
     /// </summary>
     private static float LevelDbfs(float rms) => rms > 0f ? 20f * MathF.Log10(rms) : float.NaN;
 
-    private void ResetPlaybackForResync()
+    private void ResetPlaybackForResync(bool resetDecoder = true)
     {
         _playbackStarted = false;
         try { _waveOut?.Pause(); }
         catch { }
         _audioBuffer?.ClearBuffer();
         _adaptiveBuffer.Reset();
-        _opusDecoder?.Reset();
+        if (resetDecoder) _opusDecoder?.Reset();
     }
 
     private bool TryAuthenticatePacket(

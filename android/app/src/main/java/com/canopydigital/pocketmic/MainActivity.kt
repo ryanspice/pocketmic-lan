@@ -6,6 +6,9 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -236,11 +239,15 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
     }
 
     // Push slider changes to the receiver, debounced so dragging does not flood the channel.
-    LaunchedEffect(dsp, captureMode, peer) {
-        if (captureMode != CaptureMode.CUSTOM) return@LaunchedEffect
+    val dspPeer = (peer as? PeerState.Found)?.let { "${it.address}:${it.audioPort}:${it.keyMatches}" }
+    LaunchedEffect(dsp, captureMode, dspPeer) {
         delay(DSP_PUSH_DEBOUNCE_MS)
-        AppPrefs.saveDsp(context, dsp)
-        ControlChannel.sendConfig(dsp)
+        if (captureMode == CaptureMode.CUSTOM) {
+            AppPrefs.saveDsp(context, dsp)
+            ControlChannel.sendConfig(dsp)
+        } else {
+            ControlChannel.releaseDsp()
+        }
     }
 
     var linkAlive by remember { mutableStateOf(false) }
@@ -725,6 +732,29 @@ private fun StatusCard(
     }
 }
 
+/** Tracks whether the phone's default network is a VPN; many VPNs block LAN traffic to the receiver. */
+@Composable
+private fun rememberVpnActive(): Boolean {
+    val context = LocalContext.current
+    val connectivity = remember(context) { context.getSystemService(ConnectivityManager::class.java) }
+    var active by remember { mutableStateOf(false) }
+    DisposableEffect(connectivity) {
+        if (connectivity == null) return@DisposableEffect onDispose {}
+        fun isVpn(network: Network?) =
+            connectivity.getNetworkCapabilities(network)?.hasTransport(NetworkCapabilities.TRANSPORT_VPN) == true
+        active = isVpn(connectivity.activeNetwork)
+        val callback = object : ConnectivityManager.NetworkCallback() {
+            override fun onCapabilitiesChanged(network: Network, capabilities: NetworkCapabilities) {
+                active = capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
+            }
+            override fun onLost(network: Network) { active = isVpn(connectivity.activeNetwork) }
+        }
+        connectivity.registerDefaultNetworkCallback(callback)
+        onDispose { connectivity.unregisterNetworkCallback(callback) }
+    }
+    return active
+}
+
 @Composable
 private fun ConnectionCard(
     autoConnect: Boolean,
@@ -763,6 +793,10 @@ private fun ConnectionCard(
             ) {
                 Text(stringResource(R.string.connection_auto), fontWeight = FontWeight.SemiBold)
                 Switch(checked = autoConnect, onCheckedChange = onAutoConnectChange, enabled = enabled)
+            }
+
+            if (rememberVpnActive()) {
+                Text(stringResource(R.string.connection_vpn_warning), color = Caution, style = MaterialTheme.typography.bodySmall)
             }
 
             if (streaming) {

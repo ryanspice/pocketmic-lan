@@ -45,6 +45,16 @@ class ControlProtocolTest {
     }
 
     @Test
+    fun dspReleaseIsAuthenticatedEmptyTypeFiveMessage() {
+        val frame = ControlProtocol.build(key, ControlProtocol.TYPE_DSP_RELEASE, ByteArray(0))
+        val message = ControlProtocol.parse(frame, frame.size)
+        assertNotNull(message)
+        assertEquals(ControlProtocol.TYPE_DSP_RELEASE, message!!.type)
+        assertArrayEquals(ByteArray(0), message.payload)
+        assertTrue(ControlProtocol.verify(key, message))
+    }
+
+    @Test
     fun everyFrameIsPaddedToTheFixedSizeSoRepliesCannotAmplify() {
         val empty = ControlProtocol.build(key, ControlProtocol.TYPE_PROBE, ByteArray(0))
         val full = ControlProtocol.build(
