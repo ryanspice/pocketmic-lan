@@ -32,6 +32,7 @@
     <string name="connection_lost_searching">پەیوەندی بە %1$s پچڕا. دووبارەی دەدۆزینەوە؛ تۆمارکردن بەردەوامە و پێویست ناکات دەست پێ بکەیتەوە.</string>
     <string name="connection_connected">پەیوەندی بە %1$s کرا.</string>
     <string name="connection_waiting_reply">دەنێردرێت بۆ %1$s؛ چاوەڕێی یەکەم وەڵامە.</string>
+    <string name="connection_vpn_warning">VPN کارایە. زۆربەی VPNـەکان پەیوەندی بە کۆمپیوتەرەکەت لە تۆڕی ناوخۆیی ڕێگری دەکەن. ئەگەر وەرگر نەگەیشت، بیکوژێنەرەوە یان ڕێگە بە LAN بدە.</string>
     <string name="connection_searching">بەدوای وەرگری PocketMic دەگەڕێت…</string>
     <string name="connection_not_found">هیچ وەرگرێک نەدۆزرایەوە. PocketMicReceiver لە کۆمپیوتەرەکەتدا بکەرەوە، یان خۆکارکردن ناچالاک بکە بۆ نووسینی ناونیشان.</string>
     <string name="connection_recovered_one">دوای %1$d پچڕان پەیوەندی گەڕایەوە.</string>
