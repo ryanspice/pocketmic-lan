@@ -5,6 +5,7 @@ public enum AudioPacketOrderStatus
     Accept,
     Late,
     CodecChangedWithinSession,
+    RetiredSession,
 }
 
 public readonly record struct AudioPacketOrderDecision(
@@ -19,6 +20,9 @@ public readonly record struct AudioPacketOrderDecision(
 /// </summary>
 public sealed class AudioPacketOrder
 {
+    public const int RetiredSessionCapacity = 32;
+    private readonly Queue<ulong> _retiredSessions = new();
+    private readonly HashSet<ulong> _retiredSet = new();
     private ulong? _sessionId;
     private AudioPipeline.Codec? _codec;
     private uint? _lastSequence;
@@ -27,6 +31,8 @@ public sealed class AudioPacketOrder
     {
         if (_sessionId != packet.SessionId)
         {
+            if (_retiredSet.Contains(packet.SessionId))
+                return new AudioPacketOrderDecision(AudioPacketOrderStatus.RetiredSession, false, 0, 0);
             return new AudioPacketOrderDecision(AudioPacketOrderStatus.Accept, NewSession: true, MissingPackets: 0, SequenceDelta: 0);
         }
 
@@ -48,6 +54,13 @@ public sealed class AudioPacketOrder
 
     public void Commit(AudioPacketInfo packet)
     {
+        if (_sessionId.HasValue && _sessionId.Value != packet.SessionId)
+        {
+            _retiredSessions.Enqueue(_sessionId.Value);
+            _retiredSet.Add(_sessionId.Value);
+            while (_retiredSessions.Count > RetiredSessionCapacity)
+                _retiredSet.Remove(_retiredSessions.Dequeue());
+        }
         _sessionId = packet.SessionId;
         _codec = packet.Codec;
         _lastSequence = packet.Sequence;
@@ -58,5 +71,7 @@ public sealed class AudioPacketOrder
         _sessionId = null;
         _codec = null;
         _lastSequence = null;
+        _retiredSessions.Clear();
+        _retiredSet.Clear();
     }
 }

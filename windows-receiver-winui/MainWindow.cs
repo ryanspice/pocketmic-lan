@@ -353,8 +353,8 @@ public sealed class MainWindow : Window
         _settings.OutputDevice = (_output.SelectedItem as Device)?.Name ?? "";
         _settings.MonitorEnabled = _monitor.IsOn; _settings.AutoListen = _autoListen.IsChecked == true;
         _settings.AdvancedMode = _advancedToggle.IsOn; _settings.AutomaticBuffering = _automaticBuffer.IsChecked == true;
-        _settings.PrebufferMilliseconds = (int)_buffer.Value; _settings.VoiceEnhance = _voice.IsOn;
-        _settings.VoiceStrength = (int)_strength.Value; _settings.MinimizeToTray = true; _settings.Save();
+        _settings.PrebufferMilliseconds = (int)_buffer.Value; _settings.VoiceEnhance = _engine.DesktopDspState.Enabled;
+        _settings.VoiceStrength = (int)Math.Round(_engine.DesktopDspState.Strength * 100); _settings.MinimizeToTray = true; _settings.Save();
     }
 
     private async Task ToggleAsync()
@@ -411,6 +411,13 @@ public sealed class MainWindow : Window
             Reflect(() => _voice.IsOn = dsp.Enabled); _strength.IsEnabled = dsp.Enabled;
             _voiceDetails.Text = $"Custom from phone · HPF {dsp.HighPassHz} Hz · gate {dsp.Gate:P0} · compressor {dsp.Compressor:P0} · presence {dsp.PresenceDb:F1} dB";
         }, requireRunning: true);
+        _engine.DspReleased += (_, _) => Post(() =>
+        {
+            Reflect(() => _voice.IsOn = _engine.VoiceEnabled);
+            Reflect(() => _strength.Value = Math.Clamp(_engine.VoiceStrength * 100, 0, 100));
+            _strength.IsEnabled = _voice.IsOn;
+            UpdateVoiceText();
+        });
         _engine.MonitorStarted += (_, _) =>
         {
             var openedDevice = _engine.MonitorDeviceNumber;

@@ -57,6 +57,7 @@ object ControlProtocol {
     const val TYPE_ANNOUNCE: Byte = 2
     const val TYPE_STATS: Byte = 3
     const val TYPE_CONFIG: Byte = 4
+    const val TYPE_DSP_RELEASE: Byte = 5
 
     private val MAGIC = byteArrayOf(
         'P'.code.toByte(), 'M'.code.toByte(), 'C'.code.toByte(),

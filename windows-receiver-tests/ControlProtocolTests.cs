@@ -137,6 +137,16 @@ public class ControlProtocolTests
     }
 
     [Fact]
+    public void DspReleaseIsAnAuthenticatedEmptyControlMessage()
+    {
+        var frame = ControlProtocol.Build(Key, ControlProtocol.TypeDspRelease, Array.Empty<byte>());
+        Assert.True(ControlProtocol.TryParse(frame, out var type, out var payload));
+        Assert.Equal(ControlProtocol.TypeDspRelease, type);
+        Assert.Empty(payload);
+        Assert.True(ControlProtocol.Verify(Key, frame));
+    }
+
+    [Fact]
     public void VerifyRejectsAFrameWhosePayloadWasTampered()
     {
         var frame = ControlProtocol.Build(Key, ControlProtocol.TypeConfig, new byte[] { 1, 2, 3, 4, 5, 6, 7 });
