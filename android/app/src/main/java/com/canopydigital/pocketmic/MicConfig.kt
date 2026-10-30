@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKeys
 import java.security.SecureRandom
+import java.util.concurrent.Executors
 import kotlin.math.roundToInt
 
 /** The default audio port. One source of truth for every default on the phone. */
@@ -136,6 +137,8 @@ enum class FabCorner {
 }
 
 object AppPrefs {
+    private val keyLock = Any()
+    private val keyMigrationExecutor = Executors.newSingleThreadExecutor()
     private const val PREFS = "pocketmic"
     private const val HOST = "host"
     private const val PORT = "port"
@@ -223,17 +226,34 @@ object AppPrefs {
         val plain = plainPrefs(context)
         val secure = encryptedPrefs(context)
 
-        // Migrate: if the key exists in plain prefs but not encrypted, move it.
-        val plainKey = plain.getString(KEY, null)
-        val storedKey = secure.getString(KEY, null)
-            ?: plainKey?.also { secure.edit().putString(KEY, it).apply() }
-            ?: ""
-
-        val key = storedKey.ifBlank { generatePairingKey() }
-        if (storedKey.isBlank()) {
-            secure.edit().putString(KEY, key).apply()
-            // Clear the old plaintext copy.
-            plain.edit().remove(KEY).apply()
+        val key = synchronized(keyLock) {
+            val plainKey = plain.getString(KEY, null)
+            val secureKey = secure.getString(KEY, null)
+            val selected = secureKey?.takeIf { it.isNotBlank() }
+                ?: plainKey?.takeIf { it.isNotBlank() }
+                ?: generatePairingKey()
+            if (plainKey.isNullOrBlank() && secureKey.isNullOrBlank()) {
+                secure.edit().putString(KEY, selected).apply()
+            }
+            if (plainKey != null) {
+                // A failed write must leave the only recoverable copy intact. Commit is
+                // deliberately off the UI thread and serialized with later key saves.
+                keyMigrationExecutor.execute {
+                    synchronized(keyLock) {
+                        val currentPlain = plain.getString(KEY, null)
+                        if (currentPlain != null) {
+                            migrateLegacyPairingKey(
+                                currentPlain,
+                                secure.getString(KEY, null),
+                                selected,
+                                persistSecure = { secure.edit().putString(KEY, it).commit() },
+                                removeLegacy = { plain.edit().remove(KEY).apply() },
+                            )
+                        }
+                    }
+                }
+            }
+            selected
         }
         return MicConfig(
             host = plain.getString(HOST, "").orEmpty(),
@@ -262,9 +282,11 @@ object AppPrefs {
             .putString(CODEC, config.codec.wireValue)
             .apply()
         // Pairing key goes to encrypted storage only.
-        encryptedPrefs(context).edit()
-            .putString(KEY, config.pairingKey)
-            .apply()
+        synchronized(keyLock) {
+            encryptedPrefs(context).edit()
+                .putString(KEY, config.pairingKey)
+                .apply()
+        }
     }
 
     fun generatePairingKey(): String {
