@@ -19,6 +19,7 @@ import android.media.AudioRecord
 import android.media.AudioTimestamp
 import android.media.MediaRecorder
 import android.net.wifi.WifiManager
+import android.net.Network
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
@@ -77,6 +78,7 @@ class MicStreamingService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        ControlChannel.acquireStream(this)
         createNotificationChannel()
     }
 
@@ -113,6 +115,7 @@ class MicStreamingService : Service() {
         if (StreamingState.state.value.status != StreamStatus.ERROR) {
             StreamingState.reset()
         }
+        ControlChannel.releaseStream(this)
         super.onDestroy()
     }
 
@@ -157,16 +160,18 @@ class MicStreamingService : Service() {
 
         acquireWakeLock()
         registerScreenReceiver()
-        val job = scope.launch { runStream(config) }
+        val runToken = Any()
+        ControlChannel.beginStreamRun(this, runToken)
+        val job = scope.launch { runStream(config, runToken) }
         streamJob = job
         job.invokeOnCompletion {
             if (streamJob === job) streamJob = null
         }
     }
 
-    private suspend fun runStream(config: MicConfig) {
+    private suspend fun runStream(config: MicConfig, runToken: Any) {
         var audioRecord: AudioRecord? = null
-        var socket: DatagramSocket? = null
+        var socket: RebindableSocket<Network?, DatagramSocket>? = null
         var senderJob: Job? = null
         var sendQueue: Channel<ByteArray>? = null
         var terminalError: String? = null
@@ -174,9 +179,9 @@ class MicStreamingService : Service() {
 
         try {
             val allowFallback = AppPrefs.loadUi(this).autoConnect
-            ControlChannel.start(this, config.pairingKey, config.port, probe = false,
+            ControlChannel.startStream(this, runToken, this, config.pairingKey, config.port, probe = false,
                 host = config.host, allowFallback = allowFallback)
-            sendCurrentDspOwnership(config)
+            sendCurrentDspOwnership(config, runToken)
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
                 error(getString(R.string.error_microphone_permission))
             }
@@ -193,9 +198,20 @@ class MicStreamingService : Service() {
             // port-unreachable error when the PC receiver starts after the phone; unconnected
             // sends allow the stream to keep running until the receiver is ready.
             // Take ownership before configuration so finally closes it even if binding fails.
-            socket = DatagramSocket()
-            socket.sendBufferSize = UDP_SEND_BUFFER_BYTES
-            ControlChannel.lanNetwork(this@MicStreamingService)?.bindSocket(socket)
+            val initialNetwork = ControlChannel.lanNetwork(this@MicStreamingService)
+            fun openAudioSocket(network: Network?): DatagramSocket {
+                val candidate = DatagramSocket()
+                try {
+                    candidate.sendBufferSize = UDP_SEND_BUFFER_BYTES
+                    network?.bindSocket(candidate)
+                    return candidate
+                } catch (error: Exception) {
+                    candidate.close()
+                    throw error
+                }
+            }
+            val audioSocket = RebindableSocket(initialNetwork, openAudioSocket(initialNetwork))
+            socket = audioSocket
 
             val samplesPerPacket = SAMPLE_RATE / PACKETS_PER_SECOND
             val pcmBytes = ByteArray(samplesPerPacket * Short.SIZE_BYTES)
@@ -315,10 +331,17 @@ class MicStreamingService : Service() {
                 // Without pacing the sender fires as fast as the queue delivers, which
                 // produces bursts of back-to-back datagrams followed by silence.
                 var nextSendTime = SystemClock.elapsedRealtime()
-                while (coroutineContext.isActive) {
+                var lastNetworkCheck = 0L
+                while (currentCoroutineContext().isActive) {
                     val packet = queue.receiveCatching().getOrNull() ?: break
                     // Sleep in small increments until the next pacing slot arrives.
                     var now = SystemClock.elapsedRealtime()
+                    if (now - lastNetworkCheck >= NETWORK_RECHECK_MS) {
+                        lastNetworkCheck = now
+                        val network = ControlChannel.lanNetwork(this@MicStreamingService)
+                        val refreshed = runCatching { audioSocket.updateNetwork(network, ::openAudioSocket) }
+                        if (refreshed.isSuccess) ControlChannel.refreshNetwork(this@MicStreamingService, runToken, this@MicStreamingService, network)
+                    }
                     while (now < nextSendTime && coroutineContext.isActive) {
                         Thread.sleep(min(5L, nextSendTime - now))
                         now = SystemClock.elapsedRealtime()
@@ -333,11 +356,13 @@ class MicStreamingService : Service() {
                     senderDatagram.setData(packet, 0, packet.size)
                     senderDatagram.socketAddress = sendTarget.endpoint
                     val sendStarted = SystemClock.elapsedRealtime()
-                    runCatching { socket?.send(senderDatagram) }
+                    senderTelemetry.send {
+                        val activeSocket = audioSocket.current() ?: throw IllegalStateException("Audio socket unavailable")
+                        activeSocket.send(senderDatagram)
+                    }
                     val sendMs = (SystemClock.elapsedRealtime() - sendStarted).toInt()
                     if (sendMs > senderTelemetry.maxSendMs) senderTelemetry.maxSendMs = sendMs
                     if (sendMs >= SEND_STALL_THRESHOLD_MS) senderTelemetry.stalls += 1
-                    senderTelemetry.sent += 1
                 }
             }
 
@@ -409,6 +434,7 @@ class MicStreamingService : Service() {
                         it.copy(
                             level = visualLevel,
                             packetsSent = senderTelemetry.sent,
+                            sendErrors = senderTelemetry.errors,
                             packetsDropped = senderTelemetry.dropped,
                             readStalls = readStalls,
                             overruns = overruns,
@@ -467,9 +493,9 @@ class MicStreamingService : Service() {
                             // never heal itself. Turn it back on: a receiver that restarted or
                             // moved cannot be found any other way. Use the active endpoint;
                             // a previous recovery may already have changed its port.
-                            ControlChannel.start(this@MicStreamingService, config.pairingKey,
+                            ControlChannel.startStream(this@MicStreamingService, runToken, this@MicStreamingService, config.pairingKey,
                                 targetPort, probe = true, host = targetHost, allowFallback = allowFallback)
-                            sendCurrentDspOwnership(config)
+                            sendCurrentDspOwnership(config, runToken)
                             StreamingState.update {
                                 it.copy(status = StreamStatus.RECONNECTING, reconnectingSinceMillis = now)
                             }
@@ -477,10 +503,10 @@ class MicStreamingService : Service() {
 
                         LinkAction.RESUME_STREAMING -> {
                             streaming = true
-                            sendCurrentDspOwnership(config)
+                            sendCurrentDspOwnership(config, runToken)
                             reconnects += 1
                             reconnectStartedAt = 0L
-                            ControlChannel.stopProbing()
+                            ControlChannel.stopStreamProbing(this@MicStreamingService, runToken)
                             StreamingState.update {
                                 it.copy(
                                     status = StreamStatus.STREAMING,
@@ -515,9 +541,9 @@ class MicStreamingService : Service() {
                                 targetHost = found.address
                                 targetPort = found.audioPort
                                 // Move control/liveness ownership together with the audio target.
-                                ControlChannel.start(this@MicStreamingService, config.pairingKey,
+                                ControlChannel.startStream(this@MicStreamingService, runToken, this@MicStreamingService, config.pairingKey,
                                     targetPort, probe = true, host = targetHost, allowFallback = allowFallback)
-                                sendCurrentDspOwnership(config)
+                                sendCurrentDspOwnership(config, runToken)
                                 sendTarget.endpoint = java.net.InetSocketAddress(resolved, targetPort)
                                 redirectTo(config.copy(host = targetHost, port = targetPort), found.hostName)
                             }
@@ -554,11 +580,11 @@ class MicStreamingService : Service() {
         }
     }
 
-    private fun sendCurrentDspOwnership(config: MicConfig) {
+    private fun sendCurrentDspOwnership(config: MicConfig, runToken: Any) {
         // ControlChannel resolves the service-owned endpoint; updating start() first makes this
         // safe for background recovery as well as initial capture and redirect.
-        if (config.captureMode == CaptureMode.CUSTOM) ControlChannel.sendConfig(AppPrefs.loadDsp(this))
-        else ControlChannel.releaseDsp()
+        val dsp = if (config.captureMode == CaptureMode.CUSTOM) AppPrefs.loadDsp(this) else null
+        ControlChannel.sendStreamDsp(this, runToken, dsp)
     }
 
     // runStream() verifies RECORD_AUDIO before reaching here; the annotation carries that
@@ -953,6 +979,7 @@ class MicStreamingService : Service() {
 
         /** How often the Wi-Fi lock policy is re-evaluated against the live network. */
         private const val WIFI_POLICY_RECHECK_MS = 10_000L
+        private const val NETWORK_RECHECK_MS = 1_000L
 
         private const val CHANNEL_ID = "mic_stream"
         private const val NOTIFICATION_ID = 10001
@@ -965,9 +992,21 @@ class MicStreamingService : Service() {
  * plain locals because the sender runs on its own coroutine; every field is written by exactly
  * one thread and read at 10 Hz, so @Volatile is all the synchronisation these need.
  */
-private class SenderTelemetry {
+internal class SenderTelemetry {
     @Volatile
     var sent = 0L
+
+    @Volatile
+    var errors = 0L
+
+    fun send(operation: () -> Unit) {
+        try {
+            operation()
+            sent += 1
+        } catch (_: Exception) {
+            errors += 1
+        }
+    }
 
     @Volatile
     var dropped = 0L

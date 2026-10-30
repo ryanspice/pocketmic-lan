@@ -39,6 +39,8 @@ data class StreamingSnapshot(
     val codecNotice: String? = null,
     val level: Float = 0f,
     val packetsSent: Long = 0L,
+    /** Local UDP submission failures; receiver confirmation is a separate signal. */
+    val sendErrors: Long = 0L,
 
     /**
      * Packets the send queue discarded because the sender was behind. Bounded by design — the

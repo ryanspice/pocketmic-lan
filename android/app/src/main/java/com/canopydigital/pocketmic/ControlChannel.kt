@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -71,6 +72,56 @@ sealed interface PeerState {
  * truthful answer instead of an optimistic one.
  */
 object ControlChannel {
+    private val ownership = ControlOwnership()
+    private val mutableIdleAllowed = MutableStateFlow(false)
+    val idleAllowed: StateFlow<Boolean> = mutableIdleAllowed.asStateFlow()
+
+    @Synchronized fun acquireUi(owner: Any) {
+        ownership.acquireUi(owner)
+        mutableIdleAllowed.value = ownership.idleAllowed
+    }
+
+    @Synchronized fun releaseUi(owner: Any) {
+        ownership.releaseUi(owner)
+        mutableIdleAllowed.value = ownership.idleAllowed
+        if (ownership.unused) stop()
+    }
+
+    @Synchronized fun acquireStream(owner: Any) {
+        ownership.acquireStream(owner)
+        mutableIdleAllowed.value = ownership.idleAllowed
+    }
+
+    @Synchronized fun releaseStream(owner: Any) {
+        ownership.releaseStream(owner)
+        mutableIdleAllowed.value = ownership.idleAllowed
+        if (ownership.unused) stop()
+    }
+
+    @Synchronized fun startIdle(owner: Any, context: Context, pairingKey: String, audioPort: Int,
+        host: String, allowFallback: Boolean) {
+        if (ownership.ownsUi(owner) && ownership.idleAllowed) {
+            start(context, pairingKey, audioPort, probe = true, host = host, allowFallback = allowFallback)
+        }
+    }
+
+    @Synchronized fun beginStreamRun(owner: Any, token: Any) { ownership.beginRun(owner, token) }
+
+    @Synchronized fun startStream(owner: Any, token: Any, context: Context, pairingKey: String, audioPort: Int,
+        probe: Boolean, host: String, allowFallback: Boolean) {
+        if (ownership.ownsRun(owner, token)) {
+            start(context, pairingKey, audioPort, probe, host, allowFallback)
+        }
+    }
+
+    @Synchronized fun stopStreamProbing(owner: Any, token: Any) {
+        if (ownership.ownsRun(owner, token)) stopProbing()
+    }
+
+    @Synchronized fun sendStreamDsp(owner: Any, token: Any, dsp: DspSettings?) {
+        if (!ownership.ownsRun(owner, token)) return
+        if (dsp == null) releaseDsp() else sendConfig(dsp)
+    }
     private const val PROBE_INTERVAL_MS = 1_000L
     private const val NOT_FOUND_AFTER_MS = 4_000L
     const val STATS_TIMEOUT_MS = 2_000L
@@ -129,12 +180,14 @@ object ControlChannel {
     private var receiveJob: Job? = null
     private var probeJob: Job? = null
     private var startedPort = 0
+    private var selectedNetwork: Network? = null
     private var dspRevision = 0L
 
     @Synchronized
     fun start(context: Context, pairingKey: String, audioPort: Int, probe: Boolean, host: String = "",
         allowFallback: Boolean = true) {
         val port = ControlProtocol.controlPort(audioPort)
+        val network = lanNetwork(context)
         val nextKey = ControlProtocol.deriveControlKey(pairingKey)
         val identityChanged = startedPort != port || controlKey?.contentEquals(nextKey) != true ||
             preferredHost != host.trim() || preferredPort != audioPort || allowPeerFallback != allowFallback
@@ -146,7 +199,7 @@ object ControlChannel {
         allowPeerFallback = allowFallback
         probing = probe
 
-        if (socket != null && startedPort == port) {
+        if (socket != null && startedPort == port && selectedNetwork == network) {
             if (probe) {
                 restartProbeLoop(context, audioPort)
             } else {
@@ -158,9 +211,10 @@ object ControlChannel {
 
         stopInternal()
         startedPort = port
+        selectedNetwork = network
 
         val bound = runCatching {
-            openControlSocket(port) { lanNetwork(context)?.bindSocket(it) }
+            openControlSocket(port) { network?.bindSocket(it) }
         }.getOrElse { error ->
             mutableBindError.value =
                 "Could not open control port $port (${error.message ?: "unknown"}). " +
@@ -172,6 +226,26 @@ object ControlChannel {
         socket = bound
         receiveJob = scope.launch { receiveLoop(bound) }
         if (probe) restartProbeLoop(context, audioPort)
+    }
+
+    /** Reopen the control socket for a replacement Network without changing peer or key. */
+    @Synchronized
+    fun refreshNetwork(owner: Any, token: Any, context: Context, network: Network?) {
+        if (!ownership.ownsRun(owner, token)) return
+        val port = startedPort
+        if (port == 0 || (socket != null && selectedNetwork == network)) return
+        stopInternal()
+        startedPort = port
+        selectedNetwork = network
+        val bound = runCatching { openControlSocket(port) { network?.bindSocket(it) } }
+            .getOrElse { error ->
+                mutableBindError.value = "Could not reopen control port $port (${error.javaClass.simpleName})."
+                return
+            }
+        mutableBindError.value = null
+        socket = bound
+        receiveJob = scope.launch { receiveLoop(bound) }
+        if (probing) restartProbeLoop(context, preferredPort)
     }
 
     internal fun openControlSocket(port: Int, bindToNetwork: (DatagramSocket) -> Unit): DatagramSocket {
@@ -314,7 +388,10 @@ object ControlChannel {
 
     @Synchronized
     fun stop() {
+        probing = false
         stopInternal()
+        controlKey = null
+        dspRevision += 1
         resetDiscoveryState(searching = false)
     }
 
@@ -326,13 +403,14 @@ object ControlChannel {
         runCatching { socket?.close() }
         socket = null
         startedPort = 0
+        selectedNetwork = null
     }
 
     private suspend fun probeLoop(context: Context, audioPort: Int) {
         val firstProbeAt = SystemClock.elapsedRealtime()
         mutablePeer.value = PeerState.Searching
 
-        while (currentScopeActive() && probing) {
+        while (currentCoroutineContext().isActive && probing) {
             val key = controlKey
             val active = socket
             if (key == null || active == null) break
@@ -381,7 +459,7 @@ object ControlChannel {
 
     private suspend fun receiveLoop(active: DatagramSocket) {
         val buffer = ByteArray(ControlProtocol.FRAME_SIZE)
-        while (currentScopeActive()) {
+        while (currentCoroutineContext().isActive) {
             val packet = DatagramPacket(buffer, buffer.size)
             val received = runCatching { active.receive(packet); true }.getOrElse { false }
             if (!received) {
@@ -472,8 +550,6 @@ object ControlChannel {
         val address = packet.address?.hostAddress ?: return
         mutablePeer.value = PeerState.VersionMismatch(address, version)
     }
-
-    private fun currentScopeActive(): Boolean = scope.isActive
 
     private fun publishReceivers(now: Long) {
         val results = directory.snapshot(now)

@@ -82,6 +82,7 @@
     <string name="diagnostics_status">Rewş</string>
     <string name="diagnostics_destination">Cihê armancê</string>
     <string name="diagnostics_packets_sent">Pakêtên şandî</string>
+    <string name="diagnostics_send_errors">Local send errors</string>
     <string name="diagnostics_queue_drops">Pakêtên winda (rêz)</string>
     <string name="diagnostics_read_stalls">Rawestana xwendinê</string>
     <string name="diagnostics_capture_overruns">Derbasbûna girtinê</string>

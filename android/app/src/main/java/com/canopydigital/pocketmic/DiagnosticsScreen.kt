@@ -233,6 +233,7 @@ private fun StreamingCard(snapshot: StreamingSnapshot) {
             LabelledRow(stringResource(R.string.diagnostics_status), snapshot.status.name)
             LabelledRow(stringResource(R.string.diagnostics_destination), snapshot.destination.ifBlank { "-" })
             LabelledRow(stringResource(R.string.diagnostics_packets_sent), snapshot.packetsSent.toString())
+            LabelledRow(stringResource(R.string.diagnostics_send_errors), snapshot.sendErrors.toString())
             LabelledRow(stringResource(R.string.diagnostics_queue_drops), snapshot.packetsDropped.toString())
             LabelledRow(stringResource(R.string.diagnostics_read_stalls), snapshot.readStalls.toString())
             LabelledRow(stringResource(R.string.diagnostics_capture_overruns), snapshot.overruns.toString())

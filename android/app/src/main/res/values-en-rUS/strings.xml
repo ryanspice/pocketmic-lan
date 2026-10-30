@@ -82,6 +82,7 @@
     <string name="diagnostics_status">Status</string>
     <string name="diagnostics_destination">Destination</string>
     <string name="diagnostics_packets_sent">Packets sent</string>
+    <string name="diagnostics_send_errors">Local send errors</string>
     <string name="diagnostics_queue_drops">Packets dropped (queue)</string>
     <string name="diagnostics_read_stalls">Read stalls</string>
     <string name="diagnostics_capture_overruns">Capture overruns</string>
