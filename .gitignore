@@ -33,3 +33,6 @@ release/
 
 # Task-local scratch work; existing worktrees and release receipts stay preserved.
 workspaces/
+
+# Local agent workspace
+/.ai/

@@ -90,13 +90,26 @@ import kotlin.math.roundToInt
 
 class MainActivity : ComponentActivity() {
     private var incomingPairing by mutableStateOf<QrPairingData?>(null)
+    private var uiStarted by mutableStateOf(false)
+
+    override fun onStart() {
+        super.onStart()
+        ControlChannel.acquireUi(this)
+        uiStarted = true
+    }
+
+    override fun onStop() {
+        uiStarted = false
+        ControlChannel.releaseUi(this)
+        super.onStop()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         incomingPairing = intent.dataString?.let(::parseQrPairingData)
         setContent {
             PocketMicTheme {
-                PocketMicScreen(incomingPairing) {
+                PocketMicScreen(incomingPairing, this@MainActivity, uiStarted) {
                     incomingPairing = null
                     intent.data = null
                 }
@@ -153,7 +166,7 @@ private fun PocketMicTheme(content: @Composable () -> Unit) {
 private enum class InvalidConnectionField { HOST, PORT, KEY }
 
 @Composable
-private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLinkHandled: () -> Unit = {}) {
+private fun PocketMicScreen(incomingPairing: QrPairingData? = null, owner: Any, uiStarted: Boolean, onPairingLinkHandled: () -> Unit = {}) {
     val context = LocalContext.current
     val initial = remember { AppPrefs.load(context) }
     val initialUi = remember { AppPrefs.loadUi(context) }
@@ -163,6 +176,7 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
     val stats by ControlChannel.stats.collectAsState()
     val lastProgressAt by ControlChannel.lastAudioProgressAtMillis.collectAsState()
     val lastStatsAt by ControlChannel.lastStatsAtMillis.collectAsState()
+    val idleAllowed by ControlChannel.idleAllowed.collectAsState()
 
     var host by rememberSaveable { mutableStateOf(initial.host) }
     var portText by rememberSaveable { mutableStateOf(initial.port.toString()) }
@@ -226,11 +240,10 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
     // why suppressing it unconditionally left the app unable to heal itself.
     //
     // MicStreamingService owns probing during capture, including with this activity destroyed.
-    DisposableEffect(pairingKey, port, host, autoConnect, isActive) {
+    DisposableEffect(pairingKey, port, host, autoConnect, isActive, uiStarted, idleAllowed) {
         // The service owns the active endpoint, including any rediscovered port. An activity
         // recomposition must not put its old form values back over a recovered connection.
-        if (!isActive) ControlChannel.start(context, pairingKey, port, probe = true, host = host,
-            allowFallback = autoConnect)
+        if (uiStarted && idleAllowed && !isActive) ControlChannel.startIdle(owner, context, pairingKey, port, host, autoConnect)
         onDispose { }
     }
 
@@ -434,6 +447,7 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, onPairingLin
                 snapshot.error?.let { Text(it, color = Danger, style = MaterialTheme.typography.bodyMedium) }
 
                 ConnectionCard(
+                    idleOwner = owner,
                     autoConnect = autoConnect,
                     onAutoConnectChange = {
                         host = ""
@@ -708,6 +722,7 @@ private fun rememberVpnActive(): Boolean {
 
 @Composable
 private fun ConnectionCard(
+    idleOwner: Any,
     autoConnect: Boolean,
     onAutoConnectChange: (Boolean) -> Unit,
     peer: PeerState,
@@ -909,9 +924,8 @@ private fun ConnectionCard(
             }
             if (enabled) {
                 Text("Available PCs", fontWeight = FontWeight.SemiBold)
-                TextButton(onClick = { ControlChannel.start(context, pairingKey, portText.toIntOrNull()
-                    ?.takeIf { it in MIN_PORT..MAX_PORT } ?: DEFAULT_PORT, probe = true,
-                    host = host, allowFallback = autoConnect) }) {
+                TextButton(onClick = { ControlChannel.startIdle(idleOwner, context, pairingKey, portText.toIntOrNull()
+                    ?.takeIf { it in MIN_PORT..MAX_PORT } ?: DEFAULT_PORT, host, autoConnect) }) {
                     Text("Refresh PCs")
                 }
                 if (receivers.isEmpty()) {

@@ -82,6 +82,7 @@
     <string name="diagnostics_status">دۆخ</string>
     <string name="diagnostics_destination">مەبەست</string>
     <string name="diagnostics_packets_sent">پاکێتە نێردراوەکان</string>
+    <string name="diagnostics_send_errors">Local send errors</string>
     <string name="diagnostics_queue_drops">پاکێتە لەدەستچووەکان (ڕیز)</string>
     <string name="diagnostics_read_stalls">وەستانی خوێندنەوە</string>
     <string name="diagnostics_capture_overruns">تێپەڕینی وەرگرتن</string>
