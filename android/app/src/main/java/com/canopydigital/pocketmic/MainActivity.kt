@@ -15,6 +15,7 @@ import android.os.Bundle
 import android.os.PowerManager
 import android.os.SystemClock
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -527,6 +528,7 @@ private fun PocketMicScreen(incomingPairing: QrPairingData? = null, owner: Any, 
     // Drawn over the main screen rather than routed to, because the app has no navigation graph
     // and adding one for a single diagnostics page would cost more than it explains.
     if (showDiagnostics) {
+        BackHandler { showDiagnostics = false }
         DiagnosticsScreen(onBack = { showDiagnostics = false })
     }
 
